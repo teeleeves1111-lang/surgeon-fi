@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surgeon Financial Independence Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --g:#1D6B52;--lg:#E8F5F0;--lg2:#C4E8DC;
+  --b:#2355A0;--lb:#EBF3FB;
+  --am:#7B4F00;--lam:#FDF3E3;
+  --rd:#8B2020;--lrd:#FCEBEB;
+  --dk:#1A1A1A;--mg:#666;--bg:#F7F7F6;
+  --card:#fff;--bdr:#E4E4E2;
+  --accent:var(--g);
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.att-mode{--accent:var(--b);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px;-webkit-text-size-adjust:100%;}
+.shell{max-width:900px;margin:0 auto;padding:10px 12px;}
+
+/* Mode toggle */
+.mode-bar{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:4px;margin-bottom:12px;}
+.mbtn{padding:9px 8px;border:none;background:none;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;border-radius:9px;color:var(--mg);transition:all 0.2s;text-align:center;}
+.mbtn span{display:block;font-size:10px;font-weight:400;opacity:0.75;margin-top:1px;}
+.mbtn.on{color:white;}
+.mbtn.on.res{background:var(--g);}
+.mbtn.on.att{background:var(--b);}
+
+/* Header */
+.hdr{border-radius:12px;padding:14px 16px;margin-bottom:12px;color:white;}
+.hdr.res{background:linear-gradient(135deg,#1D4A3A,#1D6B52);}
+.hdr.att{background:linear-gradient(135deg,#1A3570,#2355A0);}
+.hdr h1{font-size:16px;font-weight:600;margin-bottom:3px;}
+.hdr p{font-size:11px;opacity:0.82;line-height:1.4;}
+.hdr-row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+.hdr select{flex:1;min-width:160px;font-size:13px;padding:7px 9px;border-radius:8px;border:none;font-family:var(--font);}
+.sal{color:#7FFFD4;font-size:20px;font-weight:700;}
+.sal-r{font-size:10px;opacity:0.75;}
+
+/* Tabs */
+.tabs{display:flex;gap:3px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:8px 14px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:var(--card);color:var(--mg);border-radius:8px;white-space:nowrap;border:1px solid var(--bdr);transition:all 0.15s;flex-shrink:0;}
+.tab.on{color:white;background:var(--accent);border-color:var(--accent);}
+.panel{display:none;}.panel.on{display:block;}
+
+/* Layout */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px;}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:7px;margin-bottom:10px;}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:13px 14px;margin-bottom:10px;}
+.ctitle{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--mg);margin-bottom:9px;}
+
+/* Inputs */
+.sr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.sr label{font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;line-height:1.3;}
+.sr input[type=range]{flex:1;min-width:0;accent-color:var(--accent);}
+.sv{font-size:12px;font-weight:600;color:var(--dk);min-width:60px;text-align:right;}
+.tog{position:relative;width:34px;height:19px;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;}
+.tsl{position:absolute;inset:0;background:var(--bdr);border-radius:19px;cursor:pointer;transition:.2s;}
+.tog input:checked+.tsl{background:var(--accent);}
+.tsl::before{content:'';position:absolute;height:13px;width:13px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+.tog input:checked+.tsl::before{transform:translateX(15px);}
+.trow{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.trow label:first-child{font-size:12px;color:var(--mg);flex:1;}
+.sub-opts{margin-left:8px;margin-top:2px;padding-left:10px;border-left:2px solid var(--lg2);}
+
+/* Metrics */
+.met{background:var(--bg);border-radius:9px;padding:10px 11px;border:1px solid var(--bdr);}
+.ml{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--mg);margin-bottom:3px;}
+.mv{font-size:18px;font-weight:600;line-height:1.1;}
+.ms{font-size:10px;color:var(--mg);margin-top:2px;}
+.good{color:var(--g)!important;}.warn{color:var(--am)!important;}.bad{color:var(--rd)!important;}
+
+/* FU Banner */
+.fu{border-radius:12px;padding:16px 18px;margin-bottom:10px;color:white;}
+.fu.res{background:linear-gradient(135deg,#1D3A52,#1D6B52);}
+.fu.att{background:linear-gradient(135deg,#1A2D6B,#2355A0);}
+.fu h2{font-size:18px;font-weight:700;margin-bottom:3px;}
+.fu p{font-size:11px;opacity:.85;line-height:1.5;margin-bottom:10px;}
+.fu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.fu-cell{background:rgba(255,255,255,.12);border-radius:8px;padding:9px 8px;text-align:center;}
+.fu-num{font-size:21px;font-weight:700;color:#7FFFD4;}
+.fu-num.b{color:#A8D4FF;}
+.fu-lbl{font-size:10px;opacity:.8;margin-top:2px;line-height:1.3;}
+
+/* Path tabs */
+.ptabs{display:flex;gap:4px;margin-bottom:9px;flex-wrap:wrap;}
+.ptab{padding:6px 12px;font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;border:1px solid var(--bdr);background:var(--card);color:var(--mg);transition:all .15s;}
+.ptab.on{background:var(--g);color:white;border-color:var(--g);}
+.ptab.me{background:var(--b);color:white;border-color:var(--b);}
+
+/* Milestone strip */
+.ms-strip{display:flex;overflow-x:auto;margin:10px 0;padding-bottom:4px;scrollbar-width:none;}
+.ms-strip::-webkit-scrollbar{display:none;}
+.ms-item{flex:1;min-width:80px;text-align:center;position:relative;padding:0 2px;}
+.ms-item::after{content:'';position:absolute;top:14px;left:calc(50% + 15px);right:calc(-50% + 15px);height:2px;background:var(--bdr);z-index:0;}
+.ms-item:last-child::after{display:none;}
+.ms-dot{width:28px;height:28px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:11px;position:relative;z-index:1;border:2px solid var(--bdr);background:var(--card);}
+.ms-dot.r{border-color:var(--g);background:var(--lg);}
+.ms-dot.k{border-color:var(--b);background:var(--lb);}
+.ms-dot.y{border-color:var(--am);background:var(--lam);border-width:3px;}
+.ms-age{font-size:11px;font-weight:700;}
+.ms-lbl{font-size:9px;color:var(--mg);line-height:1.3;}
+.ms-sub{font-size:9px;color:var(--g);font-weight:600;}
+
+/* Waterfall */
+.wf{margin:4px 0;}
+.wfr{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.wfl{font-size:11px;color:var(--mg);width:165px;min-width:100px;flex-shrink:0;text-align:right;line-height:1.3;}
+.wfb{flex:1;height:22px;background:var(--bg);border-radius:5px;overflow:hidden;position:relative;border:1px solid var(--bdr);}
+.wfbar{height:100%;border-radius:5px;transition:width .35s ease;}
+.wfamt{position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:600;white-space:nowrap;color:white;}
+.wfp{font-size:10px;color:var(--mg);flex:0 0 28px;text-align:right;}
+.wfr.tot .wfl{font-weight:600;color:var(--dk);}
+
+/* Callout boxes */
+.box{border-radius:9px;padding:10px 13px;margin:9px 0;border-left:4px solid;}
+.box-g{background:var(--lg);border-color:var(--g);}
+.box-b{background:var(--lb);border-color:var(--b);}
+.box-a{background:var(--lam);border-color:var(--am);}
+.box-r{background:var(--lrd);border-color:var(--rd);}
+.box-title{font-size:12px;font-weight:700;margin-bottom:3px;}
+.box-body{font-size:11px;line-height:1.6;color:#444;}
+
+/* Charts */
+.cw{position:relative;margin:8px 0;}
+
+/* OOP items */
+.oop{display:flex;flex-direction:column;gap:5px;}
+.oop-item{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border-radius:8px;border:1px solid var(--bdr);}
+.oop-n{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;color:white;}
+.oop-body{flex:1;}
+.oop-title{font-size:12px;font-weight:600;margin-bottom:1px;}
+.oop-detail{font-size:11px;color:var(--mg);line-height:1.5;}
+.oop-amt{font-size:11px;font-weight:600;flex-shrink:0;padding-top:2px;}
+
+/* Tables */
+.tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.tbl th{background:var(--accent);color:white;padding:6px 8px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--bdr);vertical-align:top;}
+.tbl tr:nth-child(even) td{background:var(--bg);}
+.tbl tr.hl td{background:var(--lg);font-weight:600;color:var(--g);}
+.tbl tr.hl2 td{background:var(--lrd);color:var(--rd);}
+.tbl tr.hl-b td{background:var(--lb);font-weight:600;color:var(--b);}
+
+/* Sensitivity */
+.sens{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:7px;margin:8px 0;}
+.sens-item{background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.sens-l{font-size:11px;color:var(--dk);flex:1;line-height:1.4;}
+.sens-v{font-size:13px;font-weight:700;flex-shrink:0;color:var(--g);}
+
+@media(max-width:500px){
+  .sr label{width:110px;min-width:80px;font-size:11px;}
+  .wfl{width:120px;min-width:90px;}
+  .fu h2{font-size:16px;}
+  .fu-grid{grid-template-columns:repeat(3,1fr);}
+  .hdr h1{font-size:14px;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- MODE -->
+<div class="mode-bar">
+  <button class="mbtn on res" id="btn-res" onclick="setMode('res')">🏥 Resident
+    <span>Planning for attending life</span></button>
+  <button class="mbtn" id="btn-att" onclick="setMode('att')">👨‍⚕️ Attending
+    <span>3–5 years into practice</span></button>
+</div>
+
+<!-- HEADER -->
+<div class="hdr res" id="hdr">
+  <h1 id="hdr-title">Surgeon Financial Independence — Resident View</h1>
+  <p id="hdr-sub">Model your trajectory before your first contract. The decisions you make in years 1–3 determine when call becomes optional.</p>
+  <div class="hdr-row">
+    <select id="spec" onchange="specChanged()">
+      <option value="gen_surg">General Surgery — $461k</option>
+      <option value="trauma">Trauma / Surg Critical Care — $461k</option>
+      <option value="vascular" selected>Vascular Surgery — $556k</option>
+      <option value="ct">Cardiothoracic Surgery — $721k</option>
+      <option value="surg_onc">Surgical Oncology — $500k</option>
+      <option value="endocrine">Endocrine Surgery — $420k</option>
+      <option value="colorectal">Colorectal Surgery — $480k</option>
+      <option value="mis">MIS / Bariatric — $440k</option>
+    </select>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="sal" id="sal">$556k</div>
+        <div class="sal-r" id="sal-r">Doximity avg</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <input type="checkbox" id="sal-override-on" onchange="toggleSalOverride()" style="accent-color:#7FFFD4;width:13px;height:13px;flex-shrink:0">
+        <label for="sal-override-on" style="font-size:10px;color:rgba(255,255,255,0.75);white-space:nowrap">Enter my actual salary</label>
+        <input type="number" id="sal-override" min="100000" max="2000000" step="5000" value="556000"
+          style="display:none;width:90px;font-size:12px;padding:3px 6px;border-radius:5px;border:none;font-family:var(--font)"
+          oninput="go()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabs">
+  <button class="tab on" onclick="tab('reality')">📊 Reality Check</button>
+  <button class="tab" onclick="tab('paths')">🛤️ Three Paths</button>
+  <button class="tab" onclick="tab('action')">⚡ Action Plan</button>
+  <button class="tab" onclick="tab('fi')">🎯 FI Calculator</button>
+</div>
+
+<!-- ═══ TAB 1: REALITY CHECK ═══════════════════════════════════════ -->
+<div id="tab-reality" class="panel on">
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle" id="inp-title">Your situation</div>
+
+      <div class="sr"><label>Current age</label>
+        <input type="range" min="26" max="50" value="29" id="age" oninput="go()">
+        <span class="sv" id="age-v">29</span></div>
+
+      <!-- Resident only -->
+      <div id="res-only">
+        <div class="sr"><label>Years left in training</label>
+          <input type="range" min="0" max="5" value="2" id="yrs-left" oninput="go()">
+          <span class="sv" id="yrs-left-v">2 yrs</span></div>
+      </div>
+
+      <!-- Attending only -->
+      <div id="att-only" style="display:none">
+        <div class="sr"><label>Current savings rate</label>
+          <input type="range" min="3" max="50" value="14" id="att-sr" oninput="go()">
+          <span class="sv" id="att-sr-v">14%</span></div>
+      </div>
+
+      <div class="sr"><label>Current net worth</label>
+        <input type="range" min="-500000" max="1500000" step="25000" value="-260000" id="nw" oninput="go()">
+        <span class="sv" id="nw-v">−$260k</span></div>
+
+      <div class="sr"><label>Partner income</label>
+        <input type="range" min="0" max="400000" step="10000" value="0" id="pinc" oninput="go()">
+        <span class="sv" id="pinc-v">None</span></div>
+
+      <div class="trow"><label>Buying / own a home</label>
+        <label class="tog"><input type="checkbox" id="house" checked onchange="go()"><span class="tsl"></span></label></div>
+      <div id="house-opts" class="sub-opts" style="display:block">
+        <div class="sr"><label>Home price</label>
+          <input type="range" min="500000" max="2500000" step="50000" value="1000000" id="hp" oninput="go()">
+          <span class="sv" id="hp-v">$1.0M</span></div>
+        <div class="sr"><label>Years before buying</label>
+          <input type="range" min="0" max="5" value="0" id="buy-yr" oninput="go()">
+          <span class="sv" id="buy-yr-v">Now</span></div>
+      </div>
+
+      <div class="trow"><label>Children</label>
+        <label class="tog"><input type="checkbox" id="kids" onchange="go()"><span class="tsl"></span></label></div>
+      <div id="kids-opts" class="sub-opts" style="display:none">
+        <div class="sr"><label>Number of children</label>
+          <input type="range" min="1" max="4" value="2" id="nk" oninput="go()">
+          <span class="sv" id="nk-v">2</span></div>
+        <div class="sr"><label>Private school / child / yr</label>
+          <input type="range" min="0" max="60000" step="5000" value="0" id="ps" oninput="go()">
+          <span class="sv" id="ps-v">Public</span></div>
+      </div>
+
+      <div class="trow"><label>Student loans</label>
+        <label class="tog"><input type="checkbox" id="loans" checked onchange="go()"><span class="tsl"></span></label></div>
+      <div id="loans-opts" class="sub-opts">
+        <div class="sr"><label>Balance</label>
+          <input type="range" min="0" max="500000" step="25000" value="275000" id="lb" oninput="go()">
+          <span class="sv" id="lb-v">$275k</span></div>
+        <div class="trow" style="margin-bottom:2px"><label>PSLF eligible (nonprofit)</label>
+          <label class="tog"><input type="checkbox" id="pslf" onchange="go()"><span class="tsl"></span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">Salary waterfall — year 1 attending</div>
+      <div id="waterfall"></div>
+      <div class="g4" id="wf-metrics" style="margin-top:9px"></div>
+    </div>
+  </div>
+  <div id="reality-msg"></div>
+  <div id="att-sens" style="display:none">
+    <div class="card"><div class="ctitle">If I change one thing — years of call saved</div>
+      <div class="sens" id="sensitivity"></div></div>
+  </div>
+</div>
+
+<!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
+<div id="tab-paths" class="panel">
+  <div class="fu res" id="fu">
+    <h2>When can you walk away from call?</h2>
+    <p>Coast FIRE — your portfolio grows to full FI without further contributions. After this, call is optional.</p>
+    <div class="fu-grid" id="fu-grid"></div>
+  </div>
+
+  <div class="ptabs" id="ptabs">
+    <button class="ptab" onclick="setPath(0)">🟢 Ideal — 25%</button>
+    <button class="ptab" onclick="setPath(1)">🟡 Typical — 12%</button>
+    <button class="ptab" onclick="setPath(2)">🔴 Lifestyle creep — 5%</button>
+    <button class="ptab me" onclick="setPath(3)">📍 My path</button>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Net worth trajectory — <span id="path-lbl">Ideal</span></div>
+    <div class="cw" style="height:230px"><canvas id="paths-chart"></canvas></div>
+    <div class="ms-strip" id="ms-strip"></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">What produces this path</div>
+      <div id="path-desc"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">All paths compared</div>
+      <table class="tbl" id="compare-tbl"></table>
+      <div style="margin-top:10px">
+        <div class="ctitle">Monthly spending behind each path</div>
+        <table class="tbl" id="spend-tbl"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB 3: ACTION PLAN ══════════════════════════════════════════ -->
+<div id="tab-action" class="panel">
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle" id="ideal-title">Ideal monthly allocation</div>
+      <div id="ops-ideal"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Typical / mediocre path</div>
+      <div id="ops-typical"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Priority order — do these in sequence, every month</div>
+    <div id="priority-list"></div>
+  </div>
+
+  <div class="box box-r">
+    <div class="box-title" style="color:var(--rd)">The worst path</div>
+    <div class="box-body">Luxury car lease day 1. House year 1. Kids in private school immediately. Loan minimums only. Invest whatever is left — usually nothing. Each felt like a reward. Together they cost 10–15 years of mandatory call.</div>
+  </div>
+
+  <div class="card" style="margin-top:10px">
+    <div class="ctitle" id="chk-title">First-year checklist</div>
+    <div id="checklist"></div>
+  </div>
+
+  <div class="card" style="margin-top:10px">
+    <div class="ctitle">Year 1 account breakdown — where your 20% actually goes</div>
+    <div id="acct-breakdown"></div>
+  </div>
+</div>
+
+<!-- ═══ TAB 4: FI CALCULATOR ════════════════════════════════════════ -->
+<div id="tab-fi" class="panel">
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Your targets</div>
+      <div class="sr"><label>Savings rate (% gross)</label>
+        <input type="range" min="5" max="50" value="25" id="fi-sr" oninput="calcFI()">
+        <span class="sv" id="fi-sr-v">25%</span></div>
+      <div class="sr"><label>Retirement spending / yr</label>
+        <input type="range" min="60000" max="300000" step="5000" value="130000" id="fi-spend" oninput="calcFI()">
+        <span class="sv" id="fi-spend-v">$130k</span></div>
+      <div class="sr"><label>Target retirement age</label>
+        <input type="range" min="48" max="70" value="60" id="fi-ret" oninput="calcFI()">
+        <span class="sv" id="fi-ret-v">60</span></div>
+      <div class="sr"><label>Real return (inflation-adj)</label>
+        <input type="range" min="4" max="8" step="0.5" value="5" id="fi-rr" oninput="calcFI()">
+        <span class="sv" id="fi-rr-v">5%</span></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Results</div>
+      <div class="g3" id="fi-metrics"></div>
+    </div>
+  </div>
+
+  <div class="cw" style="height:220px"><canvas id="fi-chart"></canvas></div>
+  <div id="fi-msg"></div>
+
+  <!-- Savings rate reference table -->
+  <div class="card" style="margin-top:10px">
+    <div class="ctitle">WCI savings rate reference — physician-specific timelines</div>
+    <div class="box box-g" style="margin-bottom:8px">
+      <div class="box-body">WCI guideline: <strong>20% gross → comfortable retirement by end of career.</strong> 25–30% → retire in your 50s. 35%+ → retire before 55. Social Security at 70 (~$30–50k/yr for a surgeon) is not included — it makes retirement easier than shown.</div>
+    </div>
+    <table class="tbl" id="sr-tbl"></table>
+  </div>
+
+  <!-- Attending sensitivity -->
+  <div id="fi-sens" style="display:none">
+    <div class="card" style="margin-top:10px">
+      <div class="ctitle">What changing my savings rate does to Coast FIRE age</div>
+      <div class="sens" id="fi-sensitivity"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+<script>
+var SPECS={
+  gen_surg:{n:"General Surgery",sal:461000,lo:300000,hi:580000},
+  trauma:{n:"Trauma / Surg Crit Care",sal:461000,lo:380000,hi:550000},
+  vascular:{n:"Vascular Surgery",sal:556000,lo:420000,hi:700000},
+  ct:{n:"Cardiothoracic Surgery",sal:721000,lo:550000,hi:950000},
+  surg_onc:{n:"Surgical Oncology",sal:500000,lo:380000,hi:640000},
+  endocrine:{n:"Endocrine Surgery",sal:420000,lo:320000,hi:560000},
+  colorectal:{n:"Colorectal Surgery",sal:480000,lo:360000,hi:620000},
+  mis:{n:"MIS / Bariatric",sal:440000,lo:320000,hi:580000}
+};
+
+var MODE='res',curPath=3;
+var pathChrt=null,fiChrt=null;
+
+function $(id){return document.getElementById(id);}
+function fk(n){
+  if(n===undefined||isNaN(n))return '$0';
+  var neg=n<0,a=Math.abs(Math.round(n));
+  var s=a>=1e6?'$'+(a/1e6).toFixed(1)+'M':a>=1000?'$'+Math.round(a/1000)+'k':'$'+a;
+  return neg?'−'+s:s;
+}
+function sp(){
+  var base=SPECS[$('spec').value];
+  var overrideOn=$('sal-override-on')&&$('sal-override-on').checked;
+  var overrideVal=overrideOn?parseInt($('sal-override').value)||base.sal:base.sal;
+  // Return a copy with potentially overridden salary
+  return{n:base.n, sal:overrideVal, lo:base.lo, hi:base.hi,
+    overridden:overrideOn&&overrideVal!==base.sal};
+}
+function startAge(){return MODE==='res'?(+$('age').value + +$('yrs-left').value):+$('age').value;}
+function startNW(){return +$('nw').value;}
+function actualSR(){return MODE==='att'?+$('att-sr').value/100:0.25;}
+
+function fedTax(g){
+  // 2025 MFJ -- bracket WIDTHS, standard deduction $29,200
+  var br=[[23200,.10],[71100,.12],[106750,.22],[182850,.24],[103550,.32],[243750,.35],[1e9,.37]];
+  var tx=Math.max(0,g-29200),t=0,p=0;
+  for(var i=0;i<br.length;i++){if(tx>p)t+=(Math.min(tx,p+br[i][0])-p)*br[i][1];p+=br[i][0];if(tx<=p)break;}
+  return Math.round(t);
+}
+function stateTax(g){
+  // NJ 2024 tax brackets -- widths (same for all filing statuses)
+  var br=[[20000,.014],[15000,.0175],[5000,.035],[35000,.05525],[425000,.0637],[500000,.0897],[1e9,.1075]];
+  var t=0,p=0;
+  for(var i=0;i<br.length;i++){if(g>p)t+=(Math.min(g,p+br[i][0])-p)*br[i][1];p+=br[i][0];if(g<=p)break;}
+  return Math.round(t);
+}
+function fica(g){return Math.round(g*.0145+Math.max(0,g-200000)*.009);}
+function mtg12(price,rate){
+  var loan=price*.80,mr=rate/100/12;
+  return Math.round(loan*(mr*Math.pow(1+mr,360))/(Math.pow(1+mr,360)-1))*12;
+}
+
+// ── MODE ─────────────────────────────────────────────────────────
+function setMode(m){
+  MODE=m;
+  document.body.className=m==='att'?'att-mode':'';
+  $('btn-res').className='mbtn'+(m==='res'?' on res':'');
+  $('btn-att').className='mbtn'+(m==='att'?' on att':'');
+  $('hdr').className='hdr '+(m==='res'?'res':'att');
+  $('hdr-title').textContent=m==='res'?
+    'Surgeon Financial Independence — Resident View':
+    'Surgeon Financial Independence — Attending View';
+  $('hdr-sub').textContent=m==='res'?
+    'Model your trajectory before your first contract. Years 1–3 determine when call becomes optional.':
+    'See where you stand today, where each path leads, and which single change moves the needle most.';
+  $('res-only').style.display=m==='res'?'block':'none';
+  $('att-only').style.display=m==='att'?'block':'none';
+  $('att-sens').style.display=m==='att'?'block':'none';
+  $('fi-sens').style.display=m==='att'?'block':'none';
+  $('inp-title').textContent=m==='res'?'Your situation':'Your current situation';
+  // Sensible default NW for attending
+  if(m==='att'&&+$('nw').value<-100000){
+    $('nw').value=150000;
+    if(!$('house').checked) $('house').checked=true;
+  }
+  if(m==='res'&&+$('nw').value>200000){
+    $('nw').value=-260000;
+  }
+  // Sync FI tab savings rate slider to attending's actual SR
+  if(m==='att'){
+    $('fi-sr').value = $('att-sr').value;
+    $('fi-sr-v').textContent = $('att-sr').value+'%';
+  } else {
+    $('fi-sr').value = 25;
+    $('fi-sr-v').textContent = '25%';
+  }
+  go();
+}
+
+function tab(id){
+  document.querySelectorAll('.tab').forEach(function(t,i){
+    t.classList.toggle('on',['reality','paths','action','fi'][i]===id);
+  });
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  $('tab-'+id).classList.add('on');
+  if(id==='paths')calcPaths();
+  if(id==='action')calcAction();
+  if(id==='fi')calcFI();
+}
+
+function setPath(n){
+  curPath=n;
+  document.querySelectorAll('.ptab').forEach(function(t,i){
+    var isMe=i===3;
+    if(isMe)t.classList.toggle('me',n===3);
+    else t.classList.toggle('on',i===n&&n!==3);
+    if(n===3)t.classList.remove('on');
+  });
+  calcPaths();
+}
+
+// ── SHARED COSTS ──────────────────────────────────────────────────
+function getCosts(){
+  var s=sp();
+  var pinc=+$('pinc').value;
+  var gross=s.sal+pinc;
+  var fed=fedTax(s.sal)+(pinc>0?fedTax(pinc)*.65:0);
+  var st=stateTax(s.sal)+(pinc>0?stateTax(pinc)*.65:0);
+  var med=fica(s.sal)+(pinc>0?Math.round(pinc*.0145):0);
+  var taxes=fed+st+med;
+  var houseOn=$('house').checked;
+  var hp=+$('hp').value;
+  var buyYr=houseOn?+$('buy-yr').value:0;
+  // ownHousing = full ownership cost (always computed for Three Paths post-buy phase)
+  var ownHousing=houseOn?mtg12(hp,6.75)+Math.round(hp*.0115)+Math.round(hp*.0035)+Math.round(hp*.01):0;
+  // housing = current cost: 0 if planning to buy later (currently renting)
+  var housing=houseOn&&buyYr===0?ownHousing:0;
+  // annualRent = estimated rent while waiting to buy (~4% of home price/yr)
+  var annualRent=houseOn&&buyYr>0?Math.round(hp*0.04):0;
+  var loansOn=$('loans').checked;
+  var lb=+$('lb').value;
+  var pslf=$('pslf').checked;
+  var loanPay=loansOn?(pslf?Math.round(Math.max(0,(s.sal-20000)*.10)):Math.round(lb/10)):0;
+  var kidsOn=$('kids').checked;
+  var nk=+$('nk').value;
+  var psVal=+$('ps').value;
+  var childcare=kidsOn?nk*30000:0;
+  var privsch=kidsOn&&psVal>0?nk*psVal:0;
+  var living=70000,disc=36000,cars=36000;
+  // lifestyleAdd only applies once owning (zero during renting phase)
+  var lifestyleAdd=houseOn&&buyYr===0?Math.round(Math.max(0,hp-1000000)*0.10):0;
+  var total=taxes+housing+annualRent+loanPay+childcare+privsch+living+disc+cars+lifestyleAdd;
+  var left=gross-total;
+  var srPct=gross>0?Math.round(Math.max(0,left)/gross*100):0;
+  return{s,gross,taxes,housing,annualRent,ownHousing,hp,houseOn,buyYr,loanPay,loansOn,lb,pslf,
+    childcare,privsch,kidsOn,nk,psVal,living,disc,cars,lifestyleAdd,total,left,srPct,pinc};
+}
+
+// ── SALARY OVERRIDE ──────────────────────────────────────────────
+function specChanged(){
+  // When specialty changes, reset override to match new specialty
+  var s=SPECS[$('spec').value];
+  $('sal-override').value=s.sal;
+  go();
+}
+
+function toggleSalOverride(){
+  var on=$('sal-override-on').checked;
+  $('sal-override').style.display=on?'inline-block':'none';
+  if(on){
+    // Pre-fill with current specialty salary so they can edit from there
+    $('sal-override').value=SPECS[$('spec').value].sal;
+    $('sal-override').focus();
+  }
+  go();
+}
+
+// ── MAIN ──────────────────────────────────────────────────────────
+function go(){
+  var s=sp();
+  $('sal').textContent=fk(s.sal);
+  $('sal-r').textContent=s.overridden?'Custom salary entered':'Range: '+fk(s.lo)+'–'+fk(s.hi);
+
+  // Sync sliders
+  $('age-v').textContent=$('age').value;
+  if(MODE==='res') $('yrs-left-v').textContent=$('yrs-left').value+' yrs';
+  if(MODE==='att') $('att-sr-v').textContent=$('att-sr').value+'%';
+  $('nw-v').textContent=fk(+$('nw').value);
+  $('pinc-v').textContent=+$('pinc').value>0?fk(+$('pinc').value):'None';
+  $('house-opts').style.display=$('house').checked?'block':'none';
+  $('hp-v').textContent=fk(+$('hp').value);
+  if($('house').checked){var byv=+$('buy-yr').value;$('buy-yr-v').textContent=byv===0?'Now':'Yr '+byv;}
+  $('kids-opts').style.display=$('kids').checked?'block':'none';
+  $('nk-v').textContent=$('nk').value;
+  $('ps-v').textContent=+$('ps').value>0?fk(+$('ps').value)+'/child':'Public';
+  $('loans-opts').style.display=$('loans').checked?'block':'none';
+  $('lb-v').textContent=fk(+$('lb').value);
+
+  calcWaterfall();
+  calcPaths();
+  // Refresh active tab if it's action or fi (so specialty changes reflect)
+  var activePanel = document.querySelector('.panel.on');
+  if(activePanel && activePanel.id === 'tab-action') calcAction();
+  if(activePanel && activePanel.id === 'tab-fi') calcFI();
+}
+
+// ── WATERFALL ─────────────────────────────────────────────────────
+function calcWaterfall(){
+  var c=getCosts();
+  var houseOn=c.houseOn,hp=c.hp,housing=c.housing;
+  var downNeeded=houseOn?Math.round(hp*0.23):0;
+  var nwNow=startNW();
+  // dpAlert only fires when buying immediately (buyYr=0) and can't cover the down payment
+  var dpAlert=houseOn&&c.buyYr===0&&downNeeded>0&&downNeeded>nwNow;
+  // Years to accumulate down payment while renting (4% of home price = typical NJ annual rent)
+  var annualRent=houseOn?Math.round(hp*0.04):0;
+  var noHouseSav=c.gross-c.taxes-c.loanPay-c.childcare-c.privsch-c.living-c.disc-c.cars-annualRent;
+  var dpGap=Math.max(0,downNeeded-Math.max(0,nwNow));
+  var dpYrs=dpAlert&&noHouseSav>0?Math.ceil(dpGap/noHouseSav):null;
+  var kTotal=c.childcare+c.privsch;
+  var items=[
+    {l:'Gross income',a:c.gross,col:'#1D6B52',inc:true},
+    {l:'Federal + state + Medicare',a:c.taxes,col:'#C0392B',p:Math.round(c.taxes/c.gross*100)},
+    c.houseOn&&c.buyYr===0?{l:'Housing (PITI + maint.)',a:c.housing,col:'#E67E22',p:Math.round(c.housing/c.gross*100),note:'+'+fk(downNeeded)+' cash at closing'}:null,
+    c.houseOn&&c.buyYr>0?{l:'Rent (until attending yr '+c.buyYr+')',a:c.annualRent,col:'#E8A020',p:Math.round(c.annualRent/c.gross*100),note:'Buying '+fk(hp)+' in yr '+c.buyYr+' — saves '+fk(Math.max(0,c.ownHousing-c.annualRent))+'/yr vs owning now'}:null,
+    c.loansOn&&c.loanPay>0?{l:'Student loans',a:c.loanPay,col:'#E8A020',p:Math.round(c.loanPay/c.gross*100)}:null,
+    c.kidsOn&&kTotal>0?{l:'Children'+(c.psVal>0?' + school':''),a:kTotal,col:'#8E44AD',p:Math.round(kTotal/c.gross*100)}:null,
+    {l:'Cars + living + discretionary',a:c.cars+c.living+c.disc,col:'#7F8C8D',p:Math.round((c.cars+c.living+c.disc)/c.gross*100)},
+    c.houseOn&&c.lifestyleAdd>0?{l:'Lifestyle premium (home-correlated)',a:c.lifestyleAdd,col:'#9B5940',p:Math.round(c.lifestyleAdd/c.gross*100),note:'furnishings, utilities, crews — scales with home value'}:null,
+    c.left>=0?{l:'Available to invest',a:c.left,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:c.srPct}:null,
+    c.left<0?{l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true}:null,
+  ].filter(Boolean);
+
+  $('waterfall').innerHTML=items.map(function(it){
+    var w=Math.max(2,Math.round(Math.abs(it.a)/c.gross*100));
+    return '<div class="wfr'+(it.res||it.bad?' tot':'')+'">'+
+      '<div class="wfl">'+it.l+(it.note?'<br><span style="font-size:9px;color:var(--am)">'+it.note+'</span>':'')+'</div>'+
+      '<div class="wfb"><div class="wfbar" style="width:'+w+'%;background:'+it.col+'"></div>'+
+        '<span class="wfamt">'+fk(it.a)+(it.p?' ('+it.p+'%)':'')+'</span></div>'+
+      '<div class="wfp">'+(it.p&&!it.inc?it.p+'%':'')+'</div></div>';
+  }).join('');
+
+  var cls=c.srPct>=20?'good':c.srPct>=12?'warn':'bad';
+  $('wf-metrics').innerHTML=[
+    {l:'Savings rate',v:c.srPct+'%',s:dpAlert?'on paper — down payment not yet saved':c.buyYr>0?'renting now — buying yr '+c.buyYr:'of gross',c:dpAlert?'warn':cls},
+    {l:'Investable / yr',v:fk(Math.max(0,c.left)),s:c.left<=0?'spending > income':'after all costs',c:c.left>0?'good':'bad'},
+    {l:'Total household',v:fk(c.gross),s:c.pinc>0?'surgeon + partner':'surgeon only',c:''},
+    {l:'Tax burden',v:fk(c.taxes),s:Math.round(c.taxes/c.gross*100)+'% of gross',c:'bad'},
+  ].map(function(m){
+    return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';
+  }).join('');
+
+  // Coast FIRE estimate for waterfall callout — compare current rate vs 25% ideal and 12% typical
+  var rr=0.05,sa=startAge(),nwv=startNW();
+  var effectiveSR=MODE==='att'?+$('att-sr').value:Math.max(c.srPct,1);
+  var sav=Math.round(c.s.sal*effectiveSR/100);
+  var wfFI=3250000,wfCT=wfFI/Math.pow(1+rr,65-sa),nw2=nwv,coastEst=null;
+  for(var i=0;i<50;i++){nw2=Math.round(nw2*(1+rr)+sav);if(nw2>=wfCT){coastEst=sa+i+1;break;}}
+  // Compute coast at 25% ideal and 12% typical for call-years comparison
+  var sav25=Math.round(c.s.sal*0.25),nw25=nwv,coast25=null;
+  for(var j=0;j<50;j++){nw25=Math.round(nw25*(1+rr)+sav25);if(nw25>=wfCT){coast25=sa+j+1;break;}}
+  var sav12=Math.round(c.s.sal*0.12),nw12=nwv,coast12=null;
+  for(var j=0;j<50;j++){nw12=Math.round(nw12*(1+rr)+sav12);if(nw12>=wfCT){coast12=sa+j+1;break;}}
+  var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>past age 70</strong>';
+  var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(70-coast25):null);
+  var callYrsLine=extraVsIdeal?'That is <strong>'+extraVsIdeal+' extra years</strong> of mandatory call vs the 25% path.':
+    (coastEst&&coast25&&coastEst<=coast25)?'On pace with the ideal 25% path.':'';
+
+  // Use actual savings rate for message threshold in attending mode
+  var displaySR=MODE==='att'?+$('att-sr').value:c.srPct;
+  var msg='';
+  if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|Call is not optional until '+coastAge+'. '+callYrsLine+' '+(MODE==='att'?'The sensitivity panel below shows which single change moves the needle most.':'This is what the lifestyle creep path looks like. It improves as loans pay off and childcare ends — but only if spending stays flat. Do not let this become permanent.');
+  else if(displaySR<20) msg='box-a|Below the 20% WCI target|Call becomes optional at '+coastAge+(extraVsIdeal?' — <strong>'+extraVsIdeal+' years later</strong> than the 25% path.':'. ')+' Biggest levers: '+(c.houseOn?'home price (each $200k less frees ~$14k/yr), ':'')+( c.kidsOn&&c.psVal>0?'private school ($'+Math.round(c.psVal/1000)+'k/child/yr), ':'')+'partner income, delaying the next car upgrade.';
+  else msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12?' — <strong>'+(coast12-(coastEst||65))+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 401k ($24,500) + backdoor Roth ($7,500) = $32,000 tax-advantaged first. Add HSA ($8,750 family) only if on HDHP — most hospital surgeons have PPO, so verify before counting on it.';
+  // Down payment feasibility warning
+  var dpWarning='';
+  if(houseOn && downNeeded > 0){
+    if(c.buyYr > 0){
+      // Forward-project NW to year of purchase at current (pre-buy) savings rate
+      var nwAtBuy=nwNow;
+      for(var byi=0;byi<c.buyYr;byi++) nwAtBuy=Math.round(nwAtBuy*1.05+c.left);
+      var canAfford=nwAtBuy>=downNeeded;
+      dpWarning='<div class="box '+(canAfford?'box-g':'box-a')+'" style="margin-top:8px">'+
+        '<div class="box-title" style="color:'+(canAfford?'var(--g)':'var(--am)')+'">'+
+        (canAfford?'✓ Down payment on track for year '+c.buyYr:'⚠ Down payment gap at year '+c.buyYr)+'</div>'+
+        '<div class="box-body">'+fk(hp)+' home needs <strong>'+fk(downNeeded)+'</strong> at closing. '+
+        'Projecting at current savings rate, estimated NW by attending year '+c.buyYr+': <strong>'+fk(Math.max(0,nwAtBuy))+'</strong>. '+
+        (canAfford?'Enough to cover the down payment. Waiting also lets you learn the area and your group before committing.':
+          'Still <strong>'+fk(Math.max(0,downNeeded-Math.max(0,nwAtBuy)))+' short</strong>. Options: lower home price, wait one more year, or physician loan (0–10% down, higher rate).')+
+        '</div></div>';
+    } else if(downNeeded > nwNow){
+      var dpYrsStr=dpYrs?(dpYrs<=1?'Renting and saving hard, you can accumulate the down payment in <strong>roughly 1 year</strong>. ':'Renting and saving hard, it takes roughly <strong>'+dpYrs+' years</strong> to accumulate the down payment before this purchase is feasible. '):'';
+      dpWarning='<div class="box box-r" style="margin-top:8px">'+
+        '<div class="box-title" style="color:var(--rd)">⚠ Not yet affordable — down payment gap</div>'+
+        '<div class="box-body">A '+fk(hp)+' home requires <strong>'+fk(downNeeded)+'</strong> cash at closing (20% down + 3% closing costs). '+
+        'Current net worth is '+fk(nwNow)+' — that gap must be saved first. '+
+        dpYrsStr+
+        '<strong>The savings rate shown above assumes this home is already owned.</strong> It does not reflect the years of saving required to get the down payment. '+
+        'Physician loan programs (0–10% down, no PMI) exist but carry higher rates — WCI still recommends 20% down and waiting at least 2 years to know your area and group.</div></div>';
+    } else if(c.buyYr===0&&housing/c.gross > 0.28){
+      dpWarning='<div class="box box-a" style="margin-top:8px">'+
+        '<div class="box-title" style="color:var(--am)">Housing above 28% guideline</div>'+
+        '<div class="box-body">Total housing cost is '+Math.round(housing/c.gross*100)+'% of gross salary — above the recommended 28%. '+
+        'On a '+fk(c.s.sal)+' salary, the WCI guideline suggests keeping total housing under '+fk(Math.round(c.gross*0.28))+'/yr ('+fk(Math.round(c.gross*0.28/12))+'/mo). '+
+        'Consider: '+fk(Math.round(c.gross*0.28/(0.80*(6.75/100/12*Math.pow(1+6.75/100/12,360))/(Math.pow(1+6.75/100/12,360)-1)*12+0.0115+0.0035+0.01))).replace('k','')+'k home price would hit the 28% mark.</div></div>';
+    }
+  }
+
+  var parts=msg.split('|');
+  $('reality-msg').innerHTML='<div class="box '+parts[0]+'"><div class="box-title" style="color:'+(parts[0].includes('g')?'var(--g)':parts[0].includes('a')?'var(--am)':'var(--rd)')+'">'+parts[1]+'</div><div class="box-body">'+parts[2]+'</div></div>'+dpWarning;
+
+  // Attending sensitivity
+  if(MODE==='att'){
+    var curSR=+$('att-sr').value;
+    function coastAtSR(sr2){
+      var s2=Math.round(c.s.sal*sr2/100),nw3=startNW(),ct2=wfFI/Math.pow(1+rr,65-startAge());
+      for(var j=0;j<40;j++){nw3=Math.round(nw3*(1+rr)+s2);if(nw3>=ct2)return startAge()+j+1;}
+      return null;
+    }
+    var base=coastAtSR(curSR);
+    var sens=[20,25,30,35].map(function(sr){
+      var c2=coastAtSR(sr);
+      return{l:'Increase to '+sr+'% savings',delta:base&&c2&&sr>curSR?base-c2:null,coast:c2};
+    }).filter(function(x){return x.delta>0;});
+    if(c.kidsOn&&c.psVal>0) sens.push({l:'Public school (save '+fk(c.nk*c.psVal)+'/yr)',delta:Math.round(c.nk*c.psVal/c.s.sal*8)});
+    if(!c.pinc&&c.pinc===0) sens.push({l:'Partner income ($150k)',delta:4});
+    $('sensitivity').innerHTML=sens.length?sens.map(function(s){
+      return '<div class="sens-item"><div class="sens-l">'+s.l+'</div><div class="sens-v">−'+s.delta+' yr'+(s.delta!==1?'s':'')+'</div></div>';
+    }).join(''):'<div style="font-size:12px;color:var(--mg)">Already on a strong path. Stay consistent.</div>';
+  }
+}
+
+// ── THREE PATHS ────────────────────────────────────────────────────
+function calcPaths(){
+  var s=sp(),rr=0.05,yrs=38;
+  var sa=startAge(),nwStart=startNW();
+  var retSpend=+$('fi-spend').value||130000;
+  var fi=retSpend*25;
+  var c=getCosts();
+  var mySavRaw=c.left; // actual investable dollars from waterfall (can be negative)
+  var mySR=c.srPct;
+
+  // Post-buy savings for My Path when purchase is delayed (otherwise same as mySavRaw)
+  var postBuyLeft=mySavRaw,downPayment=0;
+  if(c.houseOn&&c.buyYr>0){
+    var pbLifestyle=Math.round(Math.max(0,c.hp-1000000)*0.10);
+    postBuyLeft=c.gross-c.taxes-c.ownHousing-pbLifestyle-c.loanPay-c.childcare-c.privsch-c.living-c.disc-c.cars;
+    downPayment=Math.round(c.hp*0.23);
+  }
+
+  // All 4 paths start from user's actual age and NW.
+  // Generic paths apply a hypothetical savings rate — shows what lifestyle choices cost in years.
+  // My Path uses the actual dollars left after all costs from Reality Check.
+  var paths=[
+    {n:'Ideal — 25%',sr:.25,col:'#1D6B52',bg:'rgba(29,158,117,0.08)'},
+    {n:'Typical — 12%',sr:.12,col:'#E8A020',bg:'rgba(232,160,32,0.08)'},
+    {n:'Lifestyle creep — 5%',sr:.05,col:'#C0392B',bg:'rgba(192,57,43,0.08)'},
+    {n:'My path — '+mySR+'%',sr:null,col:'#2355A0',bg:'rgba(35,85,160,0.08)',isMe:true},
+  ];
+
+  var labels=[],datasets=[],msAll=[];
+  paths.forEach(function(path,pi){
+    var ms={zero:null,million:null,coast:null,fi:null};
+    var coastTarget=fi/Math.pow(1+rr,65-sa);
+
+    // Per-year savings: My Path phases from pre-buy to post-buy at purchase year
+    function yrSav(yr){
+      if(!path.isMe) return Math.round(s.sal*path.sr);
+      return (c.houseOn&&c.buyYr>0&&yr>=c.buyYr)?postBuyLeft:mySavRaw;
+    }
+
+    var nwPre=nwStart;
+    for(var j=0;j<60;j++){
+      if(path.isMe&&c.houseOn&&c.buyYr>0&&j===c.buyYr) nwPre-=downPayment;
+      nwPre=Math.round(nwPre*(1+rr)+yrSav(j));
+      var agePost=sa+j+1;
+      if(!ms.zero&&nwPre>=0) ms.zero=agePost;
+      if(!ms.million&&nwPre>=1e6) ms.million=agePost;
+      if(!ms.coast&&nwPre>=coastTarget) ms.coast=agePost;
+      if(!ms.fi&&nwPre>=fi) ms.fi=agePost;
+      if(ms.zero&&ms.million&&ms.coast&&ms.fi) break;
+    }
+
+    var data=[],nwChart=nwStart;
+    for(var i=0;i<=yrs;i++){
+      if(pi===0) labels.push(sa+i);
+      if(path.isMe&&c.houseOn&&c.buyYr>0&&i===c.buyYr) nwChart-=downPayment;
+      nwChart=Math.round(nwChart*(1+rr)+yrSav(i));
+      data.push(Math.round(nwChart/1000));
+    }
+
+    msAll.push(ms);
+    var isActive=pi===curPath;
+    datasets.push({label:path.n,data,borderColor:path.col,backgroundColor:path.bg,
+      tension:.3,fill:isActive,pointRadius:0,borderWidth:isActive?3:1.5,
+      borderDash:!isActive?[5,3]:[],order:isActive?0:1});
+  });
+
+  var idealms=msAll[0],typms=msAll[1],crpms=msAll[2],mems=msAll[3];
+
+  // FU banner — anchored to My Path milestones
+  var fu=$('fu'); fu.className='fu '+(MODE==='res'?'res':'att');
+  $('fu-grid').innerHTML=
+    '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(mems.coast||'—')+'</div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🏁 Coast FIRE<br>Stop saving — portfolio self-funds<br><span style="opacity:0.7">At your current savings rate</span></div></div>'+
+    '<div class="fu-cell"><div class="fu-num" style="color:#FFD580">'+(mems.coast&&mems.fi?mems.coast+'–'+mems.fi:'—')+'</div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">📞 Call optionality window<br>Depends on fixed cost burden<br><span style="opacity:0.7">At 25% ideal: '+(idealms.coast||'—')+'–'+(idealms.fi||'—')+'</span></div></div>'+
+    '<div class="fu-cell"><div class="fu-num" style="color:#7FFFD4">'+(mems.fi||'—')+'</div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🎯 Full FI<br>Work completely optional<br><span style="opacity:0.7">'+fk(fi)+' portfolio</span></div></div>';
+
+  // Milestone strip — active path
+  var msSel=msAll[Math.min(curPath,3)];
+  $('ms-strip').innerHTML='<div class="ms-strip">'+[
+    {a:sa,l:'Today',dot:MODE==='att'?'y':''},
+    {a:msSel.zero,l:msSel.zero?'Age '+msSel.zero:'—',sub:'Zero NW',dot:msSel.zero?'r':''},
+    {a:msSel.million,l:msSel.million?'Age '+msSel.million:'—',sub:'$1M milestone',dot:msSel.million?'r':''},
+    {a:msSel.coast,l:msSel.coast?'Age '+msSel.coast:'—',sub:'Coast FIRE',sub2:'Call opt if low expenses',dot:msSel.coast?'k':''},
+    {a:msSel.fi,l:msSel.fi?'Age '+msSel.fi:'—',sub:'Full FI',sub2:'Call opt if high expenses',dot:msSel.fi?'k':''},
+  ].map(function(m){
+    return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
+      (m.dot==='k'?'⭐':m.dot==='r'?'✓':m.dot==='y'?'📍':'◎')+'</div>'+
+      '<div class="ms-age">'+m.l+'</div><div class="ms-lbl">'+(m.sub||'')+'</div>'+
+      (m.sub2?'<div class="ms-sub">'+m.sub2+'</div>':'')+
+    '</div>';
+  }).join('')+'</div>';
+
+  // Path descriptions
+  var descs=[
+    ['25% gross savings — automated day 1','Student loans paid aggressively, gone by year 8','Home year 3 ($1M) after finances stable','Kids in public school','Drive residency car through year 2'],
+    ['12% savings — 401k maxed, lifestyle expanded','Loans on slow 15-year payoff','Home year 2 ($1.3M) before fully settled','One child in private school: $40k/yr','Financed car year 2: $1,300/mo'],
+    ['5% savings — income absorbed by lifestyle','Loan minimums indefinitely','Home year 1 ($1.6M) before knowing the area','Two kids in private school: $80k/yr','Luxury car leases: $2,000/mo'],
+    ['Your actual '+mySR+'% — '+fk(Math.round(mySavRaw))+'/yr investable'+(c.houseOn&&c.buyYr>0?' (renting now)':''),
+     'Net worth today: '+fk(nwStart),
+     c.houseOn?(c.buyYr>0?'Buying '+fk(+$('hp').value)+' in attending year '+c.buyYr+' — renting until then':'Home: '+fk(+$('hp').value)):'Renting — keeping costs flexible',
+     $('kids').checked&&+$('ps').value>0?'Private school: '+fk(+$('ps').value)+'/child/yr':'Public school or no children',
+     $('loans').checked?'Student loans: '+fk(+$('lb').value)+' remaining':'Loans paid off'],
+  ];
+  var cols=['var(--g)','var(--am)','var(--rd)','var(--b)'];
+  var icons=['✓','▸','✗','📍'];
+  var ci=Math.min(curPath,3);
+  $('path-desc').innerHTML='<ul style="list-style:none;padding:0">'+
+    descs[ci].map(function(d){
+      return '<li style="display:flex;gap:8px;margin-bottom:7px;align-items:flex-start">'+
+        '<span style="color:'+cols[ci]+';font-size:14px;flex-shrink:0">'+icons[ci]+'</span>'+
+        '<span style="font-size:12px;line-height:1.5">'+d+'</span></li>';
+    }).join('')+'</ul>';
+
+  // Comparison table — 4 columns always
+  var meSavGap=Math.round(s.sal*.25)-mySavRaw;
+  $('compare-tbl').innerHTML=
+    '<tr><th>Milestone</th><th style="color:#7FFFD4">Ideal 25%</th><th style="color:#FFD580">Typical 12%</th><th style="color:#FF8080">Creep 5%</th><th style="color:#A8D4FF">My path '+mySR+'%</th></tr>'+
+    [['🏁 Coast FIRE — stop saving',function(m){return m.coast||'—';},'hl-b'],
+     ['🎯 Full FI — '+fk(fi),function(m){return m.fi||'—';},'hl'],
+     ['Extra call vs Ideal 25%',function(m,i){
+       if(i===0) return 'Baseline';
+       var idealFI=idealms.fi||75,thisFI=m.fi||75;
+       return (!m.fi?'Past '+idealFI:thisFI===idealFI?'Same':('+'+(thisFI-idealFI)+' yrs'));
+     },'hl2'],
+    ].map(function(row){
+      return '<tr class="'+row[2]+'"><td>'+row[0]+'</td>'+
+        [idealms,typms,crpms,mems].map(function(m,i){return '<td>'+row[1](m,i)+'</td>';}).join('')+'</tr>';
+    }).join('')+
+    (meSavGap>5000?'<tr><td colspan="5" style="font-size:9px;color:#FF8080;padding-top:5px">'+
+    '⚠ To reach Ideal path: '+fk(Math.round(meSavGap))+'/yr more savings needed — the cost of current lifestyle choices.</td></tr>':
+    '<tr><td colspan="5" style="font-size:9px;color:#1D6B52;padding-top:5px">'+
+    '✓ Your savings meets or exceeds the 25% Ideal benchmark.</td></tr>')+
+    '<tr><td colspan="5" style="font-size:9px;color:var(--mg);padding-top:5px">'+
+    'Call optionality window: Coast FIRE to Full FI age. Low expenses → Coast FIRE may suffice. High expenses → need Full FI. Biggest lever: fixed cost burden when you drop call.</td></tr>';
+
+  // Spending table — 4 columns with My Path actuals
+  var idSav=Math.round(s.sal*.25/12),typSav=Math.round(s.sal*.12/12),crpSav=Math.round(s.sal*.05/12);
+  var myHousing=c.housing>0?fk(Math.round(c.housing/12)):'$0 (renting)';
+  var myLoan=c.loanPay>0?fk(Math.round(c.loanPay/12)):'$0 (paid)';
+  var myKids=c.childcare+c.privsch>0?fk(Math.round((c.childcare+c.privsch)/12)):'$0';
+  $('spend-tbl').innerHTML='<tr><th>Category</th><th style="color:#7FFFD4">Ideal/mo</th><th style="color:#FFD580">Typical/mo</th><th style="color:#FF8080">Creep/mo</th><th style="color:#A8D4FF">My path/mo</th></tr>'+
+    [['Savings / invested',fk(idSav),fk(typSav),fk(crpSav),mySavRaw>0?fk(Math.round(mySavRaw/12)):'$0 (none left)'],
+     ['Housing','$0→$6.5k yr3','$9,500 yr2','$11,000 yr1',myHousing],
+     ['Loans','$3,000 aggr.','$2,500 slow','$1,200 min.',myLoan],
+     ['Cars','$300 (old car)','$1,300 (loan)','$2,000 (lease)',fk(Math.round(36000/12))],
+     ['Kids & school','public only','$3,300 (1 priv)','$6,700 (2 priv)',myKids],
+     ['Coast FIRE age',idealms.coast||'—',typms.coast||'—',crpms.coast||'—',mems.coast||'—'],
+    ].map(function(r,ri){
+      return '<tr'+(ri===5?' class="hl"':'')+'><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td></tr>';
+    }).join('');
+
+  // Chart
+  if(pathChrt) pathChrt.destroy();
+  pathChrt=new Chart($('paths-chart'),{type:'line',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:10}},
+        y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return v>=0?'$'+v+'k':'−$'+Math.abs(v)+'k'},font:{size:10}}}}}});
+  $('path-lbl').textContent=paths[curPath].n;
+}
+
+// ── ACTION PLAN ────────────────────────────────────────────────────
+function calcAction(){
+  var s=sp(),sal=s.sal;
+  var fed=fedTax(sal),st=stateTax(sal),med=fica(sal);
+  var th=sal-fed-st-med,mo=Math.round(th/12);
+
+  var ideal=[
+    {n:1,t:'401k / 403b — max before first paycheck',d:'$24,500/yr (2026). Pre-tax. Reduces state + federal income. Call HR on day 1.',a:Math.round(24500/12),c:'#1D6B52'},
+    {n:2,t:'HSA — only if employer offers HDHP',d:'$8,750 family (2026). Triple tax advantage. Most hospital surgeons have standard PPO — verify before counting on this.',a:Math.round(8750/12),c:'#1D6B52'},
+    {n:3,t:'Emergency fund → Ally / Fidelity HYSA',d:'3–6 months expenses. Auto-transfer monthly until $25–40k reached. Currently ~3.5–4.0% APY.',a:2200,c:'#2355A0'},
+    {n:4,t:'Backdoor Roth IRA — $7,500 on January 2nd',d:'Traditional IRA → immediate Roth conversion. Every year without exception. Tax-free growth forever.',a:Math.round(7500/12),c:'#2355A0'},
+    {n:5,t:'Student loans — PSLF or refinance + attack',d:'Nonprofit: IBR minimum, invest the rest. Private practice: refinance, pay off in 10 years. Decide on day 1.',a:Math.round(30000/12),c:'#E8A020'},
+    {n:6,t:'Down payment savings → HYSA bucket',d:'2–3 year runway before buying. 20% down target to avoid PMI.',a:2000,c:'#8B4513'},
+    {n:7,t:'Taxable brokerage — Vanguard / Fidelity / Schwab',d:'Buy VTI (US market, 0.03%) + VXUS (international, 0.07%). Auto-invest everything remaining. No contribution limit.',a:Math.max(0,mo-Math.round(24500/12)-Math.round(8750/12)-2200-Math.round(7500/12)-Math.round(30000/12)-2000),c:'#1D6B52'},
+  ];
+  var typical=[
+    {n:1,t:'401k — partial (gets the match only)',d:'Leaves significant tax savings on table.',a:Math.round(8000/12),c:'#E8A020'},
+    {n:2,t:'Mortgage — $1.3M home, year 2',d:'First big fixed cost. Difficult to undo.',a:9500,c:'#C0392B'},
+    {n:3,t:'Loan minimums only',d:'$2,500/mo but balance barely moves.',a:2500,c:'#E8A020'},
+    {n:4,t:'Car lease — two vehicles',d:'$2,200/mo. No equity. Fixed for 3 years.',a:2200,c:'#C0392B'},
+    {n:5,t:'Lifestyle / discretionary',d:'Expands to match peer spending.',a:5000,c:'#888'},
+    {n:6,t:'Left to invest',d:'Whatever remains — often nothing.',a:Math.max(0,mo-Math.round(8000/12)-9500-2500-2200-5000),c:'#1D6B52'},
+  ];
+
+  function renderList(items,id){
+    $(id).innerHTML='<div class="oop">'+items.map(function(it){
+      var bg=it.c==='#C0392B'?'var(--lrd)':it.c==='#1D6B52'?'var(--lg)':it.c==='#2355A0'?'var(--lb)':it.c==='#E8A020'?'var(--lam)':'var(--bg)';
+      return '<div class="oop-item" style="background:'+bg+'">'+
+        '<div class="oop-n" style="background:'+it.c+'">'+it.n+'</div>'+
+        '<div class="oop-body"><div class="oop-title">'+it.t+'</div><div class="oop-detail">'+it.d+'</div></div>'+
+        (it.a>0?'<div class="oop-amt" style="color:'+it.c+'">'+fk(it.a)+'/mo</div>':'')+
+      '</div>';
+    }).join('')+'</div>';
+  }
+  renderList(ideal,'ops-ideal');
+  renderList(typical,'ops-typical');
+
+  var priority=[
+    {n:1,t:'401k to employer match',d:'Free money. Always first.',c:'#1D6B52'},
+    {n:2,t:'HSA if on HDHP plan',d:'Verify with HR. $8,750 family (2026). Triple tax.',c:'#1D6B52'},
+    {n:3,t:'Emergency fund → HYSA',d:'$25–40k. One-time goal.',c:'#2355A0'},
+    {n:4,t:'Max 401k to $24,500',d:'Before lifestyle expands.',c:'#1D6B52'},
+    {n:5,t:'Backdoor Roth — $7,500/yr',d:'January 2nd. Every year.',c:'#2355A0'},
+    {n:6,t:'Loan strategy: PSLF or refinance + attack',d:'Decide day one. Never just let it ride.',c:'#E8A020'},
+    {n:7,t:'Down payment savings → HYSA',d:'2–3 yr runway before buying.',c:'#8B4513'},
+    {n:8,t:'Taxable brokerage — VTI + VXUS',d:'Everything remaining. Auto-invest.',c:'#1D6B52'},
+    {n:'🛡',t:'Disability insurance — before leaving residency',d:'Own-occupation. Guaranteed issue in training — no medical exam required. Window closes when you graduate.',c:'#8B2020'},
+    {n:'🛡',t:'Term life if you have dependents',d:'$1–2M coverage, 20–30 yr term. ~$30–60/mo. No whole life or IUL.',c:'#8B2020'},
+    {n:'🛡',t:'Umbrella liability — $1–2M',d:'~$200–300/yr. Essential once you have assets.',c:'#8B2020'},
+    {n:'✗',t:'No luxury car lease year 1',d:'Drive the residency car. Buy used with cash in year 3.',c:'#8B2020'},
+    {n:'✗',t:'No home purchase year 1–2',d:'Wait. You do not know your situation yet.',c:'#8B2020'},
+  ];
+  $('priority-list').innerHTML='<div class="oop">'+priority.map(function(it){
+    var bg=it.c==='#8B2020'?'var(--lrd)':it.c==='#1D6B52'?'var(--lg)':it.c==='#2355A0'?'var(--lb)':'var(--bg)';
+    return '<div class="oop-item" style="background:'+bg+'">'+
+      '<div class="oop-n" style="background:'+it.c+';font-size:'+(typeof it.n==='string'?'13':'11')+'px">'+it.n+'</div>'+
+      '<div class="oop-body"><div class="oop-title">'+it.t+'</div><div class="oop-detail">'+it.d+'</div></div>'+
+    '</div>';
+  }).join('')+'</div>';
+
+  // Checklist
+  var isAtt=MODE==='att';
+  $('chk-title').textContent=isAtt?'Attending audit — where do you actually stand?':'Pre-attending checklist';
+  var chkItems=isAtt?[
+    {u:false,i:'✅',t:'Confirm 401k is maxed at $24,500',d:'Verify with HR — many attendings set a percentage and miss the max.',w:'Verify now'},
+    {u:false,i:'✅',t:'Backdoor Roth executed this January',d:'$7,500 contributed → converted. If not done, you have until tax filing deadline.',w:'January each year'},
+    {u:false,i:'📊',t:'Know your actual savings rate',d:'Divide total invested annually by gross salary. Most attendings overestimate by 5–8 points.',w:'Calculate this week'},
+    {u:false,i:'🎯',t:'Know your Coast FIRE number',d:'Use the FI Calculator tab. Track this quarterly — watching it approach is motivating.',w:'Calculate now'},
+    {u:false,i:'📋',t:'Student loan strategy — is it still optimal?',d:'PSLF: annual employer certification filed? Private: is current rate still competitive?',w:'Review annually'},
+    {u:false,i:'🛡️',t:'Disability insurance — coverage adequate?',d:'Income has likely grown. Coverage should reflect current salary. Own-occupation, owned personally.',w:'Annual review'},
+    {u:false,i:'🏠',t:'Housing cost as % of gross',d:'PITI + maintenance should be under 28% of gross. If above 35%, this is the primary savings rate constraint.',w:'Calculate now'},
+  ]:[
+    {u:true,i:'🚨',t:'Disability insurance — guaranteed issue window',d:'Get own-occupation disability insurance before you leave residency. No medical exam. This window closes permanently when you graduate.',w:'Final year of residency'},
+    {u:false,i:'📋',t:'Enroll in SAVE / IBR — confirm PSLF eligibility',d:'Keeps payments low in residency. These years count toward PSLF if you go nonprofit.',w:'PGY-4 or 5'},
+    {u:false,i:'💰',t:'Open Roth IRA — contribute $7,500',d:'While in a low tax bracket. Vanguard or Fidelity. Do this every year of residency.',w:'Each January in residency'},
+    {u:false,i:'📞',t:'Call HR on day 1 — max the 401k',d:'Before your first paycheck. You cannot reclaim missed pay periods.',w:'Day 1 of attending job'},
+    {u:false,i:'🔄',t:'Backdoor Roth — $7,500 on January 2nd',d:'Traditional IRA → immediate conversion. Every year. Non-negotiable.',w:'January of attending year 1'},
+    {u:false,i:'🏦',t:'Open HYSA — Ally, Marcus, or Fidelity',d:'Emergency fund. Auto-transfer monthly. 3–6 months of expenses.',w:'Month 1 of attending'},
+    {u:false,i:'📖',t:'Read WCI book before signing your contract',d:'The White Coat Investor. Written by an EM physician for physicians.',w:'Before first contract'},
+    {u:false,i:'🏠',t:'Do NOT buy a home for 2 years',d:'You do not know your area, group, or schedule yet.',w:'Ongoing — resist'},
+    {u:false,i:'🚗',t:'Do NOT lease a luxury car in year 1',d:'Drive the residency car. Buy used with cash in year 3.',w:'The 12-month rule'},
+  ];
+  $('checklist').innerHTML=chkItems.map(function(it){
+    var bg=it.u?'var(--lrd)':'var(--card)';
+    return '<div class="oop-item" style="background:'+bg+';margin-bottom:5px">'+
+      '<div style="font-size:18px;flex-shrink:0">'+it.i+'</div>'+
+      '<div class="oop-body"><div class="oop-title">'+it.t+'</div><div class="oop-detail">'+it.d+'</div></div>'+
+      '<div style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:'+(it.u?'var(--lrd)':'var(--bg)')+';color:'+(it.u?'var(--rd)':'var(--mg)')+';white-space:nowrap;flex-shrink:0;margin-top:2px">'+it.w+'</div>'+
+    '</div>';
+  }).join('');
+
+  // Account breakdown
+  var targetSR=isAtt?+$('att-sr').value:20;
+  var targetSav=Math.round(sal*targetSR/100);
+  var k401=24500,roth=7500,hsa=8750;
+  var remainNo=Math.max(0,targetSav-k401-roth);
+  var remainWith=Math.max(0,targetSav-k401-roth-hsa);
+  $('acct-breakdown').innerHTML=
+    '<div style="font-size:11px;color:var(--mg);margin-bottom:8px">'+sp().n+' ('+fk(sal)+') at '+targetSR+'% gross savings rate = '+fk(targetSav)+'/yr</div>'+
+    '<table class="tbl"><tr><th>Account</th><th>Annual</th><th>Monthly</th><th>Note</th></tr>'+
+    [{a:'401k / 403b',v:k401,n:'Pre-tax. Reduces state + federal income.'},
+     {a:'Backdoor Roth IRA',v:roth,n:'Jan 2nd every year. Tax-free growth.'},
+     {a:'HSA (if HDHP — verify first)',v:hsa,n:'Triple tax advantage. Most hospital surgeons have PPO — check.'},
+     {a:'Taxable brokerage (no HSA)',v:remainNo,n:'VTI + VXUS. Vanguard/Fidelity/Schwab. Auto-invest.'},
+     {a:'Taxable brokerage (with HSA)',v:remainWith,n:'If HSA is available.'},
+     {a:'Total at '+targetSR+'%',v:targetSav,n:targetSR+'% of '+fk(sal)+' gross',bold:true},
+    ].map(function(r){
+      return '<tr style="'+(r.bold?'background:var(--lg);font-weight:600':'')+'">'+
+        '<td>'+r.a+'</td><td>'+fk(r.v)+'/yr</td><td>'+fk(Math.round(r.v/12))+'/mo</td>'+
+        '<td style="font-size:10px;color:var(--mg)">'+r.n+'</td></tr>';
+    }).join('')+'</table>';
+}
+
+// ── FI CALCULATOR ─────────────────────────────────────────────────
+function calcFI(){
+  var s=sp();
+  var sr=+$('fi-sr').value/100; $('fi-sr-v').textContent=Math.round(sr*100)+'%';
+  var spend=+$('fi-spend').value; $('fi-spend-v').textContent=fk(spend);
+  var retAge=+$('fi-ret').value; $('fi-ret-v').textContent=retAge;
+  var rr=+$('fi-rr').value/100; $('fi-rr-v').textContent=(rr*100).toFixed(1)+'%';
+  var sa=startAge(),nwStart=startNW();
+  var savings=Math.round(s.sal*sr);
+  var fi=spend*25;
+  var coastFI=Math.round(fi/Math.pow(1+rr,retAge-sa));
+  var labels=[],nws=[],coastL=[],fiL=[];
+  var nw=nwStart,coastYr=null,fiYr=null,coastReached=false;
+  for(var i=0;i<=45;i++){
+    var a=sa+i;
+    labels.push(a);nws.push(Math.round(nw/1000));
+    coastL.push(Math.round(coastFI/1000));fiL.push(Math.round(fi/1000));
+    if(!coastReached&&nw>=coastFI){coastReached=true;coastYr=a;}
+    if(!fiYr&&nw>=fi)fiYr=a;
+    nw=Math.round(nw*(1+rr)+((!coastReached||a<(coastYr||retAge))?savings:0));
+  }
+
+  var acc=MODE==='att'?'var(--b)':'var(--g)';
+  $('fi-metrics').innerHTML=[
+    {l:'Coast FIRE target',v:fk(coastFI),s:'stop saving — portfolio grows alone',c:''},
+    {l:'Coast FIRE age',v:coastYr?'age '+coastYr:'past 70',s:'financial pressure ends',c:coastYr&&coastYr<52?'good':coastYr&&coastYr<58?'warn':'bad'},
+    {l:'Full FI target',v:fk(fi),s:'25× retirement spending',c:''},
+    {l:'Full FI age',v:fiYr?'age '+fiYr:'past 77',s:'work completely optional',c:fiYr&&fiYr<62?'good':fiYr&&fiYr<68?'warn':'bad'},
+    {l:'Annual savings',v:fk(savings),s:Math.round(sr*100)+'% of gross',c:sr>=.2?'good':sr>=.12?'warn':'bad'},
+    {l:'Safe withdrawal',v:fk(fi*.04),s:'4% of portfolio at FI',c:''},
+  ].map(function(m){
+    return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';
+  }).join('');
+
+  if(fiChrt) fiChrt.destroy();
+  fiChrt=new Chart($('fi-chart'),{type:'line',data:{labels,datasets:[
+    {label:'Your portfolio',data:nws,borderColor:acc,backgroundColor:MODE==='att'?'rgba(35,85,160,0.08)':'rgba(29,158,117,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
+    {label:'Coast FIRE',data:coastL,borderColor:'#E8A020',borderDash:[6,3],pointRadius:0,borderWidth:1.5,fill:false},
+    {label:'Full FI',data:fiL,borderColor:'#C0392B',borderDash:[3,3],pointRadius:0,borderWidth:1.5,fill:false},
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:10}},
+      y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return v>=0?'$'+v+'k':'−$'+Math.abs(v)+'k'},font:{size:10}}}}}});
+
+  var bxCls=MODE==='att'?'box-b':'box-g';
+  var ttlCol=MODE==='att'?'var(--b)':'var(--g)';
+  $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
+    (fiYr?'FI at '+fiYr+' — call optional at '+(coastYr||'?'):'Extend your timeline')+
+    '</div><div class="box-body">'+
+    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(s.sal)+', you hit Coast FIRE at age <strong>'+(coastYr||'past 70')+'</strong> and full FI at <strong>'+fiYr+'</strong>. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
+    (coastYr?'Coast FIRE reached at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
+    'At this savings rate, Coast FIRE and full FI are both beyond the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
+    '</div></div>';
+
+  // Savings rate reference table
+  // Reference table uses fixed realistic assumptions regardless of slider values
+  // so the table is always honest and comparable
+  var tblFI = 3250000; // $130k/yr spending x 25 — realistic surgeon
+  var tblRet = 65;     // standard career end
+  var tblSA = 32;      // start practice at 32
+  var tblNW = -250000; // student loans at start
+
+  function calcTL(grossPct){
+    var an=Math.round(s.sal*grossPct/100);
+    var ct=tblFI/Math.pow(1.05,tblRet-tblSA);
+    var nw2=tblNW,cy=null,fy=null;
+    for(var j=0;j<50;j++){
+      nw2=Math.round(nw2*(1.05)+an);
+      if(!cy&&nw2>=ct) cy=tblSA+j+1;
+      if(!fy&&nw2>=tblFI) fy=tblSA+j+1;
+      if(cy&&fy) break;
+    }
+    return{coast:cy,fi:fy};
+  }
+
+  function coastColor(age){
+    if(!age) return 'var(--rd)';
+    return age<50?'var(--g)':age<58?'var(--am)':'var(--rd)';
+  }
+  function coastDisp(age){ return age?'age '+age:'past 70'; }
+  function fiDisp(age){ return age?'age '+age:'past 70'; }
+
+  var curSRpct=Math.round(sr*100);
+  $('sr-tbl').innerHTML='<tr><th>Gross savings rate</th><th>Coast FIRE age*</th><th>Full FI age*</th><th>WCI benchmark</th></tr>'+
+    [5,10,15,20,25,30,35,40,50].map(function(r){
+      var t=calcTL(r),hi=Math.abs(r-curSRpct)<3;
+      return '<tr'+(hi?' class="hl"':'')+'><td>'+(hi?'→ ':'')+r+'%'+(hi?' (you)':'')+'</td>'+
+        '<td style="color:'+coastColor(t.coast)+';font-weight:'+(t.coast&&t.coast<55?'600':'400')+'">'+coastDisp(t.coast)+'</td>'+
+        '<td>'+fiDisp(t.fi)+'</td>'+
+        '<td style="font-size:10px;color:'+(r>=30?'var(--g)':r>=20?'var(--am)':'var(--mg)')+'">'+
+          (r>=30?'WCI: retire early':r>=20?'WCI: end of career':r>=15?'Borderline':'Below target')+'</td></tr>';
+    }).join('')+
+    '<tr><td colspan="4" style="font-size:9px;color:var(--mg);padding-top:5px">'+
+    '* Fixed assumptions: '+sp().n+' salary ('+fk(s.sal)+'), start age 32, NW −$250k, 5% real return, $3.25M FI number ($130k/yr spending), retire at 65. '+
+    'Social Security at 70 (~$30–50k/yr for a surgeon) not included — reduces portfolio needed in late retirement.</td></tr>';
+
+  // Attending sensitivity
+  if(MODE==='att'){
+    var curSR2=+$('att-sr').value;
+    $('fi-sensitivity').innerHTML=[20,25,30,35].map(function(testSR){
+      var t=calcTL(testSR);
+      var base=calcTL(curSR2);
+      var delta=base.coast&&t.coast?base.coast-t.coast:null;
+      return testSR>curSR2&&delta!==null?
+        '<div class="sens-item"><div class="sens-l">Savings rate: <strong>'+testSR+'%</strong></div>'+
+        '<div class="sens-v">Call optional at '+t.coast+' (−'+delta+' yrs)</div></div>':'';
+    }).join('');
+    $('fi-sens').style.display='block';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+go();
+</script>
+</body>
+</html>
