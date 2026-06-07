@@ -276,6 +276,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
         <div class="trow" style="margin-bottom:2px"><label>PSLF eligible (nonprofit)</label>
           <label class="tog"><input type="checkbox" id="pslf" onchange="go()"><span class="tsl"></span></label></div>
       </div>
+
+      <div class="trow" style="margin-top:8px;gap:6px;">
+        <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;">Car costs</label>
+        <select id="car-cost" onchange="go()" style="flex:1;font-size:12px;padding:5px 7px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--fg);font-family:var(--font);">
+          <option value="0">Residency car — $0/mo</option>
+          <option value="4800">Modest used — $400/mo</option>
+          <option value="14400" selected>One financed car — $1,200/mo</option>
+          <option value="24000">One luxury lease — $2,000/mo</option>
+          <option value="33600">Two luxury leases — $2,800/mo</option>
+        </select>
+      </div>
     </div>
 
     <div class="card">
@@ -548,7 +559,7 @@ function getCosts(){
   var psVal=+$('ps').value;
   var childcare=kidsOn?nk*30000:0;
   var privsch=kidsOn&&psVal>0?nk*psVal:0;
-  var living=70000,disc=36000,cars=36000;
+  var living=70000,disc=36000,cars=+$('car-cost').value;
   // lifestyleAdd only applies once owning (zero during renting phase)
   var lifestyleAdd=houseOn&&buyYr===0?Math.round(Math.max(0,hp-1000000)*0.10):0;
   var total=taxes+housing+annualRent+loanPay+childcare+privsch+living+disc+cars+lifestyleAdd;
@@ -627,7 +638,8 @@ function calcWaterfall(){
     c.houseOn&&c.buyYr>0?{l:'Rent (until attending yr '+c.buyYr+')',a:c.annualRent,col:'#E8A020',p:Math.round(c.annualRent/c.gross*100),note:'Buying '+fk(hp)+' in yr '+c.buyYr+' — saves '+fk(Math.max(0,c.ownHousing-c.annualRent))+'/yr vs owning now'}:null,
     c.loansOn&&c.loanPay>0?{l:'Student loans',a:c.loanPay,col:'#E8A020',p:Math.round(c.loanPay/c.gross*100)}:null,
     c.kidsOn&&kTotal>0?{l:'Children'+(c.psVal>0?' + school':''),a:kTotal,col:'#8E44AD',p:Math.round(kTotal/c.gross*100)}:null,
-    {l:'Cars + living + discretionary',a:c.cars+c.living+c.disc,col:'#7F8C8D',p:Math.round((c.cars+c.living+c.disc)/c.gross*100)},
+    c.cars>0?{l:'Cars',a:c.cars,col:'#7F8C8D',p:Math.round(c.cars/c.gross*100)}:null,
+    {l:'Living + discretionary',a:c.living+c.disc,col:'#95A5A6',p:Math.round((c.living+c.disc)/c.gross*100)},
     c.houseOn&&c.lifestyleAdd>0?{l:'Lifestyle premium (home-correlated)',a:c.lifestyleAdd,col:'#9B5940',p:Math.round(c.lifestyleAdd/c.gross*100),note:'furnishings, utilities, crews — scales with home value'}:null,
     c.left>=0?{l:'Available to invest',a:c.left,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:c.srPct}:null,
     c.left<0?{l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true}:null,
