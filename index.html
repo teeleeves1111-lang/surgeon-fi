@@ -211,6 +211,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <button class="tab" onclick="tab('paths')">🛤️ Three Paths</button>
   <button class="tab" onclick="tab('action')">⚡ Action Plan</button>
   <button class="tab" onclick="tab('fi')">🎯 FI Calculator</button>
+  <button class="tab" onclick="tab('loans')">🎓 Student Loans</button>
+  <button class="tab" onclick="tab('rent')">🏠 Rent vs Buy</button>
 </div>
 
 <!-- ═══ TAB 1: REALITY CHECK ═══════════════════════════════════════ -->
@@ -238,7 +240,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
       </div>
 
       <div class="sr"><label>Current net worth</label>
-        <input type="range" min="-500000" max="1500000" step="25000" value="-260000" id="nw" oninput="go()">
+        <input type="range" min="-1000000" max="1500000" step="25000" value="-260000" id="nw" oninput="go()">
         <span class="sv" id="nw-v">−$260k</span></div>
 
       <div class="sr"><label>Partner income</label>
@@ -271,7 +273,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
         <label class="tog"><input type="checkbox" id="loans" checked onchange="go()"><span class="tsl"></span></label></div>
       <div id="loans-opts" class="sub-opts">
         <div class="sr"><label>Balance</label>
-          <input type="range" min="0" max="500000" step="25000" value="275000" id="lb" oninput="go()">
+          <input type="range" min="0" max="1000000" step="25000" value="275000" id="lb" oninput="go()">
           <span class="sv" id="lb-v">$275k</span></div>
         <div class="trow" style="margin-bottom:2px"><label>PSLF eligible (nonprofit)</label>
           <label class="tog"><input type="checkbox" id="pslf" onchange="go()"><span class="tsl"></span></label></div>
@@ -418,6 +420,177 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   </div>
 </div>
 
+<!-- ═══ TAB 5: STUDENT LOANS ══════════════════════════════════════════ -->
+<div id="tab-loans" class="panel">
+  <div class="box box-r">
+    <div class="box-title" style="color:var(--rd)">⚠ SAVE is gone — the 2026 landscape changed dramatically</div>
+    <div class="box-body">SAVE was struck down by federal courts and will not return. IBR and the new RAP plan (July 1, 2026) are now the primary income-driven options. Critically: non-PSLF income-driven forgiveness is now taxable income. Know your strategy before you sign your first contract.</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Your loan situation</div>
+      <div class="sr"><label>Loan balance</label>
+        <input type="range" min="0" max="1000000" step="25000" value="275000" id="sl-bal" oninput="calcLoans()">
+        <span class="sv" id="sl-bal-v">$275k</span></div>
+      <div class="sr"><label>Federal interest rate</label>
+        <input type="range" min="3" max="12" step="0.1" value="8.1" id="sl-rate" oninput="calcLoans()">
+        <span class="sv" id="sl-rate-v">8.1%</span></div>
+      <div class="trow"><label>PSLF-eligible employer</label>
+        <label class="tog"><input type="checkbox" id="sl-pslf" onchange="calcLoans()"><span class="tsl"></span></label></div>
+      <div class="sr"><label>Years left in training</label>
+        <input type="range" min="0" max="7" value="2" id="sl-yrs-left" oninput="calcLoans()">
+        <span class="sv" id="sl-yrs-left-v">2 yrs</span></div>
+      <div id="sl-pslf-opts" style="display:none">
+        <div class="sr"><label>PSLF qualifying years already made</label>
+          <input type="range" min="0" max="9" value="0" id="sl-qual-done" oninput="calcLoans()">
+          <span class="sv" id="sl-qual-done-v">0 yrs</span></div>
+      </div>
+      <div class="sr"><label>Private refi rate</label>
+        <input type="range" min="3" max="8" step="0.1" value="5" id="sl-refi" oninput="calcLoans()">
+        <span class="sv" id="sl-refi-v">5.0%</span></div>
+      <div style="font-size:10px;color:var(--mg);margin-top:4px;line-height:1.5">Assumes $65k residency salary for IDR payment calc. Specialty salary (above) used for attending phase.</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">What changed in 2026</div>
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:12px;line-height:1.55">
+        <div><span style="font-weight:600;color:var(--rd)">SAVE — eliminated.</span> Struck down by federal courts. Borrowers moved to IBR or interest-only forbearance. No reinstatement expected.</div>
+        <div><span style="font-weight:600;color:var(--b)">RAP — new July 1, 2026.</span> Repayment Assistance Plan. Tiered payments: 1% of income at $10k, scaling to 10% at $100k+. Qualifies for PSLF. Lower than IBR for residents.</div>
+        <div><span style="font-weight:600;color:var(--g)">IBR — still available.</span> 10% of discretionary income (AGI minus ~$22,500). Lower than RAP for high-earning attendings. Qualifies for PSLF.</div>
+        <div><span style="font-weight:600;color:var(--g)">PSLF — intact.</span> 120 qualifying payments at a nonprofit / government employer → 100% tax-free forgiveness. Best deal in medicine if your employer qualifies.</div>
+        <div><span style="font-weight:600;color:var(--rd)">Non-PSLF IDR forgiveness — now taxable.</span> Carrying loans 20–25 years on IBR/RAP without PSLF now triggers a taxable forgiveness event. For a surgeon, that could mean a $200–600k+ tax bill in retirement. The old "low payment, wait it out" strategy is now a trap.</div>
+        <div><span style="font-weight:600;color:var(--mg)">Federal rate 2026–27: ~8.07%</span> for graduate/professional loans (fixed at disbursement). Slider defaults to 8.1%.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sl-result"></div>
+</div>
+
+<!-- ═══ TAB 6: RENT VS BUY ══════════════════════════════════════════ -->
+<div id="tab-rent" class="panel">
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Your situation</div>
+
+      <div class="sr"><label>Home price</label>
+        <input type="range" min="600000" max="2500000" step="50000" value="1500000" id="rvb-price" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-price-v">$1.5M</span></div>
+
+      <div class="trow" style="align-items:flex-start;margin-bottom:8px">
+        <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;padding-top:4px">Down payment</label>
+        <div style="display:flex;gap:4px;flex:1">
+          <button id="dp-10" class="ptab" onclick="setDP(10)">10%</button>
+          <button id="dp-15" class="ptab" onclick="setDP(15)">15%</button>
+          <button id="dp-20" class="ptab on" onclick="setDP(20)">20%</button>
+        </div>
+      </div>
+
+      <div class="sr"><label>Mortgage rate</label>
+        <input type="range" min="5" max="9" step="0.25" value="6.75" id="rvb-rate" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-rate-v">6.75%</span></div>
+
+      <div class="sr"><label>Monthly rent</label>
+        <input type="range" min="2000" max="12000" step="250" value="7500" id="rvb-rent" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-rent-v">$7.5k</span></div>
+
+      <div class="sr"><label>Years in home</label>
+        <input type="range" min="1" max="15" value="5" id="rvb-yrs" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-yrs-v">5 yrs</span></div>
+
+      <div class="sr"><label>Home appreciation/yr</label>
+        <input type="range" min="2" max="8" step="0.5" value="4" id="rvb-appr" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-appr-v">4.0%</span></div>
+
+      <div class="sr"><label>Investment return (renter)</label>
+        <input type="range" min="4" max="10" step="0.5" value="7" id="rvb-inv" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-inv-v">7.0%</span></div>
+
+      <div class="trow" style="margin-bottom:6px">
+        <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0">State</label>
+        <select id="rvb-state" onchange="setRVBState()" style="flex:1;font-size:12px;padding:5px 7px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--dk);font-family:var(--font)">
+          <option value="AL">Alabama — 0.41%</option>
+          <option value="AK">Alaska — 1.04%</option>
+          <option value="AZ">Arizona — 0.62%</option>
+          <option value="AR">Arkansas — 0.62%</option>
+          <option value="CA">California — 0.71%</option>
+          <option value="CO">Colorado — 0.51%</option>
+          <option value="CT">Connecticut — 1.79%</option>
+          <option value="DE">Delaware — 0.57%</option>
+          <option value="FL">Florida — 0.89%</option>
+          <option value="GA">Georgia — 0.92%</option>
+          <option value="HI">Hawaii — 0.29%</option>
+          <option value="ID">Idaho — 0.69%</option>
+          <option value="IL">Illinois — 2.08%</option>
+          <option value="IN">Indiana — 0.87%</option>
+          <option value="IA">Iowa — 1.57%</option>
+          <option value="KS">Kansas — 1.41%</option>
+          <option value="KY">Kentucky — 0.83%</option>
+          <option value="LA">Louisiana — 0.56%</option>
+          <option value="ME">Maine — 1.09%</option>
+          <option value="MD">Maryland — 1.07%</option>
+          <option value="MA">Massachusetts — 1.14%</option>
+          <option value="MI">Michigan — 1.54%</option>
+          <option value="MN">Minnesota — 1.12%</option>
+          <option value="MS">Mississippi — 0.65%</option>
+          <option value="MO">Missouri — 0.97%</option>
+          <option value="MT">Montana — 0.84%</option>
+          <option value="NE">Nebraska — 1.73%</option>
+          <option value="NV">Nevada — 0.60%</option>
+          <option value="NH">New Hampshire — 1.93%</option>
+          <option value="NJ" selected>New Jersey — 2.23%</option>
+          <option value="NM">New Mexico — 0.78%</option>
+          <option value="NY">New York — 1.73%</option>
+          <option value="NC">North Carolina — 0.82%</option>
+          <option value="ND">North Dakota — 0.98%</option>
+          <option value="OH">Ohio — 1.62%</option>
+          <option value="OK">Oklahoma — 0.90%</option>
+          <option value="OR">Oregon — 0.97%</option>
+          <option value="PA">Pennsylvania — 1.58%</option>
+          <option value="RI">Rhode Island — 1.53%</option>
+          <option value="SC">South Carolina — 0.57%</option>
+          <option value="SD">South Dakota — 1.22%</option>
+          <option value="TN">Tennessee — 0.71%</option>
+          <option value="TX">Texas — 1.60%</option>
+          <option value="UT">Utah — 0.58%</option>
+          <option value="VT">Vermont — 1.90%</option>
+          <option value="VA">Virginia — 0.87%</option>
+          <option value="WA">Washington — 1.02%</option>
+          <option value="WV">West Virginia — 0.59%</option>
+          <option value="WI">Wisconsin — 1.73%</option>
+          <option value="WY">Wyoming — 0.61%</option>
+          <option value="DC">Washington DC — 0.55%</option>
+        </select>
+      </div>
+      <div class="sr"><label>Property tax rate</label>
+        <input type="range" min="0.2" max="3.5" step="0.05" value="2.23" id="rvb-tax" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-tax-v">2.23%</span></div>
+      <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">State avg — adjust slider for your specific county</div>
+
+    </div>
+
+    <div>
+      <div id="rvb-costs"></div>
+      <div id="rvb-gap" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:10px">
+    <div class="ctitle">Wealth comparison — renter vs owner</div>
+    <div class="cw" style="height:240px"><canvas id="rent-chart"></canvas></div>
+  </div>
+
+  <div id="rvb-verdict" style="margin-top:10px"></div>
+
+  <div class="card" id="rvb-breakdown" style="margin-top:10px"></div>
+
+  <div id="rvb-txn-warn" style="margin-top:8px"></div>
+
+  <div style="font-size:10px;color:var(--mg);margin-top:10px;line-height:1.6">
+    Assumes 30-year fixed mortgage at selected rate. Transaction cost to sell = 9% of home value at time of sale (realtor 5–6%, transfer taxes, closing costs — varies by state). Maintenance = 1% of value/yr ("1% rule" — actual varies by home age/condition). Insurance = 0.4%/yr. Property tax = state average effective rate — adjust slider for your specific county. Renter invests down payment from day 1 and monthly savings vs owning at selected return (7% = long-run stock market avg). This analysis assumes renter actually invests the difference — if spent instead, buying wins faster. Does not include mortgage interest deduction (often limited for high earners by SALT cap) or rent increases over time (which favor buying in the long run).
+  </div>
+</div>
+
 </div><!-- /shell -->
 <script>
 var SPECS={
@@ -431,8 +604,8 @@ var SPECS={
   mis:{n:"MIS / Bariatric",sal:440000,lo:320000,hi:580000}
 };
 
-var MODE='res',curPath=3;
-var pathChrt=null,fiChrt=null;
+var MODE='res',curPath=3,curDP=20;
+var pathChrt=null,fiChrt=null,rentChrt=null;
 
 function $(id){return document.getElementById(id);}
 function fk(n){
@@ -512,13 +685,20 @@ function setMode(m){
 
 function tab(id){
   document.querySelectorAll('.tab').forEach(function(t,i){
-    t.classList.toggle('on',['reality','paths','action','fi'][i]===id);
+    t.classList.toggle('on',['reality','paths','action','fi','loans','rent'][i]===id);
   });
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   $('tab-'+id).classList.add('on');
   if(id==='paths')calcPaths();
   if(id==='action')calcAction();
   if(id==='fi')calcFI();
+  if(id==='loans'){
+    if($('lb'))$('sl-bal').value=$('lb').value;
+    if($('pslf'))$('sl-pslf').checked=$('pslf').checked;
+    if($('yrs-left'))$('sl-yrs-left').value=$('yrs-left').value;
+    calcLoans();
+  }
+  if(id==='rent')calcRentBuy();
 }
 
 function setPath(n){
@@ -537,9 +717,9 @@ function getCosts(){
   var s=sp();
   var pinc=+$('pinc').value;
   var gross=s.sal+pinc;
-  var fed=fedTax(s.sal)+(pinc>0?fedTax(pinc)*.65:0);
-  var st=stateTax(s.sal)+(pinc>0?stateTax(pinc)*.65:0);
-  var med=fica(s.sal)+(pinc>0?Math.round(pinc*.0145):0);
+  var fed=fedTax(gross);
+  var st=stateTax(gross);
+  var med=fica(s.sal)+(pinc>0?fica(pinc):0);
   var taxes=fed+st+med;
   var houseOn=$('house').checked;
   var hp=+$('hp').value;
@@ -1129,6 +1309,387 @@ function calcFI(){
     }).join('');
     $('fi-sens').style.display='block';
   }
+}
+
+// ── STUDENT LOANS ─────────────────────────────────────────────────
+function calcLoans(){
+  var s=sp();
+  var bal=+$('sl-bal').value;
+  var fedRate=+$('sl-rate').value/100;
+  var pslfOn=$('sl-pslf').checked;
+  var yrsLeft=+$('sl-yrs-left').value;
+  var qualDone=+$('sl-qual-done').value;
+  var refiRate=+$('sl-refi').value/100;
+  var sal=s.sal;
+
+  $('sl-bal-v').textContent=fk(bal);
+  $('sl-rate-v').textContent=(+$('sl-rate').value).toFixed(1)+'%';
+  $('sl-yrs-left-v').textContent=yrsLeft===0?'Attending now':yrsLeft+' yr'+(yrsLeft!==1?'s':'');
+  $('sl-qual-done-v').textContent=qualDone+' yr'+(qualDone!==1?'s':'');
+  $('sl-refi-v').textContent=(+$('sl-refi').value).toFixed(1)+'%';
+  $('sl-pslf-opts').style.display=pslfOn?'block':'none';
+
+  if(bal===0){
+    $('sl-result').innerHTML='<div class="box box-g"><div class="box-title" style="color:var(--g)">No loans — you\'re ahead of 80% of your peers</div><div class="box-body">No loan analysis needed. Direct all resources toward maxing retirement accounts and building net worth from day 1.</div></div>';
+    return;
+  }
+
+  function ibrPmt(income){
+    return Math.max(10,Math.round(Math.max(0,income-22500)*0.10/12));
+  }
+  function rapPmt(income){
+    var pct=income<10000?0.01:income<20000?0.02:income<30000?0.03:income<40000?0.04:
+             income<50000?0.05:income<60000?0.06:income<70000?0.07:income<80000?0.08:
+             income<90000?0.09:0.10;
+    return Math.round(income*pct/12);
+  }
+  function balAfter(b,rate,pmt,months){
+    var mr=rate/12;
+    for(var i=0;i<months;i++){b=b*(1+mr)-pmt;if(b<=0)return 0;}
+    return Math.max(0,Math.round(b));
+  }
+  function stdPmt(b,rate,years){
+    if(b<=0)return 0;
+    var mr=rate/12,n=years*12;
+    if(mr===0)return Math.round(b/n);
+    return Math.round(b*mr*Math.pow(1+mr,n)/(Math.pow(1+mr,n)-1));
+  }
+
+  // Residency: use lower of IBR or RAP (both federal, both PSLF-eligible)
+  var resSal=65000;
+  var resPmt=Math.min(ibrPmt(resSal),rapPmt(resSal)); // RAP slightly lower for residents
+  var resMos=yrsLeft*12;
+  var trainingPaid=resPmt*resMos;
+  var balAtAtt=balAfter(bal,fedRate,resPmt,resMos);
+
+  // PSLF attending phase: lower of IBR or RAP (IBR lower for high-earning attendings)
+  var attPmtPSLF=Math.min(ibrPmt(sal),rapPmt(sal));
+  var pslfYrsRemaining=Math.max(0,10-qualDone-yrsLeft);
+  var attMosPSLF=pslfYrsRemaining*12;
+  var attPaidPSLF=attPmtPSLF*attMosPSLF;
+  var balForgiven=balAfter(balAtAtt,fedRate,attPmtPSLF,attMosPSLF);
+  var totalOOPpslf=trainingPaid+attPaidPSLF;
+
+  // Private refi: refi at attending start, 10yr aggressive payoff
+  var refiPmt=stdPmt(balAtAtt,refiRate,10);
+  var refiPaid=refiPmt*120;
+  var totalOOPrefi=trainingPaid+refiPaid;
+
+  // Federal standard 10yr at attending start
+  var fedStdPmt=stdPmt(balAtAtt,fedRate,10);
+  var fedStdPaid=fedStdPmt*120;
+  var totalOOPfedStd=trainingPaid+fedStdPaid;
+
+  var rateStr=(+$('sl-rate').value).toFixed(1)+'%';
+  var refiRateStr=(+$('sl-refi').value).toFixed(1)+'%';
+  var html='';
+
+  if(pslfOn){
+    var pslfSaves=totalOOPrefi-totalOOPpslf;
+    var pslfWins=pslfSaves>0;
+
+    html+='<div class="g2">';
+
+    // PSLF column
+    html+='<div class="card"><div class="ctitle" style="color:var(--g)">✓ PSLF Path (IBR/RAP → forgiveness)</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (RAP/IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    if(attMosPSLF>0){
+      html+='<tr><td>Attending (IBR)</td><td>'+fk(attPmtPSLF)+'</td><td>'+pslfYrsRemaining+' yr'+(pslfYrsRemaining!==1?'s':'')+'</td><td>'+fk(attPaidPSLF)+'</td></tr>';
+    } else {
+      html+='<tr><td>PSLF completes during training</td><td colspan="2">—</td><td>$0</td></tr>';
+    }
+    html+='<tr class="hl"><td>Forgiven (tax-free)</td><td>—</td><td>PSLF</td><td>'+fk(balForgiven)+'</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPpslf)+'</strong></td></tr>';
+    html+='</table>';
+    html+='<div style="font-size:10px;color:var(--mg);margin-top:8px;line-height:1.5">File annual employer certification (ECF) at studentaid.gov. Residency and fellowship count. Payments need not be consecutive.</div>';
+    html+='</div>';
+
+    // Private refi column
+    html+='<div class="card"><div class="ctitle" style="color:var(--b)">Private Refinance Path</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (RAP/IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
+    html+='<tr class="hl2"><td>Balance forgiven</td><td colspan="2">None (fully paid off)</td><td>$0</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr>';
+    html+='</table>';
+    html+='<div class="box box-r" style="margin-top:8px"><div class="box-body">Refinancing forfeits PSLF eligibility <strong>permanently</strong>. If your employer qualifies, do not refinance until you are certain you are leaving nonprofit medicine.</div></div>';
+    html+='</div>';
+
+    html+='</div>';
+
+    // Recommendation
+    html+='<div class="box '+(pslfWins?'box-g':'box-b')+'">';
+    html+='<div class="box-title" style="color:'+(pslfWins?'var(--g)':'var(--b)')+'">';
+    if(pslfWins){
+      html+='✓ PSLF saves '+fk(pslfSaves)+' over private refinancing';
+    } else {
+      html+='→ Private refi is '+fk(-pslfSaves)+' cheaper — but read the nuance below';
+    }
+    html+='</div><div class="box-body">';
+    if(pslfWins){
+      html+='Your balance ('+fk(bal)+') is large enough that the <strong>'+fk(balForgiven)+' forgiven tax-free</strong> more than offsets any refi savings. PSLF is the clear winner as long as you stay at a qualifying employer. ';
+      html+='File your Employment Certification Form every year — it\'s the only documentation that proves your qualifying payment count.';
+    } else {
+      html+='At '+fk(sal)+' salary, your attending IBR payment ('+fk(attPmtPSLF)+'/mo) is close to or above what a standard 10-year payoff would cost, so little is left to forgive. ';
+      html+='However, PSLF still provides real value: protection if your income drops, no refi risk, and flexibility to leave nonprofit medicine later (just don\'t refinance). ';
+      html+='If your employer qualifies and certification is current, stay on PSLF unless you are certain about private practice — where private refi and aggressive payoff is the right call.';
+    }
+    html+='</div></div>';
+
+  } else {
+    // Non-PSLF: Federal standard vs Private refi
+    var refiSaves=totalOOPfedStd-totalOOPrefi;
+    var interestFed=totalOOPfedStd-bal;
+    var interestRefi=totalOOPrefi-bal;
+
+    html+='<div class="box box-r" style="margin-bottom:10px">';
+    html+='<div class="box-title" style="color:var(--rd)">⚠ Do not let loans ride on IDR — forgiveness is now taxable</div>';
+    html+='<div class="box-body">Carrying federal loans for 20–25 years on IBR/RAP without PSLF now results in taxable forgiveness. On '+fk(bal)+' that grows at '+rateStr+' for 20 years, the forgiven amount could trigger a $300–600k+ tax bill in your 50s. The old low-payment strategy is now a trap for private practice physicians. Pay it off.</div>';
+    html+='</div>';
+
+    html+='<div class="g2">';
+
+    // Federal standard
+    html+='<div class="card"><div class="ctitle">Federal Standard 10yr ('+rateStr+')</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    html+='<tr><td>Attending (standard '+rateStr+')</td><td>'+fk(fedStdPmt)+'</td><td>10 yrs</td><td>'+fk(fedStdPaid)+'</td></tr>';
+    html+='<tr class="hl2"><td>Interest paid</td><td colspan="2"></td><td>'+fk(interestFed)+'</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPfedStd)+'</strong></td></tr>';
+    html+='</table></div>';
+
+    // Private refi
+    html+='<div class="card"><div class="ctitle" style="color:var(--g)">Private Refi + Attack ('+refiRateStr+')</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (IBR, pre-refi)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
+    html+='<tr class="hl2"><td>Interest saved vs federal</td><td colspan="2"></td><td>'+fk(Math.max(0,interestFed-interestRefi))+'</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr>';
+    html+='</table></div>';
+
+    html+='</div>';
+
+    html+='<div class="box box-g">';
+    html+='<div class="box-title" style="color:var(--g)">→ Refinance at attending start and attack aggressively</div>';
+    html+='<div class="box-body">';
+    if(refiSaves>0){
+      html+='Refinancing saves <strong>'+fk(refiSaves)+'</strong> vs keeping the federal rate. ';
+    }
+    html+='For private practice surgeons, refinance to the lowest rate you qualify for (4–5.5% range for physicians, June 2026) and pay off in 10 years or less. ';
+    html+='Physician-focused lenders: Laurel Road, SoFi, Earnest, Splash Financial — compare at least 3 offers before signing. ';
+    html+='Do not extend the term past 10 years. Every extra year of interest delays FI by more than the lower monthly payment saves. ';
+    html+='This is the equivalent of a guaranteed '+rateStr+' return on every dollar paid — better than bonds, better than cash.';
+    html+='</div></div>';
+  }
+
+  $('sl-result').innerHTML=html;
+}
+
+// ── RENT VS BUY ────────────────────────────────────────────────────
+var STATE_TAX={AL:0.41,AK:1.04,AZ:0.62,AR:0.62,CA:0.71,CO:0.51,CT:1.79,DE:0.57,FL:0.89,
+  GA:0.92,HI:0.29,ID:0.69,IL:2.08,IN:0.87,IA:1.57,KS:1.41,KY:0.83,LA:0.56,ME:1.09,
+  MD:1.07,MA:1.14,MI:1.54,MN:1.12,MS:0.65,MO:0.97,MT:0.84,NE:1.73,NV:0.60,NH:1.93,
+  NJ:2.23,NM:0.78,NY:1.73,NC:0.82,ND:0.98,OH:1.62,OK:0.90,OR:0.97,PA:1.58,RI:1.53,
+  SC:0.57,SD:1.22,TN:0.71,TX:1.60,UT:0.58,VT:1.90,VA:0.87,WA:1.02,WV:0.59,WI:1.73,
+  WY:0.61,DC:0.55};
+
+function setRVBState(){
+  var st=$('rvb-state').value;
+  var rate=STATE_TAX[st]||1.0;
+  $('rvb-tax').value=rate;
+  calcRentBuy();
+}
+
+function setDP(pct){
+  curDP=pct;
+  [10,15,20].forEach(function(p){
+    var btn=$('dp-'+p);
+    if(btn) btn.classList.toggle('on',p===pct);
+  });
+  calcRentBuy();
+}
+
+function calcRentBuy(){
+  var price=+$('rvb-price').value;
+  var downPct=curDP/100;
+  var mortRate=+$('rvb-rate').value/100;
+  var rent=+$('rvb-rent').value;
+  var years=+$('rvb-yrs').value;
+  var apprRate=+$('rvb-appr').value/100;
+  var invReturn=+$('rvb-inv').value/100;
+  var taxRate=+$('rvb-tax').value/100;
+
+  // Update display
+  $('rvb-price-v').textContent=fk(price);
+  $('rvb-rate-v').textContent=(+$('rvb-rate').value).toFixed(2)+'%';
+  $('rvb-rent-v').textContent=fk(rent);
+  $('rvb-yrs-v').textContent=years+' yr'+(years!==1?'s':'');
+  $('rvb-appr-v').textContent=(+$('rvb-appr').value).toFixed(1)+'%';
+  $('rvb-inv-v').textContent=(+$('rvb-inv').value).toFixed(1)+'%';
+  $('rvb-tax-v').textContent=(+$('rvb-tax').value).toFixed(2)+'%';
+
+  // Owner monthly costs
+  var loan=price*(1-downPct);
+  var r=mortRate/12;
+  var pow360=Math.pow(1+r,360);
+  var mortPmt=r===0?Math.round(loan/360):Math.round(loan*r*pow360/(pow360-1));
+  var propTax=Math.round(price*taxRate/12);
+  var insur=Math.round(price*0.004/12);
+  var maint=Math.round(price*0.010/12);
+  var ownerTotal=mortPmt+propTax+insur+maint;
+  var downAmt=Math.round(price*downPct);
+  var gap=ownerTotal-rent;
+
+  // Renter invests down payment from day 1, plus monthly savings vs owning
+  var renterMonthlyInv=Math.max(0,gap);
+  var invR=invReturn/12;
+
+  // Build year-by-year data (month-by-month precision)
+  var renterWealth=downAmt;
+  var loanBal=loan;
+  var labels=[],renterData=[],grossData=[],netData=[];
+  var breakeven=null;
+
+  for(var yr=0;yr<=years;yr++){
+    var homeVal=price*Math.pow(1+apprRate,yr);
+    var grossEq=Math.max(0,homeVal-loanBal);
+    var netEq=Math.max(0,grossEq-homeVal*0.09);
+    labels.push(yr===0?'Now':'Yr '+yr);
+    renterData.push(Math.round(renterWealth/1000));
+    grossData.push(Math.round(grossEq/1000));
+    netData.push(Math.round(netEq/1000));
+    if(!breakeven&&yr>0&&netEq>renterWealth) breakeven=yr;
+    if(yr<years){
+      for(var m=0;m<12;m++){
+        renterWealth=renterWealth*(1+invR)+renterMonthlyInv;
+        var interest=loanBal*r;
+        var principal=mortPmt-interest;
+        loanBal=Math.max(0,loanBal-principal);
+      }
+    }
+  }
+
+  var finalRenter=renterData[years]*1000;
+  var finalNet=netData[years]*1000;
+  var diff=finalRenter-finalNet;
+  var renterWins=diff>0;
+
+  // Year 1 breakdown (month-by-month)
+  var tempBal=loan,yr1Int=0,yr1Prin=0;
+  for(var m=0;m<12;m++){
+    var i1=tempBal*r,p1=mortPmt-i1;
+    yr1Int+=i1; yr1Prin+=p1; tempBal-=p1;
+  }
+  yr1Int=Math.round(yr1Int); yr1Prin=Math.round(yr1Prin);
+  var yr1NonRec=yr1Int+propTax*12+insur*12+maint*12;
+
+  // ── Monthly cost cards ──
+  var gapSign=gap>0?'+':'';
+  $('rvb-costs').innerHTML=
+    '<div class="g2">'+
+    '<div class="card">'+
+    '<div class="ctitle" style="color:var(--g)">Renting</div>'+
+    '<table class="tbl"><tr><th>Item</th><th>Monthly</th></tr>'+
+    '<tr><td>Rent</td><td>'+fk(rent)+'</td></tr>'+
+    '<tr><td>Property tax</td><td>$0</td></tr>'+
+    '<tr><td>Insurance</td><td>$0</td></tr>'+
+    '<tr><td>Maintenance</td><td>$0</td></tr>'+
+    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fk(rent)+'</strong></td></tr>'+
+    '</table>'+
+    '<div style="font-size:11px;color:var(--g);margin-top:8px">Down payment <strong>'+fk(downAmt)+'</strong> invested at '+(+$('rvb-inv').value).toFixed(1)+'%/yr</div>'+
+    '</div>'+
+    '<div class="card">'+
+    '<div class="ctitle" style="color:var(--b)">Buying</div>'+
+    '<table class="tbl"><tr><th>Item</th><th>Monthly</th></tr>'+
+    '<tr><td>Mortgage P&amp;I</td><td>'+fk(mortPmt)+'</td></tr>'+
+    '<tr><td>Property tax</td><td>'+fk(propTax)+'</td></tr>'+
+    '<tr><td>Insurance</td><td>'+fk(insur)+'</td></tr>'+
+    '<tr><td>Maintenance (1%)</td><td>'+fk(maint)+'</td></tr>'+
+    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fk(ownerTotal)+'</strong></td></tr>'+
+    '</table>'+
+    '<div style="font-size:11px;color:'+(gap>0?'var(--rd)':'var(--g)')+';margin-top:8px">Extra vs renting: <strong>'+gapSign+fk(gap)+'/mo</strong></div>'+
+    '</div>'+
+    '</div>';
+
+  // ── Gap callout ──
+  $('rvb-gap').innerHTML=gap>0?
+    '<div class="box box-a" style="text-align:center"><strong>Owner pays '+fk(gap)+'/mo more than renter — '+fk(gap*12)+'/yr</strong></div>':
+    '<div class="box box-g" style="text-align:center"><strong>Buying is '+fk(-gap)+'/mo cheaper than renting — unusual for NJ, consider buying</strong></div>';
+
+  // ── Chart ──
+  if(rentChrt) rentChrt.destroy();
+  rentChrt=new Chart($('rent-chart'),{type:'line',data:{labels:labels,datasets:[
+    {label:'Renter wealth',data:renterData,borderColor:'#1D6B52',backgroundColor:'rgba(29,107,82,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
+    {label:'Owner gross equity',data:grossData,borderColor:'#2355A0',borderDash:[6,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
+    {label:'Owner net equity (after 9% sale cost)',data:netData,borderColor:'#C0392B',borderDash:[3,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:10}}},
+      y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return '$'+v+'k';},font:{size:10}}}}}});
+
+  // ── Verdict ──
+  var beStr=breakeven?'year '+breakeven:'15+ years';
+  var verdictBox='',verdictTitle='',verdictBody='';
+  if(renterWins){
+    verdictBox='box-a'; verdictTitle='color:var(--am)';
+    if(!breakeven){
+      verdictBody='Buying does not become financially superior within '+years+' years at these assumptions. The down payment ('
+        +fk(downAmt)+') and monthly savings invested at '+(+$('rvb-inv').value).toFixed(1)+'% outpace home equity throughout the period. '
+        +'This is the common result in NJ — high taxes, high prices, and steep transaction costs make renting financially competitive for physicians who may move within 10 years.';
+    } else {
+      verdictBody='At '+years+' years, renting leads by <strong>'+fk(diff)+'</strong>. You would need to stay approximately <strong>'+beStr+'</strong> before buying becomes financially superior (owner net equity exceeds renter wealth). '
+        +'This analysis assumes the renter actually invests the monthly savings — if spent instead, buying wins faster.';
+    }
+  } else {
+    verdictBox='box-b'; verdictTitle='color:var(--b)';
+    verdictBody='At '+years+' years, buying wins by <strong>'+fk(-diff)+'</strong>. Breakeven was at '+beStr+'. After that, owner net equity exceeded renter wealth. Staying well beyond the breakeven year rewards the initial commitment.';
+  }
+  $('rvb-verdict').innerHTML='<div class="box '+verdictBox+'">'
+    +'<div class="box-title" style="'+verdictTitle+'">'+
+    (renterWins?'At '+years+' years, renting leads by '+fk(diff):
+                'At '+years+' years, buying leads by '+fk(-diff))
+    +'</div><div class="box-body">'+verdictBody+'</div></div>';
+
+  // ── Year 1 breakdown ──
+  $('rvb-breakdown').innerHTML=
+    '<div class="ctitle">Year 1: where the money actually goes</div>'+
+    '<table class="tbl">'+
+    '<tr><th>Category</th><th>Annual</th><th>Goes to</th></tr>'+
+    '<tr><td>Mortgage interest</td><td>'+fk(yr1Int)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
+    '<tr><td>Property tax</td><td>'+fk(propTax*12)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
+    '<tr><td>Insurance</td><td>'+fk(insur*12)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
+    '<tr><td>Maintenance (1% rule)</td><td>'+fk(maint*12)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
+    '<tr class="hl2"><td><strong>Total non-recoverable</strong></td><td><strong>'+fk(yr1NonRec)+'</strong></td><td style="color:var(--rd)"><strong>Gone</strong></td></tr>'+
+    '<tr><td>Mortgage principal</td><td>'+fk(yr1Prin)+'</td><td style="color:var(--g)">Equity</td></tr>'+
+    '</table>';
+
+  // ── Transaction cost warning (< 5 years) ──
+  var txnHtml='';
+  if(years<5){
+    var homeValAtSale=price*Math.pow(1+apprRate,years);
+    var txnCost=Math.round(homeValAtSale*0.09);
+    var txnYrs=Math.ceil(txnCost/yr1Prin);
+    txnHtml='<div class="box box-r">'
+      +'<div class="box-title" style="color:var(--rd)">⚠ Selling in '+years+' year'+(years!==1?'s':'')+' costs ~'+fk(txnCost)+' in transaction costs</div>'
+      +'<div class="box-body">That\'s 9% of the estimated home value ('+fk(Math.round(homeValAtSale))+') at year '+years+' — realtor commissions, NJ transfer tax, and closing costs. '
+      +'It takes roughly <strong>'+txnYrs+' years</strong> of mortgage principal paydown to recover that amount alone. '
+      +'WCI guideline: do not buy unless you plan to stay at least 5 years. Surgeons frequently move in years 2–4 when a group doesn\'t work out.</div>'
+      +'</div>';
+  }
+  $('rvb-txn-warn').innerHTML=txnHtml;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
