@@ -240,7 +240,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
       </div>
 
       <div class="sr"><label>Current net worth</label>
-        <input type="range" min="-500000" max="1500000" step="25000" value="-260000" id="nw" oninput="go()">
+        <input type="range" min="-1000000" max="1500000" step="25000" value="-260000" id="nw" oninput="go()">
         <span class="sv" id="nw-v">−$260k</span></div>
 
       <div class="sr"><label>Partner income</label>
@@ -506,10 +506,66 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
         <input type="range" min="4" max="10" step="0.5" value="7" id="rvb-inv" oninput="calcRentBuy()">
         <span class="sv" id="rvb-inv-v">7.0%</span></div>
 
-      <div class="sr"><label>NJ property tax rate</label>
-        <input type="range" min="1" max="3" step="0.05" value="1.9" id="rvb-tax" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-tax-v">1.90%</span></div>
-      <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">Morris County avg 1.9% — varies by town</div>
+      <div class="trow" style="margin-bottom:6px">
+        <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0">State</label>
+        <select id="rvb-state" onchange="setRVBState()" style="flex:1;font-size:12px;padding:5px 7px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--dk);font-family:var(--font)">
+          <option value="AL">Alabama — 0.41%</option>
+          <option value="AK">Alaska — 1.04%</option>
+          <option value="AZ">Arizona — 0.62%</option>
+          <option value="AR">Arkansas — 0.62%</option>
+          <option value="CA">California — 0.71%</option>
+          <option value="CO">Colorado — 0.51%</option>
+          <option value="CT">Connecticut — 1.79%</option>
+          <option value="DE">Delaware — 0.57%</option>
+          <option value="FL">Florida — 0.89%</option>
+          <option value="GA">Georgia — 0.92%</option>
+          <option value="HI">Hawaii — 0.29%</option>
+          <option value="ID">Idaho — 0.69%</option>
+          <option value="IL">Illinois — 2.08%</option>
+          <option value="IN">Indiana — 0.87%</option>
+          <option value="IA">Iowa — 1.57%</option>
+          <option value="KS">Kansas — 1.41%</option>
+          <option value="KY">Kentucky — 0.83%</option>
+          <option value="LA">Louisiana — 0.56%</option>
+          <option value="ME">Maine — 1.09%</option>
+          <option value="MD">Maryland — 1.07%</option>
+          <option value="MA">Massachusetts — 1.14%</option>
+          <option value="MI">Michigan — 1.54%</option>
+          <option value="MN">Minnesota — 1.12%</option>
+          <option value="MS">Mississippi — 0.65%</option>
+          <option value="MO">Missouri — 0.97%</option>
+          <option value="MT">Montana — 0.84%</option>
+          <option value="NE">Nebraska — 1.73%</option>
+          <option value="NV">Nevada — 0.60%</option>
+          <option value="NH">New Hampshire — 1.93%</option>
+          <option value="NJ" selected>New Jersey — 2.23%</option>
+          <option value="NM">New Mexico — 0.78%</option>
+          <option value="NY">New York — 1.73%</option>
+          <option value="NC">North Carolina — 0.82%</option>
+          <option value="ND">North Dakota — 0.98%</option>
+          <option value="OH">Ohio — 1.62%</option>
+          <option value="OK">Oklahoma — 0.90%</option>
+          <option value="OR">Oregon — 0.97%</option>
+          <option value="PA">Pennsylvania — 1.58%</option>
+          <option value="RI">Rhode Island — 1.53%</option>
+          <option value="SC">South Carolina — 0.57%</option>
+          <option value="SD">South Dakota — 1.22%</option>
+          <option value="TN">Tennessee — 0.71%</option>
+          <option value="TX">Texas — 1.60%</option>
+          <option value="UT">Utah — 0.58%</option>
+          <option value="VT">Vermont — 1.90%</option>
+          <option value="VA">Virginia — 0.87%</option>
+          <option value="WA">Washington — 1.02%</option>
+          <option value="WV">West Virginia — 0.59%</option>
+          <option value="WI">Wisconsin — 1.73%</option>
+          <option value="WY">Wyoming — 0.61%</option>
+          <option value="DC">Washington DC — 0.55%</option>
+        </select>
+      </div>
+      <div class="sr"><label>Property tax rate</label>
+        <input type="range" min="0.2" max="3.5" step="0.05" value="2.23" id="rvb-tax" oninput="calcRentBuy()">
+        <span class="sv" id="rvb-tax-v">2.23%</span></div>
+      <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">State avg — adjust slider for your specific county</div>
 
     </div>
 
@@ -531,7 +587,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <div id="rvb-txn-warn" style="margin-top:8px"></div>
 
   <div style="font-size:10px;color:var(--mg);margin-top:10px;line-height:1.6">
-    Assumes 30-year fixed mortgage at selected rate. Transaction cost to sell = 9% of home value at time of sale (realtor 5–6%, NJ transfer tax, closing costs). Maintenance = 1% of value/yr ("1% rule" — actual varies by home age/condition). Insurance = 0.4%/yr. Appreciation: historical NJ avg ~4%/yr — not guaranteed. Renter invests down payment from day 1 and monthly savings vs owning at selected return (7% = long-run stock market avg). This analysis assumes renter actually invests the difference — if spent instead, buying wins faster. Does not include mortgage interest deduction (limited by SALT cap for NJ high earners) or rent increases over time (which favor buying in the long run).
+    Assumes 30-year fixed mortgage at selected rate. Transaction cost to sell = 9% of home value at time of sale (realtor 5–6%, transfer taxes, closing costs — varies by state). Maintenance = 1% of value/yr ("1% rule" — actual varies by home age/condition). Insurance = 0.4%/yr. Property tax = state average effective rate — adjust slider for your specific county. Renter invests down payment from day 1 and monthly savings vs owning at selected return (7% = long-run stock market avg). This analysis assumes renter actually invests the difference — if spent instead, buying wins faster. Does not include mortgage interest deduction (often limited for high earners by SALT cap) or rent increases over time (which favor buying in the long run).
   </div>
 </div>
 
@@ -1443,6 +1499,20 @@ function calcLoans(){
 }
 
 // ── RENT VS BUY ────────────────────────────────────────────────────
+var STATE_TAX={AL:0.41,AK:1.04,AZ:0.62,AR:0.62,CA:0.71,CO:0.51,CT:1.79,DE:0.57,FL:0.89,
+  GA:0.92,HI:0.29,ID:0.69,IL:2.08,IN:0.87,IA:1.57,KS:1.41,KY:0.83,LA:0.56,ME:1.09,
+  MD:1.07,MA:1.14,MI:1.54,MN:1.12,MS:0.65,MO:0.97,MT:0.84,NE:1.73,NV:0.60,NH:1.93,
+  NJ:2.23,NM:0.78,NY:1.73,NC:0.82,ND:0.98,OH:1.62,OK:0.90,OR:0.97,PA:1.58,RI:1.53,
+  SC:0.57,SD:1.22,TN:0.71,TX:1.60,UT:0.58,VT:1.90,VA:0.87,WA:1.02,WV:0.59,WI:1.73,
+  WY:0.61,DC:0.55};
+
+function setRVBState(){
+  var st=$('rvb-state').value;
+  var rate=STATE_TAX[st]||1.0;
+  $('rvb-tax').value=rate;
+  calcRentBuy();
+}
+
 function setDP(pct){
   curDP=pct;
   [10,15,20].forEach(function(p){
