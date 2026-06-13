@@ -537,9 +537,9 @@ function getCosts(){
   var s=sp();
   var pinc=+$('pinc').value;
   var gross=s.sal+pinc;
-  var fed=fedTax(s.sal)+(pinc>0?fedTax(pinc)*.65:0);
-  var st=stateTax(s.sal)+(pinc>0?stateTax(pinc)*.65:0);
-  var med=fica(s.sal)+(pinc>0?Math.round(pinc*.0145):0);
+  var fed=fedTax(gross);
+  var st=stateTax(gross);
+  var med=fica(s.sal)+(pinc>0?fica(pinc):0);
   var taxes=fed+st+med;
   var houseOn=$('house').checked;
   var hp=+$('hp').value;
