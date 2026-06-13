@@ -211,6 +211,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <button class="tab" onclick="tab('paths')">🛤️ Three Paths</button>
   <button class="tab" onclick="tab('action')">⚡ Action Plan</button>
   <button class="tab" onclick="tab('fi')">🎯 FI Calculator</button>
+  <button class="tab" onclick="tab('loans')">🎓 Student Loans</button>
 </div>
 
 <!-- ═══ TAB 1: REALITY CHECK ═══════════════════════════════════════ -->
@@ -418,6 +419,53 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   </div>
 </div>
 
+<!-- ═══ TAB 5: STUDENT LOANS ══════════════════════════════════════════ -->
+<div id="tab-loans" class="panel">
+  <div class="box box-r">
+    <div class="box-title" style="color:var(--rd)">⚠ SAVE is gone — the 2026 landscape changed dramatically</div>
+    <div class="box-body">SAVE was struck down by federal courts and will not return. IBR and the new RAP plan (July 1, 2026) are now the primary income-driven options. Critically: non-PSLF income-driven forgiveness is now taxable income. Know your strategy before you sign your first contract.</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Your loan situation</div>
+      <div class="sr"><label>Loan balance</label>
+        <input type="range" min="0" max="1000000" step="25000" value="275000" id="sl-bal" oninput="calcLoans()">
+        <span class="sv" id="sl-bal-v">$275k</span></div>
+      <div class="sr"><label>Federal interest rate</label>
+        <input type="range" min="3" max="12" step="0.1" value="8.1" id="sl-rate" oninput="calcLoans()">
+        <span class="sv" id="sl-rate-v">8.1%</span></div>
+      <div class="trow"><label>PSLF-eligible employer</label>
+        <label class="tog"><input type="checkbox" id="sl-pslf" onchange="calcLoans()"><span class="tsl"></span></label></div>
+      <div class="sr"><label>Years left in training</label>
+        <input type="range" min="0" max="7" value="2" id="sl-yrs-left" oninput="calcLoans()">
+        <span class="sv" id="sl-yrs-left-v">2 yrs</span></div>
+      <div id="sl-pslf-opts" style="display:none">
+        <div class="sr"><label>PSLF qualifying years already made</label>
+          <input type="range" min="0" max="9" value="0" id="sl-qual-done" oninput="calcLoans()">
+          <span class="sv" id="sl-qual-done-v">0 yrs</span></div>
+      </div>
+      <div class="sr"><label>Private refi rate</label>
+        <input type="range" min="3" max="8" step="0.1" value="5" id="sl-refi" oninput="calcLoans()">
+        <span class="sv" id="sl-refi-v">5.0%</span></div>
+      <div style="font-size:10px;color:var(--mg);margin-top:4px;line-height:1.5">Assumes $65k residency salary for IDR payment calc. Specialty salary (above) used for attending phase.</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">What changed in 2026</div>
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:12px;line-height:1.55">
+        <div><span style="font-weight:600;color:var(--rd)">SAVE — eliminated.</span> Struck down by federal courts. Borrowers moved to IBR or interest-only forbearance. No reinstatement expected.</div>
+        <div><span style="font-weight:600;color:var(--b)">RAP — new July 1, 2026.</span> Repayment Assistance Plan. Tiered payments: 1% of income at $10k, scaling to 10% at $100k+. Qualifies for PSLF. Lower than IBR for residents.</div>
+        <div><span style="font-weight:600;color:var(--g)">IBR — still available.</span> 10% of discretionary income (AGI minus ~$22,500). Lower than RAP for high-earning attendings. Qualifies for PSLF.</div>
+        <div><span style="font-weight:600;color:var(--g)">PSLF — intact.</span> 120 qualifying payments at a nonprofit / government employer → 100% tax-free forgiveness. Best deal in medicine if your employer qualifies.</div>
+        <div><span style="font-weight:600;color:var(--rd)">Non-PSLF IDR forgiveness — now taxable.</span> Carrying loans 20–25 years on IBR/RAP without PSLF now triggers a taxable forgiveness event. For a surgeon, that could mean a $200–600k+ tax bill in retirement. The old "low payment, wait it out" strategy is now a trap.</div>
+        <div><span style="font-weight:600;color:var(--mg)">Federal rate 2026–27: ~8.07%</span> for graduate/professional loans (fixed at disbursement). Slider defaults to 8.1%.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sl-result"></div>
+</div>
+
 </div><!-- /shell -->
 <script>
 var SPECS={
@@ -512,13 +560,20 @@ function setMode(m){
 
 function tab(id){
   document.querySelectorAll('.tab').forEach(function(t,i){
-    t.classList.toggle('on',['reality','paths','action','fi'][i]===id);
+    t.classList.toggle('on',['reality','paths','action','fi','loans'][i]===id);
   });
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   $('tab-'+id).classList.add('on');
   if(id==='paths')calcPaths();
   if(id==='action')calcAction();
   if(id==='fi')calcFI();
+  if(id==='loans'){
+    // Sync from main inputs on first open
+    if($('lb'))$('sl-bal').value=$('lb').value;
+    if($('pslf'))$('sl-pslf').checked=$('pslf').checked;
+    if($('yrs-left'))$('sl-yrs-left').value=$('yrs-left').value;
+    calcLoans();
+  }
 }
 
 function setPath(n){
@@ -1129,6 +1184,193 @@ function calcFI(){
     }).join('');
     $('fi-sens').style.display='block';
   }
+}
+
+// ── STUDENT LOANS ─────────────────────────────────────────────────
+function calcLoans(){
+  var s=sp();
+  var bal=+$('sl-bal').value;
+  var fedRate=+$('sl-rate').value/100;
+  var pslfOn=$('sl-pslf').checked;
+  var yrsLeft=+$('sl-yrs-left').value;
+  var qualDone=+$('sl-qual-done').value;
+  var refiRate=+$('sl-refi').value/100;
+  var sal=s.sal;
+
+  $('sl-bal-v').textContent=fk(bal);
+  $('sl-rate-v').textContent=(+$('sl-rate').value).toFixed(1)+'%';
+  $('sl-yrs-left-v').textContent=yrsLeft===0?'Attending now':yrsLeft+' yr'+(yrsLeft!==1?'s':'');
+  $('sl-qual-done-v').textContent=qualDone+' yr'+(qualDone!==1?'s':'');
+  $('sl-refi-v').textContent=(+$('sl-refi').value).toFixed(1)+'%';
+  $('sl-pslf-opts').style.display=pslfOn?'block':'none';
+
+  if(bal===0){
+    $('sl-result').innerHTML='<div class="box box-g"><div class="box-title" style="color:var(--g)">No loans — you\'re ahead of 80% of your peers</div><div class="box-body">No loan analysis needed. Direct all resources toward maxing retirement accounts and building net worth from day 1.</div></div>';
+    return;
+  }
+
+  function ibrPmt(income){
+    return Math.max(10,Math.round(Math.max(0,income-22500)*0.10/12));
+  }
+  function rapPmt(income){
+    var pct=income<10000?0.01:income<20000?0.02:income<30000?0.03:income<40000?0.04:
+             income<50000?0.05:income<60000?0.06:income<70000?0.07:income<80000?0.08:
+             income<90000?0.09:0.10;
+    return Math.round(income*pct/12);
+  }
+  function balAfter(b,rate,pmt,months){
+    var mr=rate/12;
+    for(var i=0;i<months;i++){b=b*(1+mr)-pmt;if(b<=0)return 0;}
+    return Math.max(0,Math.round(b));
+  }
+  function stdPmt(b,rate,years){
+    if(b<=0)return 0;
+    var mr=rate/12,n=years*12;
+    if(mr===0)return Math.round(b/n);
+    return Math.round(b*mr*Math.pow(1+mr,n)/(Math.pow(1+mr,n)-1));
+  }
+
+  // Residency: use lower of IBR or RAP (both federal, both PSLF-eligible)
+  var resSal=65000;
+  var resPmt=Math.min(ibrPmt(resSal),rapPmt(resSal)); // RAP slightly lower for residents
+  var resMos=yrsLeft*12;
+  var trainingPaid=resPmt*resMos;
+  var balAtAtt=balAfter(bal,fedRate,resPmt,resMos);
+
+  // PSLF attending phase: lower of IBR or RAP (IBR lower for high-earning attendings)
+  var attPmtPSLF=Math.min(ibrPmt(sal),rapPmt(sal));
+  var pslfYrsRemaining=Math.max(0,10-qualDone-yrsLeft);
+  var attMosPSLF=pslfYrsRemaining*12;
+  var attPaidPSLF=attPmtPSLF*attMosPSLF;
+  var balForgiven=balAfter(balAtAtt,fedRate,attPmtPSLF,attMosPSLF);
+  var totalOOPpslf=trainingPaid+attPaidPSLF;
+
+  // Private refi: refi at attending start, 10yr aggressive payoff
+  var refiPmt=stdPmt(balAtAtt,refiRate,10);
+  var refiPaid=refiPmt*120;
+  var totalOOPrefi=trainingPaid+refiPaid;
+
+  // Federal standard 10yr at attending start
+  var fedStdPmt=stdPmt(balAtAtt,fedRate,10);
+  var fedStdPaid=fedStdPmt*120;
+  var totalOOPfedStd=trainingPaid+fedStdPaid;
+
+  var rateStr=(+$('sl-rate').value).toFixed(1)+'%';
+  var refiRateStr=(+$('sl-refi').value).toFixed(1)+'%';
+  var html='';
+
+  if(pslfOn){
+    var pslfSaves=totalOOPrefi-totalOOPpslf;
+    var pslfWins=pslfSaves>0;
+
+    html+='<div class="g2">';
+
+    // PSLF column
+    html+='<div class="card"><div class="ctitle" style="color:var(--g)">✓ PSLF Path (IBR/RAP → forgiveness)</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (RAP/IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    if(attMosPSLF>0){
+      html+='<tr><td>Attending (IBR)</td><td>'+fk(attPmtPSLF)+'</td><td>'+pslfYrsRemaining+' yr'+(pslfYrsRemaining!==1?'s':'')+'</td><td>'+fk(attPaidPSLF)+'</td></tr>';
+    } else {
+      html+='<tr><td>PSLF completes during training</td><td colspan="2">—</td><td>$0</td></tr>';
+    }
+    html+='<tr class="hl"><td>Forgiven (tax-free)</td><td>—</td><td>PSLF</td><td>'+fk(balForgiven)+'</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPpslf)+'</strong></td></tr>';
+    html+='</table>';
+    html+='<div style="font-size:10px;color:var(--mg);margin-top:8px;line-height:1.5">File annual employer certification (ECF) at studentaid.gov. Residency and fellowship count. Payments need not be consecutive.</div>';
+    html+='</div>';
+
+    // Private refi column
+    html+='<div class="card"><div class="ctitle" style="color:var(--b)">Private Refinance Path</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (RAP/IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
+    html+='<tr class="hl2"><td>Balance forgiven</td><td colspan="2">None (fully paid off)</td><td>$0</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr>';
+    html+='</table>';
+    html+='<div class="box box-r" style="margin-top:8px"><div class="box-body">Refinancing forfeits PSLF eligibility <strong>permanently</strong>. If your employer qualifies, do not refinance until you are certain you are leaving nonprofit medicine.</div></div>';
+    html+='</div>';
+
+    html+='</div>';
+
+    // Recommendation
+    html+='<div class="box '+(pslfWins?'box-g':'box-b')+'">';
+    html+='<div class="box-title" style="color:'+(pslfWins?'var(--g)':'var(--b)')+'">';
+    if(pslfWins){
+      html+='✓ PSLF saves '+fk(pslfSaves)+' over private refinancing';
+    } else {
+      html+='→ Private refi is '+fk(-pslfSaves)+' cheaper — but read the nuance below';
+    }
+    html+='</div><div class="box-body">';
+    if(pslfWins){
+      html+='Your balance ('+fk(bal)+') is large enough that the <strong>'+fk(balForgiven)+' forgiven tax-free</strong> more than offsets any refi savings. PSLF is the clear winner as long as you stay at a qualifying employer. ';
+      html+='File your Employment Certification Form every year — it\'s the only documentation that proves your qualifying payment count.';
+    } else {
+      html+='At '+fk(sal)+' salary, your attending IBR payment ('+fk(attPmtPSLF)+'/mo) is close to or above what a standard 10-year payoff would cost, so little is left to forgive. ';
+      html+='However, PSLF still provides real value: protection if your income drops, no refi risk, and flexibility to leave nonprofit medicine later (just don\'t refinance). ';
+      html+='If your employer qualifies and certification is current, stay on PSLF unless you are certain about private practice — where private refi and aggressive payoff is the right call.';
+    }
+    html+='</div></div>';
+
+  } else {
+    // Non-PSLF: Federal standard vs Private refi
+    var refiSaves=totalOOPfedStd-totalOOPrefi;
+    var interestFed=totalOOPfedStd-bal;
+    var interestRefi=totalOOPrefi-bal;
+
+    html+='<div class="box box-r" style="margin-bottom:10px">';
+    html+='<div class="box-title" style="color:var(--rd)">⚠ Do not let loans ride on IDR — forgiveness is now taxable</div>';
+    html+='<div class="box-body">Carrying federal loans for 20–25 years on IBR/RAP without PSLF now results in taxable forgiveness. On '+fk(bal)+' that grows at '+rateStr+' for 20 years, the forgiven amount could trigger a $300–600k+ tax bill in your 50s. The old low-payment strategy is now a trap for private practice physicians. Pay it off.</div>';
+    html+='</div>';
+
+    html+='<div class="g2">';
+
+    // Federal standard
+    html+='<div class="card"><div class="ctitle">Federal Standard 10yr ('+rateStr+')</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    html+='<tr><td>Attending (standard '+rateStr+')</td><td>'+fk(fedStdPmt)+'</td><td>10 yrs</td><td>'+fk(fedStdPaid)+'</td></tr>';
+    html+='<tr class="hl2"><td>Interest paid</td><td colspan="2"></td><td>'+fk(interestFed)+'</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPfedStd)+'</strong></td></tr>';
+    html+='</table></div>';
+
+    // Private refi
+    html+='<div class="card"><div class="ctitle" style="color:var(--g)">Private Refi + Attack ('+refiRateStr+')</div>';
+    html+='<table class="tbl">';
+    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
+    if(resMos>0){
+      html+='<tr><td>Residency (IBR, pre-refi)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    }
+    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
+    html+='<tr class="hl2"><td>Interest saved vs federal</td><td colspan="2"></td><td>'+fk(Math.max(0,interestFed-interestRefi))+'</td></tr>';
+    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr>';
+    html+='</table></div>';
+
+    html+='</div>';
+
+    html+='<div class="box box-g">';
+    html+='<div class="box-title" style="color:var(--g)">→ Refinance at attending start and attack aggressively</div>';
+    html+='<div class="box-body">';
+    if(refiSaves>0){
+      html+='Refinancing saves <strong>'+fk(refiSaves)+'</strong> vs keeping the federal rate. ';
+    }
+    html+='For private practice surgeons, refinance to the lowest rate you qualify for (4–5.5% range for physicians, June 2026) and pay off in 10 years or less. ';
+    html+='Physician-focused lenders: Laurel Road, SoFi, Earnest, Splash Financial — compare at least 3 offers before signing. ';
+    html+='Do not extend the term past 10 years. Every extra year of interest delays FI by more than the lower monthly payment saves. ';
+    html+='This is the equivalent of a guaranteed '+rateStr+' return on every dollar paid — better than bonds, better than cash.';
+    html+='</div></div>';
+  }
+
+  $('sl-result').innerHTML=html;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
