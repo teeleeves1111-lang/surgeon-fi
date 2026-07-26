@@ -211,8 +211,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <button class="tab" onclick="tab('paths')">🛤️ Three Paths</button>
   <button class="tab" onclick="tab('action')">⚡ Action Plan</button>
   <button class="tab" onclick="tab('fi')">🎯 FI Calculator</button>
-  <button class="tab" onclick="tab('loans')">🎓 Student Loans</button>
-  <button class="tab" onclick="tab('rent')">🏠 Rent vs Buy</button>
 </div>
 
 <!-- ═══ TAB 1: REALITY CHECK ═══════════════════════════════════════ -->
@@ -240,7 +238,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
       </div>
 
       <div class="sr"><label>Current net worth</label>
-        <input type="range" min="-1000000" max="1500000" step="25000" value="-260000" id="nw" oninput="go()">
+        <input type="range" min="-500000" max="1500000" step="25000" value="-260000" id="nw" oninput="go()">
         <span class="sv" id="nw-v">−$260k</span></div>
 
       <div class="sr"><label>Partner income</label>
@@ -248,14 +246,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
         <span class="sv" id="pinc-v">None</span></div>
 
       <div class="trow"><label>Buying / own a home</label>
-        <label class="tog"><input type="checkbox" id="house" checked onchange="go()"><span class="tsl"></span></label></div>
-      <div id="house-opts" class="sub-opts" style="display:block">
+        <label class="tog"><input type="checkbox" id="house" onchange="go()"><span class="tsl"></span></label></div>
+      <div id="house-opts" class="sub-opts" style="display:none">
         <div class="sr"><label>Home price</label>
           <input type="range" min="500000" max="2500000" step="50000" value="1000000" id="hp" oninput="go()">
-          <span class="sv" id="hp-v">$1.0M</span></div>
-        <div class="sr"><label>Years before buying</label>
-          <input type="range" min="0" max="5" value="0" id="buy-yr" oninput="go()">
-          <span class="sv" id="buy-yr-v">Now</span></div>
+          <span class="sv" id="hp-v">$1.2M</span></div>
       </div>
 
       <div class="trow"><label>Children</label>
@@ -273,21 +268,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
         <label class="tog"><input type="checkbox" id="loans" checked onchange="go()"><span class="tsl"></span></label></div>
       <div id="loans-opts" class="sub-opts">
         <div class="sr"><label>Balance</label>
-          <input type="range" min="0" max="1000000" step="25000" value="275000" id="lb" oninput="go()">
+          <input type="range" min="0" max="500000" step="25000" value="275000" id="lb" oninput="go()">
           <span class="sv" id="lb-v">$275k</span></div>
         <div class="trow" style="margin-bottom:2px"><label>PSLF eligible (nonprofit)</label>
           <label class="tog"><input type="checkbox" id="pslf" onchange="go()"><span class="tsl"></span></label></div>
-      </div>
-
-      <div class="trow" style="margin-top:8px;gap:6px;">
-        <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;">Car costs</label>
-        <select id="car-cost" onchange="go()" style="flex:1;font-size:12px;padding:5px 7px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--fg);font-family:var(--font);">
-          <option value="0">Residency car — $0/mo</option>
-          <option value="4800">Modest used — $400/mo</option>
-          <option value="14400" selected>One financed car — $1,200/mo</option>
-          <option value="24000">One luxury lease — $2,000/mo</option>
-          <option value="33600">Two luxury leases — $2,800/mo</option>
-        </select>
       </div>
     </div>
 
@@ -308,14 +292,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 <div id="tab-paths" class="panel">
   <div class="fu res" id="fu">
     <h2>When can you walk away from call?</h2>
-    <p>Coast FIRE — your portfolio grows to full FI without further contributions. After this, call is optional.</p>
+    <p>Call optionality — enough invested to cover a reduced "gap" spending level. After this, call is a choice, not a necessity.</p>
     <div class="fu-grid" id="fu-grid"></div>
   </div>
 
   <div class="ptabs" id="ptabs">
-    <button class="ptab" onclick="setPath(0)">🟢 Ideal — 25%</button>
+    <button class="ptab on" onclick="setPath(0)">🟢 Ideal — 25%</button>
     <button class="ptab" onclick="setPath(1)">🟡 Typical — 12%</button>
     <button class="ptab" onclick="setPath(2)">🔴 Lifestyle creep — 5%</button>
+  </div>
+  <div id="my-path-btn" style="display:none;margin-bottom:8px">
     <button class="ptab me" onclick="setPath(3)">📍 My path</button>
   </div>
 
@@ -386,9 +372,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
       <div class="sr"><label>Retirement spending / yr</label>
         <input type="range" min="60000" max="300000" step="5000" value="130000" id="fi-spend" oninput="calcFI()">
         <span class="sv" id="fi-spend-v">$130k</span></div>
-      <div class="sr"><label>Target retirement age</label>
-        <input type="range" min="48" max="70" value="60" id="fi-ret" oninput="calcFI()">
-        <span class="sv" id="fi-ret-v">60</span></div>
+      <div class="sr"><label>Call optionality gap spending / yr</label>
+        <input type="range" min="20000" max="60000" step="2000" value="34000" id="fi-gap" oninput="calcFI()">
+        <span class="sv" id="fi-gap-v">$34k</span></div>
       <div class="sr"><label>Real return (inflation-adj)</label>
         <input type="range" min="4" max="8" step="0.5" value="5" id="fi-rr" oninput="calcFI()">
         <span class="sv" id="fi-rr-v">5%</span></div>
@@ -414,180 +400,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <!-- Attending sensitivity -->
   <div id="fi-sens" style="display:none">
     <div class="card" style="margin-top:10px">
-      <div class="ctitle">What changing my savings rate does to Coast FIRE age</div>
+      <div class="ctitle">What changing my savings rate does to call optionality age</div>
       <div class="sens" id="fi-sensitivity"></div>
     </div>
-  </div>
-</div>
-
-<!-- ═══ TAB 5: STUDENT LOANS ══════════════════════════════════════════ -->
-<div id="tab-loans" class="panel">
-  <div class="box box-r">
-    <div class="box-title" style="color:var(--rd)">⚠ SAVE is gone — the 2026 landscape changed dramatically</div>
-    <div class="box-body">SAVE was struck down by federal courts and will not return. IBR and the new RAP plan (July 1, 2026) are now the primary income-driven options. Critically: non-PSLF income-driven forgiveness is now taxable income. Know your strategy before you sign your first contract.</div>
-  </div>
-
-  <div class="g2">
-    <div class="card">
-      <div class="ctitle">Your loan situation</div>
-      <div class="sr"><label>Loan balance</label>
-        <input type="range" min="0" max="1000000" step="25000" value="275000" id="sl-bal" oninput="calcLoans()">
-        <span class="sv" id="sl-bal-v">$275k</span></div>
-      <div class="sr"><label>Federal interest rate</label>
-        <input type="range" min="3" max="12" step="0.1" value="8.1" id="sl-rate" oninput="calcLoans()">
-        <span class="sv" id="sl-rate-v">8.1%</span></div>
-      <div class="trow"><label>PSLF-eligible employer</label>
-        <label class="tog"><input type="checkbox" id="sl-pslf" onchange="calcLoans()"><span class="tsl"></span></label></div>
-      <div class="sr"><label>Years left in training</label>
-        <input type="range" min="0" max="7" value="2" id="sl-yrs-left" oninput="calcLoans()">
-        <span class="sv" id="sl-yrs-left-v">2 yrs</span></div>
-      <div id="sl-pslf-opts" style="display:none">
-        <div class="sr"><label>PSLF qualifying years already made</label>
-          <input type="range" min="0" max="9" value="0" id="sl-qual-done" oninput="calcLoans()">
-          <span class="sv" id="sl-qual-done-v">0 yrs</span></div>
-      </div>
-      <div class="sr"><label>Private refi rate</label>
-        <input type="range" min="3" max="8" step="0.1" value="5" id="sl-refi" oninput="calcLoans()">
-        <span class="sv" id="sl-refi-v">5.0%</span></div>
-      <div style="font-size:10px;color:var(--mg);margin-top:4px;line-height:1.5">Assumes $65k residency salary for IDR payment calc. Specialty salary (above) used for attending phase.</div>
-    </div>
-    <div class="card">
-      <div class="ctitle">What changed in 2026</div>
-      <div style="display:flex;flex-direction:column;gap:9px;font-size:12px;line-height:1.55">
-        <div><span style="font-weight:600;color:var(--rd)">SAVE — eliminated.</span> Struck down by federal courts. Borrowers moved to IBR or interest-only forbearance. No reinstatement expected.</div>
-        <div><span style="font-weight:600;color:var(--b)">RAP — new July 1, 2026.</span> Repayment Assistance Plan. Tiered payments: 1% of income at $10k, scaling to 10% at $100k+. Qualifies for PSLF. Lower than IBR for residents.</div>
-        <div><span style="font-weight:600;color:var(--g)">IBR — still available.</span> 10% of discretionary income (AGI minus ~$22,500). Lower than RAP for high-earning attendings. Qualifies for PSLF.</div>
-        <div><span style="font-weight:600;color:var(--g)">PSLF — intact.</span> 120 qualifying payments at a nonprofit / government employer → 100% tax-free forgiveness. Best deal in medicine if your employer qualifies.</div>
-        <div><span style="font-weight:600;color:var(--rd)">Non-PSLF IDR forgiveness — now taxable.</span> Carrying loans 20–25 years on IBR/RAP without PSLF now triggers a taxable forgiveness event. For a surgeon, that could mean a $200–600k+ tax bill in retirement. The old "low payment, wait it out" strategy is now a trap.</div>
-        <div><span style="font-weight:600;color:var(--mg)">Federal rate 2026–27: ~8.07%</span> for graduate/professional loans (fixed at disbursement). Slider defaults to 8.1%.</div>
-      </div>
-    </div>
-  </div>
-
-  <div id="sl-result"></div>
-</div>
-
-<!-- ═══ TAB 6: RENT VS BUY ══════════════════════════════════════════ -->
-<div id="tab-rent" class="panel">
-  <div class="g2">
-    <div class="card">
-      <div class="ctitle">Your situation</div>
-
-      <div class="sr"><label>Home price</label>
-        <input type="range" min="600000" max="2500000" step="50000" value="1500000" id="rvb-price" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-price-v">$1.5M</span></div>
-
-      <div class="trow" style="align-items:flex-start;margin-bottom:8px">
-        <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;padding-top:4px">Down payment</label>
-        <div style="display:flex;gap:4px;flex:1">
-          <button id="dp-10" class="ptab" onclick="setDP(10)">10%</button>
-          <button id="dp-15" class="ptab" onclick="setDP(15)">15%</button>
-          <button id="dp-20" class="ptab on" onclick="setDP(20)">20%</button>
-        </div>
-      </div>
-
-      <div class="sr"><label>Mortgage rate</label>
-        <input type="range" min="5" max="9" step="0.25" value="6.75" id="rvb-rate" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-rate-v">6.75%</span></div>
-
-      <div class="sr"><label>Monthly rent</label>
-        <input type="range" min="2000" max="12000" step="250" value="7500" id="rvb-rent" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-rent-v">$7.5k</span></div>
-
-      <div class="sr"><label>Years in home</label>
-        <input type="range" min="1" max="15" value="5" id="rvb-yrs" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-yrs-v">5 yrs</span></div>
-
-      <div class="sr"><label>Home appreciation/yr</label>
-        <input type="range" min="2" max="8" step="0.5" value="4" id="rvb-appr" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-appr-v">4.0%</span></div>
-
-      <div class="sr"><label>Investment return (renter)</label>
-        <input type="range" min="4" max="10" step="0.5" value="7" id="rvb-inv" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-inv-v">7.0%</span></div>
-
-      <div class="trow" style="margin-bottom:6px">
-        <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0">State</label>
-        <select id="rvb-state" onchange="setRVBState()" style="flex:1;font-size:12px;padding:5px 7px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--dk);font-family:var(--font)">
-          <option value="AL">Alabama — 0.41%</option>
-          <option value="AK">Alaska — 1.04%</option>
-          <option value="AZ">Arizona — 0.62%</option>
-          <option value="AR">Arkansas — 0.62%</option>
-          <option value="CA">California — 0.71%</option>
-          <option value="CO">Colorado — 0.51%</option>
-          <option value="CT">Connecticut — 1.79%</option>
-          <option value="DE">Delaware — 0.57%</option>
-          <option value="FL">Florida — 0.89%</option>
-          <option value="GA">Georgia — 0.92%</option>
-          <option value="HI">Hawaii — 0.29%</option>
-          <option value="ID">Idaho — 0.69%</option>
-          <option value="IL">Illinois — 2.08%</option>
-          <option value="IN">Indiana — 0.87%</option>
-          <option value="IA">Iowa — 1.57%</option>
-          <option value="KS">Kansas — 1.41%</option>
-          <option value="KY">Kentucky — 0.83%</option>
-          <option value="LA">Louisiana — 0.56%</option>
-          <option value="ME">Maine — 1.09%</option>
-          <option value="MD">Maryland — 1.07%</option>
-          <option value="MA">Massachusetts — 1.14%</option>
-          <option value="MI">Michigan — 1.54%</option>
-          <option value="MN">Minnesota — 1.12%</option>
-          <option value="MS">Mississippi — 0.65%</option>
-          <option value="MO">Missouri — 0.97%</option>
-          <option value="MT">Montana — 0.84%</option>
-          <option value="NE">Nebraska — 1.73%</option>
-          <option value="NV">Nevada — 0.60%</option>
-          <option value="NH">New Hampshire — 1.93%</option>
-          <option value="NJ" selected>New Jersey — 2.23%</option>
-          <option value="NM">New Mexico — 0.78%</option>
-          <option value="NY">New York — 1.73%</option>
-          <option value="NC">North Carolina — 0.82%</option>
-          <option value="ND">North Dakota — 0.98%</option>
-          <option value="OH">Ohio — 1.62%</option>
-          <option value="OK">Oklahoma — 0.90%</option>
-          <option value="OR">Oregon — 0.97%</option>
-          <option value="PA">Pennsylvania — 1.58%</option>
-          <option value="RI">Rhode Island — 1.53%</option>
-          <option value="SC">South Carolina — 0.57%</option>
-          <option value="SD">South Dakota — 1.22%</option>
-          <option value="TN">Tennessee — 0.71%</option>
-          <option value="TX">Texas — 1.60%</option>
-          <option value="UT">Utah — 0.58%</option>
-          <option value="VT">Vermont — 1.90%</option>
-          <option value="VA">Virginia — 0.87%</option>
-          <option value="WA">Washington — 1.02%</option>
-          <option value="WV">West Virginia — 0.59%</option>
-          <option value="WI">Wisconsin — 1.73%</option>
-          <option value="WY">Wyoming — 0.61%</option>
-          <option value="DC">Washington DC — 0.55%</option>
-        </select>
-      </div>
-      <div class="sr"><label>Property tax rate</label>
-        <input type="range" min="0.2" max="3.5" step="0.05" value="2.23" id="rvb-tax" oninput="calcRentBuy()">
-        <span class="sv" id="rvb-tax-v">2.23%</span></div>
-      <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">State avg — adjust slider for your specific county</div>
-
-    </div>
-
-    <div>
-      <div id="rvb-costs"></div>
-      <div id="rvb-gap" style="margin-top:8px"></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:10px">
-    <div class="ctitle">Wealth comparison — renter vs owner</div>
-    <div class="cw" style="height:240px"><canvas id="rent-chart"></canvas></div>
-  </div>
-
-  <div id="rvb-verdict" style="margin-top:10px"></div>
-
-  <div class="card" id="rvb-breakdown" style="margin-top:10px"></div>
-
-  <div id="rvb-txn-warn" style="margin-top:8px"></div>
-
-  <div style="font-size:10px;color:var(--mg);margin-top:10px;line-height:1.6">
-    Assumes 30-year fixed mortgage at selected rate. Transaction cost to sell = 9% of home value at time of sale (realtor 5–6%, transfer taxes, closing costs — varies by state). Maintenance = 1% of value/yr ("1% rule" — actual varies by home age/condition). Insurance = 0.4%/yr. Property tax = state average effective rate — adjust slider for your specific county. Renter invests down payment from day 1 and monthly savings vs owning at selected return (7% = long-run stock market avg). This analysis assumes renter actually invests the difference — if spent instead, buying wins faster. Does not include mortgage interest deduction (often limited for high earners by SALT cap) or rent increases over time (which favor buying in the long run).
   </div>
 </div>
 
@@ -604,8 +419,8 @@ var SPECS={
   mis:{n:"MIS / Bariatric",sal:440000,lo:320000,hi:580000}
 };
 
-var MODE='res',curPath=3,curDP=20;
-var pathChrt=null,fiChrt=null,rentChrt=null;
+var MODE='res',curPath=0;
+var pathChrt=null,fiChrt=null;
 
 function $(id){return document.getElementById(id);}
 function fk(n){
@@ -662,6 +477,7 @@ function setMode(m){
   $('res-only').style.display=m==='res'?'block':'none';
   $('att-only').style.display=m==='att'?'block':'none';
   $('att-sens').style.display=m==='att'?'block':'none';
+  $('my-path-btn').style.display=m==='att'?'block':'none';
   $('fi-sens').style.display=m==='att'?'block':'none';
   $('inp-title').textContent=m==='res'?'Your situation':'Your current situation';
   // Sensible default NW for attending
@@ -685,20 +501,13 @@ function setMode(m){
 
 function tab(id){
   document.querySelectorAll('.tab').forEach(function(t,i){
-    t.classList.toggle('on',['reality','paths','action','fi','loans','rent'][i]===id);
+    t.classList.toggle('on',['reality','paths','action','fi'][i]===id);
   });
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   $('tab-'+id).classList.add('on');
   if(id==='paths')calcPaths();
   if(id==='action')calcAction();
   if(id==='fi')calcFI();
-  if(id==='loans'){
-    if($('lb'))$('sl-bal').value=$('lb').value;
-    if($('pslf'))$('sl-pslf').checked=$('pslf').checked;
-    if($('yrs-left'))$('sl-yrs-left').value=$('yrs-left').value;
-    calcLoans();
-  }
-  if(id==='rent')calcRentBuy();
 }
 
 function setPath(n){
@@ -717,19 +526,13 @@ function getCosts(){
   var s=sp();
   var pinc=+$('pinc').value;
   var gross=s.sal+pinc;
-  var fed=fedTax(gross);
-  var st=stateTax(gross);
-  var med=fica(s.sal)+(pinc>0?fica(pinc):0);
+  var fed=fedTax(s.sal)+(pinc>0?fedTax(pinc)*.65:0);
+  var st=stateTax(s.sal)+(pinc>0?stateTax(pinc)*.65:0);
+  var med=fica(s.sal)+(pinc>0?Math.round(pinc*.0145):0);
   var taxes=fed+st+med;
   var houseOn=$('house').checked;
   var hp=+$('hp').value;
-  var buyYr=houseOn?+$('buy-yr').value:0;
-  // ownHousing = full ownership cost (always computed for Three Paths post-buy phase)
-  var ownHousing=houseOn?mtg12(hp,6.75)+Math.round(hp*.0115)+Math.round(hp*.0035)+Math.round(hp*.01):0;
-  // housing = current cost: 0 if planning to buy later (currently renting)
-  var housing=houseOn&&buyYr===0?ownHousing:0;
-  // annualRent = estimated rent while waiting to buy (~4% of home price/yr)
-  var annualRent=houseOn&&buyYr>0?Math.round(hp*0.04):0;
+  var housing=houseOn?mtg12(hp,6.75)+Math.round(hp*.0115)+Math.round(hp*.0035)+Math.round(hp*.01):0;
   var loansOn=$('loans').checked;
   var lb=+$('lb').value;
   var pslf=$('pslf').checked;
@@ -739,14 +542,12 @@ function getCosts(){
   var psVal=+$('ps').value;
   var childcare=kidsOn?nk*30000:0;
   var privsch=kidsOn&&psVal>0?nk*psVal:0;
-  var living=70000,disc=36000,cars=+$('car-cost').value;
-  // lifestyleAdd only applies once owning (zero during renting phase)
-  var lifestyleAdd=houseOn&&buyYr===0?Math.round(Math.max(0,hp-1000000)*0.10):0;
-  var total=taxes+housing+annualRent+loanPay+childcare+privsch+living+disc+cars+lifestyleAdd;
+  var living=70000,disc=25000,cars=18000;
+  var total=taxes+housing+loanPay+childcare+privsch+living+disc+cars;
   var left=gross-total;
   var srPct=gross>0?Math.round(Math.max(0,left)/gross*100):0;
-  return{s,gross,taxes,housing,annualRent,ownHousing,hp,houseOn,buyYr,loanPay,loansOn,lb,pslf,
-    childcare,privsch,kidsOn,nk,psVal,living,disc,cars,lifestyleAdd,total,left,srPct,pinc};
+  return{s,gross,taxes,housing,hp,houseOn,loanPay,loansOn,lb,pslf,
+    childcare,privsch,kidsOn,nk,psVal,living,disc,cars,total,left,srPct,pinc};
 }
 
 // ── SALARY OVERRIDE ──────────────────────────────────────────────
@@ -782,7 +583,6 @@ function go(){
   $('pinc-v').textContent=+$('pinc').value>0?fk(+$('pinc').value):'None';
   $('house-opts').style.display=$('house').checked?'block':'none';
   $('hp-v').textContent=fk(+$('hp').value);
-  if($('house').checked){var byv=+$('buy-yr').value;$('buy-yr-v').textContent=byv===0?'Now':'Yr '+byv;}
   $('kids-opts').style.display=$('kids').checked?'block':'none';
   $('nk-v').textContent=$('nk').value;
   $('ps-v').textContent=+$('ps').value>0?fk(+$('ps').value)+'/child':'Public';
@@ -800,27 +600,14 @@ function go(){
 // ── WATERFALL ─────────────────────────────────────────────────────
 function calcWaterfall(){
   var c=getCosts();
-  var houseOn=c.houseOn,hp=c.hp,housing=c.housing;
-  var downNeeded=houseOn?Math.round(hp*0.23):0;
-  var nwNow=startNW();
-  // dpAlert only fires when buying immediately (buyYr=0) and can't cover the down payment
-  var dpAlert=houseOn&&c.buyYr===0&&downNeeded>0&&downNeeded>nwNow;
-  // Years to accumulate down payment while renting (4% of home price = typical NJ annual rent)
-  var annualRent=houseOn?Math.round(hp*0.04):0;
-  var noHouseSav=c.gross-c.taxes-c.loanPay-c.childcare-c.privsch-c.living-c.disc-c.cars-annualRent;
-  var dpGap=Math.max(0,downNeeded-Math.max(0,nwNow));
-  var dpYrs=dpAlert&&noHouseSav>0?Math.ceil(dpGap/noHouseSav):null;
   var kTotal=c.childcare+c.privsch;
   var items=[
     {l:'Gross income',a:c.gross,col:'#1D6B52',inc:true},
     {l:'Federal + state + Medicare',a:c.taxes,col:'#C0392B',p:Math.round(c.taxes/c.gross*100)},
-    c.houseOn&&c.buyYr===0?{l:'Housing (PITI + maint.)',a:c.housing,col:'#E67E22',p:Math.round(c.housing/c.gross*100),note:'+'+fk(downNeeded)+' cash at closing'}:null,
-    c.houseOn&&c.buyYr>0?{l:'Rent (until attending yr '+c.buyYr+')',a:c.annualRent,col:'#E8A020',p:Math.round(c.annualRent/c.gross*100),note:'Buying '+fk(hp)+' in yr '+c.buyYr+' — saves '+fk(Math.max(0,c.ownHousing-c.annualRent))+'/yr vs owning now'}:null,
+    c.houseOn?{l:'Housing (PITI + maint.)',a:c.housing,col:'#E67E22',p:Math.round(c.housing/c.gross*100),note:'+'+fk(downNeeded)+' cash at closing'}:null,
     c.loansOn&&c.loanPay>0?{l:'Student loans',a:c.loanPay,col:'#E8A020',p:Math.round(c.loanPay/c.gross*100)}:null,
     c.kidsOn&&kTotal>0?{l:'Children'+(c.psVal>0?' + school':''),a:kTotal,col:'#8E44AD',p:Math.round(kTotal/c.gross*100)}:null,
-    c.cars>0?{l:'Cars',a:c.cars,col:'#7F8C8D',p:Math.round(c.cars/c.gross*100)}:null,
-    {l:'Living + discretionary',a:c.living+c.disc,col:'#95A5A6',p:Math.round((c.living+c.disc)/c.gross*100)},
-    c.houseOn&&c.lifestyleAdd>0?{l:'Lifestyle premium (home-correlated)',a:c.lifestyleAdd,col:'#9B5940',p:Math.round(c.lifestyleAdd/c.gross*100),note:'furnishings, utilities, crews — scales with home value'}:null,
+    {l:'Cars + living + discretionary',a:c.cars+c.living+c.disc,col:'#7F8C8D',p:Math.round((c.cars+c.living+c.disc)/c.gross*100)},
     c.left>=0?{l:'Available to invest',a:c.left,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:c.srPct}:null,
     c.left<0?{l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true}:null,
   ].filter(Boolean);
@@ -836,7 +623,7 @@ function calcWaterfall(){
 
   var cls=c.srPct>=20?'good':c.srPct>=12?'warn':'bad';
   $('wf-metrics').innerHTML=[
-    {l:'Savings rate',v:c.srPct+'%',s:dpAlert?'on paper — down payment not yet saved':c.buyYr>0?'renting now — buying yr '+c.buyYr:'of gross',c:dpAlert?'warn':cls},
+    {l:'Savings rate',v:c.srPct+'%',s:'of gross',c:cls},
     {l:'Investable / yr',v:fk(Math.max(0,c.left)),s:c.left<=0?'spending > income':'after all costs',c:c.left>0?'good':'bad'},
     {l:'Total household',v:fk(c.gross),s:c.pinc>0?'surgeon + partner':'surgeon only',c:''},
     {l:'Tax burden',v:fk(c.taxes),s:Math.round(c.taxes/c.gross*100)+'% of gross',c:'bad'},
@@ -844,59 +631,42 @@ function calcWaterfall(){
     return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';
   }).join('');
 
-  // Coast FIRE estimate for waterfall callout — compare current rate vs 25% ideal and 12% typical
+  // Call optionality estimate for waterfall callout
+  // Fixed target (25x gap spending) -- NOT age-discounted, unlike Coast FIRE.
+  // In attending mode use actual savings rate slider; in resident mode use derived waterfall rate
   var rr=0.05,sa=startAge(),nwv=startNW();
   var effectiveSR=MODE==='att'?+$('att-sr').value:Math.max(c.srPct,1);
   var sav=Math.round(c.s.sal*effectiveSR/100);
-  var wfFI=3250000,wfCT=wfFI/Math.pow(1+rr,65-sa),nw2=nwv,coastEst=null;
+  var GAP_SPEND=34000,wfCT=GAP_SPEND*25,nw2=nwv,coastEst=null;
   for(var i=0;i<50;i++){nw2=Math.round(nw2*(1+rr)+sav);if(nw2>=wfCT){coastEst=sa+i+1;break;}}
-  // Compute coast at 25% ideal and 12% typical for call-years comparison
-  var sav25=Math.round(c.s.sal*0.25),nw25=nwv,coast25=null;
-  for(var j=0;j<50;j++){nw25=Math.round(nw25*(1+rr)+sav25);if(nw25>=wfCT){coast25=sa+j+1;break;}}
-  var sav12=Math.round(c.s.sal*0.12),nw12=nwv,coast12=null;
-  for(var j=0;j<50;j++){nw12=Math.round(nw12*(1+rr)+sav12);if(nw12>=wfCT){coast12=sa+j+1;break;}}
-  var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>past age 70</strong>';
-  var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(70-coast25):null);
-  var callYrsLine=extraVsIdeal?'That is <strong>'+extraVsIdeal+' extra years</strong> of mandatory call vs the 25% path.':
-    (coastEst&&coast25&&coastEst<=coast25)?'On pace with the ideal 25% path.':'';
+  var coastLine=coastEst?'At a <strong>'+effectiveSR+'% savings rate</strong>, call becomes optional around age <strong>'+coastEst+'</strong> (call optionality).':
+    '<strong>At this savings rate, call optionality is past age 70.</strong> Raising savings rate by 5 percentage points makes a significant difference.';
 
   // Use actual savings rate for message threshold in attending mode
   var displaySR=MODE==='att'?+$('att-sr').value:c.srPct;
   var msg='';
-  if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|Call is not optional until '+coastAge+'. '+callYrsLine+' '+(MODE==='att'?'The sensitivity panel below shows which single change moves the needle most.':'This is what the lifestyle creep path looks like. It improves as loans pay off and childcare ends — but only if spending stays flat. Do not let this become permanent.');
-  else if(displaySR<20) msg='box-a|Below the 20% WCI target|Call becomes optional at '+coastAge+(extraVsIdeal?' — <strong>'+extraVsIdeal+' years later</strong> than the 25% path.':'. ')+' Biggest levers: '+(c.houseOn?'home price (each $200k less frees ~$14k/yr), ':'')+( c.kidsOn&&c.psVal>0?'private school ($'+Math.round(c.psVal/1000)+'k/child/yr), ':'')+'partner income, delaying the next car upgrade.';
-  else msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12?' — <strong>'+(coast12-(coastEst||65))+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 401k ($24,500) + backdoor Roth ($7,500) = $32,000 tax-advantaged first. Add HSA ($8,750 family) only if on HDHP — most hospital surgeons have PPO, so verify before counting on it.';
+  if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|'+(MODE==='att'?'Below 10% means FI is very hard to reach. The sensitivity panel shows which single change moves call optionality most.':'With a home, children, and loans, year 1 is the hardest. It improves as loans pay off and childcare ends. The critical move: do not let this become permanent.')+' '+coastLine;
+  else if(displaySR<20) msg='box-a|Below 20% WCI target — fixable|Biggest levers: '+(c.houseOn?'home price (each $200k less ≈ $14k/yr freed), ':'')+( c.kidsOn&&c.psVal>0?'private school ($'+Math.round(c.psVal/1000)+'k/child/yr), ':'')+'partner income. '+coastLine;
+  else msg='box-g|On track at '+displaySR+'%|Max 401k ($24,500) + backdoor Roth, both spouses ($15,000) = $39,500 tax-advantaged first. Add HSA ($8,750 family) only if on a high-deductible plan — most hospital surgeons have standard PPO. '+coastLine;
   // Down payment feasibility warning
   var dpWarning='';
-  if(houseOn && downNeeded > 0){
-    if(c.buyYr > 0){
-      // Forward-project NW to year of purchase at current (pre-buy) savings rate
-      var nwAtBuy=nwNow;
-      for(var byi=0;byi<c.buyYr;byi++) nwAtBuy=Math.round(nwAtBuy*1.05+c.left);
-      var canAfford=nwAtBuy>=downNeeded;
-      dpWarning='<div class="box '+(canAfford?'box-g':'box-a')+'" style="margin-top:8px">'+
-        '<div class="box-title" style="color:'+(canAfford?'var(--g)':'var(--am)')+'">'+
-        (canAfford?'✓ Down payment on track for year '+c.buyYr:'⚠ Down payment gap at year '+c.buyYr)+'</div>'+
-        '<div class="box-body">'+fk(hp)+' home needs <strong>'+fk(downNeeded)+'</strong> at closing. '+
-        'Projecting at current savings rate, estimated NW by attending year '+c.buyYr+': <strong>'+fk(Math.max(0,nwAtBuy))+'</strong>. '+
-        (canAfford?'Enough to cover the down payment. Waiting also lets you learn the area and your group before committing.':
-          'Still <strong>'+fk(Math.max(0,downNeeded-Math.max(0,nwAtBuy)))+' short</strong>. Options: lower home price, wait one more year, or physician loan (0–10% down, higher rate).')+
-        '</div></div>';
-    } else if(downNeeded > nwNow){
-      var dpYrsStr=dpYrs?(dpYrs<=1?'Renting and saving hard, you can accumulate the down payment in <strong>roughly 1 year</strong>. ':'Renting and saving hard, it takes roughly <strong>'+dpYrs+' years</strong> to accumulate the down payment before this purchase is feasible. '):'';
+  var downNeeded=Math.round(c.hp*0.22); // 20% down + ~2% closing costs, matches convention used elsewhere
+  if(c.houseOn && downNeeded > 0){
+    var nwNow=startNW();
+    // They need downNeeded in cash; their NW includes illiquid assets
+    // Flag if NW is less than 50% of down payment needed (clearly can't afford it)
+    if(nwNow < downNeeded * 0.5){
       dpWarning='<div class="box box-r" style="margin-top:8px">'+
-        '<div class="box-title" style="color:var(--rd)">⚠ Not yet affordable — down payment gap</div>'+
-        '<div class="box-body">A '+fk(hp)+' home requires <strong>'+fk(downNeeded)+'</strong> cash at closing (20% down + 3% closing costs). '+
-        'Current net worth is '+fk(nwNow)+' — that gap must be saved first. '+
-        dpYrsStr+
-        '<strong>The savings rate shown above assumes this home is already owned.</strong> It does not reflect the years of saving required to get the down payment. '+
-        'Physician loan programs (0–10% down, no PMI) exist but carry higher rates — WCI still recommends 20% down and waiting at least 2 years to know your area and group.</div></div>';
-    } else if(c.buyYr===0&&housing/c.gross > 0.28){
+        '<div class="box-title" style="color:var(--rd)">Down payment reality check</div>'+
+        '<div class="box-body">A '+fk(c.hp)+' home requires '+fk(downNeeded)+' cash at closing (20% down + closing costs). '+
+        'With a current net worth of '+fk(nwNow)+', this purchase is not yet feasible without a physician loan or significant savings first. '+
+        'Consider: physician loan programs allow &lt;20% down without PMI for first home purchase — but WCI still recommends waiting 2 years.</div></div>';
+    } else if(c.housing/c.gross > 0.30){
       dpWarning='<div class="box box-a" style="margin-top:8px">'+
         '<div class="box-title" style="color:var(--am)">Housing above 28% guideline</div>'+
-        '<div class="box-body">Total housing cost is '+Math.round(housing/c.gross*100)+'% of gross salary — above the recommended 28%. '+
+        '<div class="box-body">Total housing cost is '+Math.round(c.housing/c.gross*100)+'% of gross salary — above the recommended 28%. '+
         'On a '+fk(c.s.sal)+' salary, the WCI guideline suggests keeping total housing under '+fk(Math.round(c.gross*0.28))+'/yr ('+fk(Math.round(c.gross*0.28/12))+'/mo). '+
-        'Consider: '+fk(Math.round(c.gross*0.28/(0.80*(6.75/100/12*Math.pow(1+6.75/100/12,360))/(Math.pow(1+6.75/100/12,360)-1)*12+0.0115+0.0035+0.01))).replace('k','')+'k home price would hit the 28% mark.</div></div>';
+        'Consider: '+fk(Math.round(c.gross*0.28/((6.75/100/12*Math.pow(1+6.75/100/12,360))/(Math.pow(1+6.75/100/12,360)-1)*12+0.0115+0.0035+0.01))).replace('k','')+'k home price would hit the 28% mark.</div></div>';
     }
   }
 
@@ -930,56 +700,65 @@ function calcPaths(){
   var sa=startAge(),nwStart=startNW();
   var retSpend=+$('fi-spend').value||130000;
   var fi=retSpend*25;
-  var c=getCosts();
-  var mySavRaw=c.left; // actual investable dollars from waterfall (can be negative)
-  var mySR=c.srPct;
+  // Call optionality: fixed target (25x gap spending), NOT age-discounted like Coast FIRE.
+  // This is a lower bar than Full FI -- enough to cover reduced spending, not full retirement.
+  var GAP_SPEND=34000; // annual gap spending if stepping back from call
+  var callOptTarget = GAP_SPEND*25; // $850,000 -- fixed, independent of age
 
-  // Post-buy savings for My Path when purchase is delayed (otherwise same as mySavRaw)
-  var postBuyLeft=mySavRaw,downPayment=0;
-  if(c.houseOn&&c.buyYr>0){
-    var pbLifestyle=Math.round(Math.max(0,c.hp-1000000)*0.10);
-    postBuyLeft=c.gross-c.taxes-c.ownHousing-pbLifestyle-c.loanPay-c.childcare-c.privsch-c.living-c.disc-c.cars;
-    downPayment=Math.round(c.hp*0.23);
+  var paths=[
+    {n:'Ideal — 25%',sr:.25,hYr:3,hp:1000000,col:'#1D6B52',bg:'rgba(29,158,117,0.08)'},
+    {n:'Typical — 12%',sr:.12,hYr:2,hp:1300000,col:'#E8A020',bg:'rgba(232,160,32,0.08)'},
+    {n:'Lifestyle creep — 5%',sr:.05,hYr:1,hp:1600000,col:'#C0392B',bg:'rgba(192,57,43,0.08)'},
+  ];
+  if(MODE==='att'){
+    var c2=getCosts();
+    paths.push({n:'My path — '+Math.round(actualSR()*100)+'%',sr:actualSR(),hYr:0,hp:+$('hp').value,col:'#2355A0',bg:'rgba(35,85,160,0.08)',isMe:true});
   }
 
-  // All 4 paths start from user's actual age and NW.
-  // Generic paths apply a hypothetical savings rate — shows what lifestyle choices cost in years.
-  // My Path uses the actual dollars left after all costs from Reality Check.
-  var paths=[
-    {n:'Ideal — 25%',sr:.25,col:'#1D6B52',bg:'rgba(29,158,117,0.08)'},
-    {n:'Typical — 12%',sr:.12,col:'#E8A020',bg:'rgba(232,160,32,0.08)'},
-    {n:'Lifestyle creep — 5%',sr:.05,col:'#C0392B',bg:'rgba(192,57,43,0.08)'},
-    {n:'My path — '+mySR+'%',sr:null,col:'#2355A0',bg:'rgba(35,85,160,0.08)',isMe:true},
-  ];
+  // Standardized start for generic paths: age 32, NW -250k
+  // This makes ideal/typical/creep comparable benchmarks regardless of user's situation
+  // Only "My Path" uses the user's actual age and NW
+  // Generic paths use standardized physician start: age 32, NW -$250k
+  // My Path uses the user's actual age and NW
+  // We pre-compute milestones independently, then build chart data from user's current age
+  var stdAge=34, stdNW=-150000;
 
   var labels=[],datasets=[],msAll=[];
   paths.forEach(function(path,pi){
+    var pathStartAge=path.isMe?sa:stdAge;
+    var pathStartNW=path.isMe?nwStart:stdNW;
+    var sav=s.sal*path.sr;
     var ms={zero:null,million:null,coast:null,fi:null};
-    var coastTarget=fi/Math.pow(1+rr,65-sa);
 
-    // Per-year savings: My Path phases from pre-buy to post-buy at purchase year
-    function yrSav(yr){
-      if(!path.isMe) return Math.round(s.sal*path.sr);
-      return (c.houseOn&&c.buyYr>0&&yr>=c.buyYr)?postBuyLeft:mySavRaw;
-    }
-
-    var nwPre=nwStart;
+    // Step 1: pre-run from path's actual start to compute milestones
+    var nwPre=pathStartNW;
     for(var j=0;j<60;j++){
-      if(path.isMe&&c.houseOn&&c.buyYr>0&&j===c.buyYr) nwPre-=downPayment;
-      nwPre=Math.round(nwPre*(1+rr)+yrSav(j));
-      var agePost=sa+j+1;
+      var agePre=pathStartAge+j;
+      if(j===path.hYr&&!path.isMe) nwPre-=path.hp*.22;
+      nwPre=Math.round(nwPre*(1+rr)+sav);
+      var agePost=pathStartAge+j+1;
       if(!ms.zero&&nwPre>=0) ms.zero=agePost;
       if(!ms.million&&nwPre>=1e6) ms.million=agePost;
-      if(!ms.coast&&nwPre>=coastTarget) ms.coast=agePost;
+      if(!ms.coast&&nwPre>=callOptTarget) ms.coast=agePost;
       if(!ms.fi&&nwPre>=fi) ms.fi=agePost;
       if(ms.zero&&ms.million&&ms.coast&&ms.fi) break;
     }
 
-    var data=[],nwChart=nwStart;
+    // Step 2: build chart data from user's current age for visual alignment
+    var data=[];
+    var nwChart=pathStartNW;
+    // Fast-forward generic paths to user's current age
+    if(!path.isMe&&sa>pathStartAge){
+      for(var k=0;k<sa-pathStartAge;k++){
+        if(k===path.hYr) nwChart-=path.hp*.22;
+        nwChart=Math.round(nwChart*(1+rr)+sav);
+      }
+    }
     for(var i=0;i<=yrs;i++){
-      if(pi===0) labels.push(sa+i);
-      if(path.isMe&&c.houseOn&&c.buyYr>0&&i===c.buyYr) nwChart-=downPayment;
-      nwChart=Math.round(nwChart*(1+rr)+yrSav(i));
+      var a=sa+i;
+      if(pi===0) labels.push(a);
+      if(path.isMe&&i===path.hYr) nwChart-=path.hp*.22;
+      nwChart=Math.round(nwChart*(1+rr)+sav);
       data.push(Math.round(nwChart/1000));
     }
 
@@ -990,26 +769,27 @@ function calcPaths(){
       borderDash:!isActive?[5,3]:[],order:isActive?0:1});
   });
 
-  var idealms=msAll[0],typms=msAll[1],crpms=msAll[2],mems=msAll[3];
-
-  // FU banner — anchored to My Path milestones
+  // FU banner
+  var ideal=msAll[0],typ=msAll[1],worst=msAll[2],me=msAll[3];
   var fu=$('fu'); fu.className='fu '+(MODE==='res'?'res':'att');
+  // Three honest tiers for the active path
+  var activems=me||ideal;
   $('fu-grid').innerHTML=
-    '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(mems.coast||'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🏁 Coast FIRE<br>Stop saving — portfolio self-funds<br><span style="opacity:0.7">At your current savings rate</span></div></div>'+
-    '<div class="fu-cell"><div class="fu-num" style="color:#FFD580">'+(mems.coast&&mems.fi?mems.coast+'–'+mems.fi:'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">📞 Call optionality window<br>Depends on fixed cost burden<br><span style="opacity:0.7">At 25% ideal: '+(idealms.coast||'—')+'–'+(idealms.fi||'—')+'</span></div></div>'+
-    '<div class="fu-cell"><div class="fu-num" style="color:#7FFFD4">'+(mems.fi||'—')+'</div>'+
+    '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(activems.coast||'—')+'</div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">📞 Call optionality<br>Covers reduced/gap spending<br><span style="opacity:0.7">'+fk(callOptTarget)+' target</span></div></div>'+
+    '<div class="fu-cell"><div class="fu-num" style="color:#FFD580">'+(activems.coast&&activems.fi?activems.coast+'–'+activems.fi:'—')+'</div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🌤️ Transition window<br>Between call optionality and Full FI<br><span style="opacity:0.7">Gradually easing off call</span></div></div>'+
+    '<div class="fu-cell"><div class="fu-num" style="color:#7FFFD4">'+(activems.fi||'—')+'</div>'+
       '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🎯 Full FI<br>Work completely optional<br><span style="opacity:0.7">'+fk(fi)+' portfolio</span></div></div>';
 
-  // Milestone strip — active path
-  var msSel=msAll[Math.min(curPath,3)];
+  // Milestone strip
+  var ms=msAll[Math.min(curPath,msAll.length-1)];
   $('ms-strip').innerHTML='<div class="ms-strip">'+[
     {a:sa,l:'Today',dot:MODE==='att'?'y':''},
-    {a:msSel.zero,l:msSel.zero?'Age '+msSel.zero:'—',sub:'Zero NW',dot:msSel.zero?'r':''},
-    {a:msSel.million,l:msSel.million?'Age '+msSel.million:'—',sub:'$1M milestone',dot:msSel.million?'r':''},
-    {a:msSel.coast,l:msSel.coast?'Age '+msSel.coast:'—',sub:'Coast FIRE',sub2:'Call opt if low expenses',dot:msSel.coast?'k':''},
-    {a:msSel.fi,l:msSel.fi?'Age '+msSel.fi:'—',sub:'Full FI',sub2:'Call opt if high expenses',dot:msSel.fi?'k':''},
+    {a:ms.zero,l:ms.zero?'Age '+ms.zero:'—',sub:'Zero NW',dot:ms.zero?'r':''},
+    {a:ms.million,l:ms.million?'Age '+ms.million:'—',sub:'$1M milestone',dot:ms.million?'r':''},
+    {a:ms.coast,l:ms.coast?'Age '+ms.coast:'—',sub:'Call optionality',sub2:fk(callOptTarget)+' target',dot:ms.coast?'k':''},
+    {a:ms.fi,l:ms.fi?'Age '+ms.fi:'—',sub:'Full FI',sub2:fk(fi)+' target',dot:ms.fi?'k':''},
   ].map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
       (m.dot==='k'?'⭐':m.dot==='r'?'✓':m.dot==='y'?'📍':'◎')+'</div>'+
@@ -1018,20 +798,19 @@ function calcPaths(){
     '</div>';
   }).join('')+'</div>';
 
-  // Path descriptions
+  // Path description
   var descs=[
-    ['25% gross savings — automated day 1','Student loans paid aggressively, gone by year 8','Home year 3 ($1M) after finances stable','Kids in public school','Drive residency car through year 2'],
-    ['12% savings — 401k maxed, lifestyle expanded','Loans on slow 15-year payoff','Home year 2 ($1.3M) before fully settled','One child in private school: $40k/yr','Financed car year 2: $1,300/mo'],
-    ['5% savings — income absorbed by lifestyle','Loan minimums indefinitely','Home year 1 ($1.6M) before knowing the area','Two kids in private school: $80k/yr','Luxury car leases: $2,000/mo'],
-    ['Your actual '+mySR+'% — '+fk(Math.round(mySavRaw))+'/yr investable'+(c.houseOn&&c.buyYr>0?' (renting now)':''),
-     'Net worth today: '+fk(nwStart),
-     c.houseOn?(c.buyYr>0?'Buying '+fk(+$('hp').value)+' in attending year '+c.buyYr+' — renting until then':'Home: '+fk(+$('hp').value)):'Renting — keeping costs flexible',
-     $('kids').checked&&+$('ps').value>0?'Private school: '+fk(+$('ps').value)+'/child/yr':'Public school or no children',
-     $('loans').checked?'Student loans: '+fk(+$('lb').value)+' remaining':'Loans paid off'],
-  ];
+    ['25% savings — automated on day 1','Home purchased year 3, $1M, after finances stable','Student loans paid off aggressively in 8 years','Kids in public school — revisit at year 5','Drive residency car through year 2; buy used with cash'],
+    ['12% savings — 401k maxed but lifestyle expanded','Home year 2, $1.3M, before fully settled','One child in private school, $40k/yr','Loans on slow 15-year payoff','New financed car year 2, $1,300/mo payment'],
+    ['5% savings — income absorbed by lifestyle','Home year 1, $1.6M — before knowing the area','Two kids in private school from kindergarten: $80k/yr','Luxury car leases: $2,000/mo','Loan minimums indefinitely'],
+    me?['Your actual '+Math.round(actualSR()*100)+'% savings path','Net worth today: '+fk(startNW()),
+      $('house').checked?'Home: '+fk(+$('hp').value):'Renting — flexible',
+      $('kids').checked&&+$('ps').value>0?'Private school: '+fk(+$('ps').value)+'/child':'Children in public school',
+      $('loans').checked?'Loans remaining: '+fk(+$('lb').value):'Loans paid off']:null,
+  ].filter(Boolean);
   var cols=['var(--g)','var(--am)','var(--rd)','var(--b)'];
   var icons=['✓','▸','✗','📍'];
-  var ci=Math.min(curPath,3);
+  var ci=Math.min(curPath,descs.length-1);
   $('path-desc').innerHTML='<ul style="list-style:none;padding:0">'+
     descs[ci].map(function(d){
       return '<li style="display:flex;gap:8px;margin-bottom:7px;align-items:flex-start">'+
@@ -1039,42 +818,33 @@ function calcPaths(){
         '<span style="font-size:12px;line-height:1.5">'+d+'</span></li>';
     }).join('')+'</ul>';
 
-  // Comparison table — 4 columns always
-  var meSavGap=Math.round(s.sal*.25)-mySavRaw;
-  $('compare-tbl').innerHTML=
-    '<tr><th>Milestone</th><th style="color:#7FFFD4">Ideal 25%</th><th style="color:#FFD580">Typical 12%</th><th style="color:#FF8080">Creep 5%</th><th style="color:#A8D4FF">My path '+mySR+'%</th></tr>'+
-    [['🏁 Coast FIRE — stop saving',function(m){return m.coast||'—';},'hl-b'],
+  // Comparison table
+  var extraHdr=me?'<th style="color:#A8D4FF">My path</th>':'<th style="color:#FF8080">Creep</th>';
+  var extra=me?msAll[3]:worst;
+  $('compare-tbl').innerHTML='<tr><th>Milestone</th><th style="color:#7FFFD4">Ideal</th><th style="color:#FFD580">Typical</th>'+extraHdr+'</tr>'+
+    [['📞 Call optionality — '+fk(callOptTarget),function(m){return m.coast||'—';},'hl-b'],
      ['🎯 Full FI — '+fk(fi),function(m){return m.fi||'—';},'hl'],
-     ['Extra call vs Ideal 25%',function(m,i){
-       if(i===0) return 'Baseline';
-       var idealFI=idealms.fi||75,thisFI=m.fi||75;
-       return (!m.fi?'Past '+idealFI:thisFI===idealFI?'Same':('+'+(thisFI-idealFI)+' yrs'));
-     },'hl2'],
-    ].map(function(row){
+     ['Extra mandatory call vs ideal',function(m,i){return i===0?'0':((m.fi||75)-(ideal.fi||50))+' yrs';},'hl2'],
+    ].map(function(row,ri){
       return '<tr class="'+row[2]+'"><td>'+row[0]+'</td>'+
-        [idealms,typms,crpms,mems].map(function(m,i){return '<td>'+row[1](m,i)+'</td>';}).join('')+'</tr>';
+        [ideal,typ,extra].map(function(m,i){return '<td>'+row[1](m,i)+'</td>';}).join('')+'</tr>';
     }).join('')+
-    (meSavGap>5000?'<tr><td colspan="5" style="font-size:9px;color:#FF8080;padding-top:5px">'+
-    '⚠ To reach Ideal path: '+fk(Math.round(meSavGap))+'/yr more savings needed — the cost of current lifestyle choices.</td></tr>':
-    '<tr><td colspan="5" style="font-size:9px;color:#1D6B52;padding-top:5px">'+
-    '✓ Your savings meets or exceeds the 25% Ideal benchmark.</td></tr>')+
-    '<tr><td colspan="5" style="font-size:9px;color:var(--mg);padding-top:5px">'+
-    'Call optionality window: Coast FIRE to Full FI age. Low expenses → Coast FIRE may suffice. High expenses → need Full FI. Biggest lever: fixed cost burden when you drop call.</td></tr>';
+    '<tr><td colspan="4" style="font-size:9px;color:var(--mg);padding-top:5px">'+
+    'Call optionality is a fixed target ('+fk(callOptTarget)+') covering reduced/gap spending — it does not depend on age. '+
+    'Full FI ('+fk(fi)+') covers complete retirement spending. The window between them is a gradual transition, not a hard threshold.</td></tr>';
 
-  // Spending table — 4 columns with My Path actuals
-  var idSav=Math.round(s.sal*.25/12),typSav=Math.round(s.sal*.12/12),crpSav=Math.round(s.sal*.05/12);
-  var myHousing=c.housing>0?fk(Math.round(c.housing/12)):'$0 (renting)';
-  var myLoan=c.loanPay>0?fk(Math.round(c.loanPay/12)):'$0 (paid)';
-  var myKids=c.childcare+c.privsch>0?fk(Math.round((c.childcare+c.privsch)/12)):'$0';
-  $('spend-tbl').innerHTML='<tr><th>Category</th><th style="color:#7FFFD4">Ideal/mo</th><th style="color:#FFD580">Typical/mo</th><th style="color:#FF8080">Creep/mo</th><th style="color:#A8D4FF">My path/mo</th></tr>'+
-    [['Savings / invested',fk(idSav),fk(typSav),fk(crpSav),mySavRaw>0?fk(Math.round(mySavRaw/12)):'$0 (none left)'],
-     ['Housing','$0→$6.5k yr3','$9,500 yr2','$11,000 yr1',myHousing],
-     ['Loans','$3,000 aggr.','$2,500 slow','$1,200 min.',myLoan],
-     ['Cars','$300 (old car)','$1,300 (loan)','$2,000 (lease)',fk(Math.round(36000/12))],
-     ['Kids & school','public only','$3,300 (1 priv)','$6,700 (2 priv)',myKids],
-     ['Coast FIRE age',idealms.coast||'—',typms.coast||'—',crpms.coast||'—',mems.coast||'—'],
+  // Spending table — dynamic based on salary
+  var sal2=s.sal;
+  var idSav=Math.round(sal2*.25/12),typSav=Math.round(sal2*.12/12),crpSav=Math.round(sal2*.05/12);
+  $('spend-tbl').innerHTML='<tr><th>Category</th><th style="color:#7FFFD4">Ideal/mo</th><th style="color:#FFD580">Typical/mo</th><th style="color:#FF8080">Creep/mo</th></tr>'+
+    [['Savings / invested',fk(idSav),fk(typSav),fk(crpSav)],
+     ['Housing','$0 → $6,500 yr 3','$9,500 (yr 2 buy)','$11,000 (yr 1 buy)'],
+     ['Loans','$3,000 aggressive','$2,500 slow','$1,200 minimum'],
+     ['Cars','$300 (residency car)','$1,300 (financed)','$2,000 (lease)'],
+     ['Kids / school','Minimal / public','$3,300 (1 private)','$6,700 (2 private)'],
+     ['Call optionality age',ideal.coast||'—',typ.coast||'—',worst.coast||'—'],
     ].map(function(r,ri){
-      return '<tr'+(ri===5?' class="hl"':'')+'><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td></tr>';
+      return '<tr'+(ri===5?' class="hl"':'')+'><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>';
     }).join('');
 
   // Chart
@@ -1084,7 +854,7 @@ function calcPaths(){
       plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
       scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:10}},
         y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return v>=0?'$'+v+'k':'−$'+Math.abs(v)+'k'},font:{size:10}}}}}});
-  $('path-lbl').textContent=paths[curPath].n;
+  $('path-lbl').textContent=paths[Math.min(curPath,paths.length-1)].n;
 }
 
 // ── ACTION PLAN ────────────────────────────────────────────────────
@@ -1094,13 +864,13 @@ function calcAction(){
   var th=sal-fed-st-med,mo=Math.round(th/12);
 
   var ideal=[
-    {n:1,t:'401k / 403b — max before first paycheck',d:'$24,500/yr (2026). Pre-tax. Reduces state + federal income. Call HR on day 1.',a:Math.round(24500/12),c:'#1D6B52'},
-    {n:2,t:'HSA — only if employer offers HDHP',d:'$8,750 family (2026). Triple tax advantage. Most hospital surgeons have standard PPO — verify before counting on this.',a:Math.round(8750/12),c:'#1D6B52'},
+    {n:1,t:'401k / 403b — max before first paycheck',d:'$24,500/yr. Pre-tax. Reduces state + federal income. Call HR on day 1.',a:Math.round(24500/12),c:'#1D6B52'},
+    {n:2,t:'HSA — only if employer offers HDHP',d:'$8,750 family. Triple tax advantage. Most hospital surgeons have standard PPO — verify before counting on this.',a:Math.round(8750/12),c:'#1D6B52'},
     {n:3,t:'Emergency fund → Ally / Fidelity HYSA',d:'3–6 months expenses. Auto-transfer monthly until $25–40k reached. Currently ~3.5–4.0% APY.',a:2200,c:'#2355A0'},
-    {n:4,t:'Backdoor Roth IRA — $7,500 on January 2nd',d:'Traditional IRA → immediate Roth conversion. Every year without exception. Tax-free growth forever.',a:Math.round(7500/12),c:'#2355A0'},
+    {n:4,t:'Backdoor Roth IRA — $15,000 (both spouses), January 2nd',d:'Traditional IRA → immediate Roth conversion. $7,500 each. Every year without exception. Tax-free growth forever.',a:Math.round(15000/12),c:'#2355A0'},
     {n:5,t:'Student loans — PSLF or refinance + attack',d:'Nonprofit: IBR minimum, invest the rest. Private practice: refinance, pay off in 10 years. Decide on day 1.',a:Math.round(30000/12),c:'#E8A020'},
     {n:6,t:'Down payment savings → HYSA bucket',d:'2–3 year runway before buying. 20% down target to avoid PMI.',a:2000,c:'#8B4513'},
-    {n:7,t:'Taxable brokerage — Vanguard / Fidelity / Schwab',d:'Buy VTI (US market, 0.03%) + VXUS (international, 0.07%). Auto-invest everything remaining. No contribution limit.',a:Math.max(0,mo-Math.round(24500/12)-Math.round(8750/12)-2200-Math.round(7500/12)-Math.round(30000/12)-2000),c:'#1D6B52'},
+    {n:7,t:'Taxable brokerage — Vanguard / Fidelity / Schwab',d:'Buy VTI (US market, 0.03%) + VXUS (international, 0.07%). Auto-invest everything remaining. No contribution limit.',a:Math.max(0,mo-Math.round(24500/12)-Math.round(8750/12)-2200-Math.round(15000/12)-Math.round(30000/12)-2000),c:'#1D6B52'},
   ];
   var typical=[
     {n:1,t:'401k — partial (gets the match only)',d:'Leaves significant tax savings on table.',a:Math.round(8000/12),c:'#E8A020'},
@@ -1126,10 +896,10 @@ function calcAction(){
 
   var priority=[
     {n:1,t:'401k to employer match',d:'Free money. Always first.',c:'#1D6B52'},
-    {n:2,t:'HSA if on HDHP plan',d:'Verify with HR. $8,750 family (2026). Triple tax.',c:'#1D6B52'},
+    {n:2,t:'HSA if on HDHP plan',d:'Verify with HR. $8,750 family. Triple tax.',c:'#1D6B52'},
     {n:3,t:'Emergency fund → HYSA',d:'$25–40k. One-time goal.',c:'#2355A0'},
     {n:4,t:'Max 401k to $24,500',d:'Before lifestyle expands.',c:'#1D6B52'},
-    {n:5,t:'Backdoor Roth — $7,500/yr',d:'January 2nd. Every year.',c:'#2355A0'},
+    {n:5,t:'Backdoor Roth — $15,000/yr (both spouses)',d:'January 2nd. $7,500 each. Every year.',c:'#2355A0'},
     {n:6,t:'Loan strategy: PSLF or refinance + attack',d:'Decide day one. Never just let it ride.',c:'#E8A020'},
     {n:7,t:'Down payment savings → HYSA',d:'2–3 yr runway before buying.',c:'#8B4513'},
     {n:8,t:'Taxable brokerage — VTI + VXUS',d:'Everything remaining. Auto-invest.',c:'#1D6B52'},
@@ -1152,9 +922,9 @@ function calcAction(){
   $('chk-title').textContent=isAtt?'Attending audit — where do you actually stand?':'Pre-attending checklist';
   var chkItems=isAtt?[
     {u:false,i:'✅',t:'Confirm 401k is maxed at $24,500',d:'Verify with HR — many attendings set a percentage and miss the max.',w:'Verify now'},
-    {u:false,i:'✅',t:'Backdoor Roth executed this January',d:'$7,500 contributed → converted. If not done, you have until tax filing deadline.',w:'January each year'},
+    {u:false,i:'✅',t:'Backdoor Roth executed this January',d:'$15,000 contributed (both spouses, $7,500 each) → converted. If not done, you have until tax filing deadline.',w:'January each year'},
     {u:false,i:'📊',t:'Know your actual savings rate',d:'Divide total invested annually by gross salary. Most attendings overestimate by 5–8 points.',w:'Calculate this week'},
-    {u:false,i:'🎯',t:'Know your Coast FIRE number',d:'Use the FI Calculator tab. Track this quarterly — watching it approach is motivating.',w:'Calculate now'},
+    {u:false,i:'🎯',t:'Know your call optionality number',d:'Use the FI Calculator tab. Track this quarterly — watching it approach is motivating.',w:'Calculate now'},
     {u:false,i:'📋',t:'Student loan strategy — is it still optimal?',d:'PSLF: annual employer certification filed? Private: is current rate still competitive?',w:'Review annually'},
     {u:false,i:'🛡️',t:'Disability insurance — coverage adequate?',d:'Income has likely grown. Coverage should reflect current salary. Own-occupation, owned personally.',w:'Annual review'},
     {u:false,i:'🏠',t:'Housing cost as % of gross',d:'PITI + maintenance should be under 28% of gross. If above 35%, this is the primary savings rate constraint.',w:'Calculate now'},
@@ -1181,14 +951,14 @@ function calcAction(){
   // Account breakdown
   var targetSR=isAtt?+$('att-sr').value:20;
   var targetSav=Math.round(sal*targetSR/100);
-  var k401=24500,roth=7500,hsa=8750;
+  var k401=24500,roth=15000,hsa=8750;
   var remainNo=Math.max(0,targetSav-k401-roth);
   var remainWith=Math.max(0,targetSav-k401-roth-hsa);
   $('acct-breakdown').innerHTML=
     '<div style="font-size:11px;color:var(--mg);margin-bottom:8px">'+sp().n+' ('+fk(sal)+') at '+targetSR+'% gross savings rate = '+fk(targetSav)+'/yr</div>'+
     '<table class="tbl"><tr><th>Account</th><th>Annual</th><th>Monthly</th><th>Note</th></tr>'+
     [{a:'401k / 403b',v:k401,n:'Pre-tax. Reduces state + federal income.'},
-     {a:'Backdoor Roth IRA',v:roth,n:'Jan 2nd every year. Tax-free growth.'},
+     {a:'Backdoor Roth IRA (both spouses)',v:roth,n:'Jan 2nd every year. Tax-free growth. $7,500 each.'},
      {a:'HSA (if HDHP — verify first)',v:hsa,n:'Triple tax advantage. Most hospital surgeons have PPO — check.'},
      {a:'Taxable brokerage (no HSA)',v:remainNo,n:'VTI + VXUS. Vanguard/Fidelity/Schwab. Auto-invest.'},
      {a:'Taxable brokerage (with HSA)',v:remainWith,n:'If HSA is available.'},
@@ -1205,12 +975,12 @@ function calcFI(){
   var s=sp();
   var sr=+$('fi-sr').value/100; $('fi-sr-v').textContent=Math.round(sr*100)+'%';
   var spend=+$('fi-spend').value; $('fi-spend-v').textContent=fk(spend);
-  var retAge=+$('fi-ret').value; $('fi-ret-v').textContent=retAge;
+  var gapSpend=+$('fi-gap').value; $('fi-gap-v').textContent=fk(gapSpend);
   var rr=+$('fi-rr').value/100; $('fi-rr-v').textContent=(rr*100).toFixed(1)+'%';
   var sa=startAge(),nwStart=startNW();
   var savings=Math.round(s.sal*sr);
   var fi=spend*25;
-  var coastFI=Math.round(fi/Math.pow(1+rr,retAge-sa));
+  var coastFI=Math.round(gapSpend*25); // call optionality target -- fixed, NOT age-discounted
   var labels=[],nws=[],coastL=[],fiL=[];
   var nw=nwStart,coastYr=null,fiYr=null,coastReached=false;
   for(var i=0;i<=45;i++){
@@ -1219,13 +989,13 @@ function calcFI(){
     coastL.push(Math.round(coastFI/1000));fiL.push(Math.round(fi/1000));
     if(!coastReached&&nw>=coastFI){coastReached=true;coastYr=a;}
     if(!fiYr&&nw>=fi)fiYr=a;
-    nw=Math.round(nw*(1+rr)+((!coastReached||a<(coastYr||retAge))?savings:0));
+    nw=Math.round(nw*(1+rr)+savings);
   }
 
   var acc=MODE==='att'?'var(--b)':'var(--g)';
   $('fi-metrics').innerHTML=[
-    {l:'Coast FIRE target',v:fk(coastFI),s:'stop saving — portfolio grows alone',c:''},
-    {l:'Coast FIRE age',v:coastYr?'age '+coastYr:'past 70',s:'financial pressure ends',c:coastYr&&coastYr<52?'good':coastYr&&coastYr<58?'warn':'bad'},
+    {l:'Call optionality target',v:fk(coastFI),s:'25× gap spending (not age-discounted)',c:''},
+    {l:'Call optionality age',v:coastYr?'age '+coastYr:'past 70',s:'financial pressure ends',c:coastYr&&coastYr<52?'good':coastYr&&coastYr<58?'warn':'bad'},
     {l:'Full FI target',v:fk(fi),s:'25× retirement spending',c:''},
     {l:'Full FI age',v:fiYr?'age '+fiYr:'past 77',s:'work completely optional',c:fiYr&&fiYr<62?'good':fiYr&&fiYr<68?'warn':'bad'},
     {l:'Annual savings',v:fk(savings),s:Math.round(sr*100)+'% of gross',c:sr>=.2?'good':sr>=.12?'warn':'bad'},
@@ -1237,7 +1007,7 @@ function calcFI(){
   if(fiChrt) fiChrt.destroy();
   fiChrt=new Chart($('fi-chart'),{type:'line',data:{labels,datasets:[
     {label:'Your portfolio',data:nws,borderColor:acc,backgroundColor:MODE==='att'?'rgba(35,85,160,0.08)':'rgba(29,158,117,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
-    {label:'Coast FIRE',data:coastL,borderColor:'#E8A020',borderDash:[6,3],pointRadius:0,borderWidth:1.5,fill:false},
+    {label:'Call optionality',data:coastL,borderColor:'#E8A020',borderDash:[6,3],pointRadius:0,borderWidth:1.5,fill:false},
     {label:'Full FI',data:fiL,borderColor:'#C0392B',borderDash:[3,3],pointRadius:0,borderWidth:1.5,fill:false},
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
@@ -1249,26 +1019,26 @@ function calcFI(){
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
     (fiYr?'FI at '+fiYr+' — call optional at '+(coastYr||'?'):'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(s.sal)+', you hit Coast FIRE at age <strong>'+(coastYr||'past 70')+'</strong> and full FI at <strong>'+fiYr+'</strong>. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
-    (coastYr?'Coast FIRE reached at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
-    'At this savings rate, Coast FIRE and full FI are both beyond the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
+    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(s.sal)+', you reach call optionality at age <strong>'+(coastYr||'past 70')+'</strong> and full FI at <strong>'+fiYr+'</strong>. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
+    (coastYr?'Call optionality reached at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
+    'At this savings rate, call optionality and full FI are both beyond the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
     '</div></div>';
 
   // Savings rate reference table
   // Reference table uses fixed realistic assumptions regardless of slider values
   // so the table is always honest and comparable
-  var tblFI = 3250000; // $130k/yr spending x 25 — realistic surgeon
-  var tblRet = 65;     // standard career end
-  var tblSA = 32;      // start practice at 32
-  var tblNW = -250000; // student loans at start
+  var tblFI = 3750000;   // $150k/yr spending x 25 — realistic surgeon
+  var tblSA = 34;        // start practice at 34
+  var tblNW = -150000;   // net worth at start
+  var tblGap = 34000;    // call optionality gap spending
+  var tblCT = tblGap*25; // $850,000 -- fixed, NOT age-discounted
 
   function calcTL(grossPct){
     var an=Math.round(s.sal*grossPct/100);
-    var ct=tblFI/Math.pow(1.05,tblRet-tblSA);
     var nw2=tblNW,cy=null,fy=null;
     for(var j=0;j<50;j++){
-      nw2=Math.round(nw2*(1.05)+an);
-      if(!cy&&nw2>=ct) cy=tblSA+j+1;
+      nw2=Math.round(nw2*(1+rr)+an);
+      if(!cy&&nw2>=tblCT) cy=tblSA+j+1;
       if(!fy&&nw2>=tblFI) fy=tblSA+j+1;
       if(cy&&fy) break;
     }
@@ -1283,7 +1053,7 @@ function calcFI(){
   function fiDisp(age){ return age?'age '+age:'past 70'; }
 
   var curSRpct=Math.round(sr*100);
-  $('sr-tbl').innerHTML='<tr><th>Gross savings rate</th><th>Coast FIRE age*</th><th>Full FI age*</th><th>WCI benchmark</th></tr>'+
+  $('sr-tbl').innerHTML='<tr><th>Gross savings rate</th><th>Call optionality age*</th><th>Full FI age*</th><th>WCI benchmark</th></tr>'+
     [5,10,15,20,25,30,35,40,50].map(function(r){
       var t=calcTL(r),hi=Math.abs(r-curSRpct)<3;
       return '<tr'+(hi?' class="hl"':'')+'><td>'+(hi?'→ ':'')+r+'%'+(hi?' (you)':'')+'</td>'+
@@ -1293,7 +1063,7 @@ function calcFI(){
           (r>=30?'WCI: retire early':r>=20?'WCI: end of career':r>=15?'Borderline':'Below target')+'</td></tr>';
     }).join('')+
     '<tr><td colspan="4" style="font-size:9px;color:var(--mg);padding-top:5px">'+
-    '* Fixed assumptions: '+sp().n+' salary ('+fk(s.sal)+'), start age 32, NW −$250k, 5% real return, $3.25M FI number ($130k/yr spending), retire at 65. '+
+    '* Fixed assumptions: '+sp().n+' salary ('+fk(s.sal)+'), start age 34, NW −$150k, 5% real return, $3.75M FI number ($150k/yr spending), $850k call optionality target ($34k/yr gap spending, not age-discounted). '+
     'Social Security at 70 (~$30–50k/yr for a surgeon) not included — reduces portfolio needed in late retirement.</td></tr>';
 
   // Attending sensitivity
@@ -1309,387 +1079,6 @@ function calcFI(){
     }).join('');
     $('fi-sens').style.display='block';
   }
-}
-
-// ── STUDENT LOANS ─────────────────────────────────────────────────
-function calcLoans(){
-  var s=sp();
-  var bal=+$('sl-bal').value;
-  var fedRate=+$('sl-rate').value/100;
-  var pslfOn=$('sl-pslf').checked;
-  var yrsLeft=+$('sl-yrs-left').value;
-  var qualDone=+$('sl-qual-done').value;
-  var refiRate=+$('sl-refi').value/100;
-  var sal=s.sal;
-
-  $('sl-bal-v').textContent=fk(bal);
-  $('sl-rate-v').textContent=(+$('sl-rate').value).toFixed(1)+'%';
-  $('sl-yrs-left-v').textContent=yrsLeft===0?'Attending now':yrsLeft+' yr'+(yrsLeft!==1?'s':'');
-  $('sl-qual-done-v').textContent=qualDone+' yr'+(qualDone!==1?'s':'');
-  $('sl-refi-v').textContent=(+$('sl-refi').value).toFixed(1)+'%';
-  $('sl-pslf-opts').style.display=pslfOn?'block':'none';
-
-  if(bal===0){
-    $('sl-result').innerHTML='<div class="box box-g"><div class="box-title" style="color:var(--g)">No loans — you\'re ahead of 80% of your peers</div><div class="box-body">No loan analysis needed. Direct all resources toward maxing retirement accounts and building net worth from day 1.</div></div>';
-    return;
-  }
-
-  function ibrPmt(income){
-    return Math.max(10,Math.round(Math.max(0,income-22500)*0.10/12));
-  }
-  function rapPmt(income){
-    var pct=income<10000?0.01:income<20000?0.02:income<30000?0.03:income<40000?0.04:
-             income<50000?0.05:income<60000?0.06:income<70000?0.07:income<80000?0.08:
-             income<90000?0.09:0.10;
-    return Math.round(income*pct/12);
-  }
-  function balAfter(b,rate,pmt,months){
-    var mr=rate/12;
-    for(var i=0;i<months;i++){b=b*(1+mr)-pmt;if(b<=0)return 0;}
-    return Math.max(0,Math.round(b));
-  }
-  function stdPmt(b,rate,years){
-    if(b<=0)return 0;
-    var mr=rate/12,n=years*12;
-    if(mr===0)return Math.round(b/n);
-    return Math.round(b*mr*Math.pow(1+mr,n)/(Math.pow(1+mr,n)-1));
-  }
-
-  // Residency: use lower of IBR or RAP (both federal, both PSLF-eligible)
-  var resSal=65000;
-  var resPmt=Math.min(ibrPmt(resSal),rapPmt(resSal)); // RAP slightly lower for residents
-  var resMos=yrsLeft*12;
-  var trainingPaid=resPmt*resMos;
-  var balAtAtt=balAfter(bal,fedRate,resPmt,resMos);
-
-  // PSLF attending phase: lower of IBR or RAP (IBR lower for high-earning attendings)
-  var attPmtPSLF=Math.min(ibrPmt(sal),rapPmt(sal));
-  var pslfYrsRemaining=Math.max(0,10-qualDone-yrsLeft);
-  var attMosPSLF=pslfYrsRemaining*12;
-  var attPaidPSLF=attPmtPSLF*attMosPSLF;
-  var balForgiven=balAfter(balAtAtt,fedRate,attPmtPSLF,attMosPSLF);
-  var totalOOPpslf=trainingPaid+attPaidPSLF;
-
-  // Private refi: refi at attending start, 10yr aggressive payoff
-  var refiPmt=stdPmt(balAtAtt,refiRate,10);
-  var refiPaid=refiPmt*120;
-  var totalOOPrefi=trainingPaid+refiPaid;
-
-  // Federal standard 10yr at attending start
-  var fedStdPmt=stdPmt(balAtAtt,fedRate,10);
-  var fedStdPaid=fedStdPmt*120;
-  var totalOOPfedStd=trainingPaid+fedStdPaid;
-
-  var rateStr=(+$('sl-rate').value).toFixed(1)+'%';
-  var refiRateStr=(+$('sl-refi').value).toFixed(1)+'%';
-  var html='';
-
-  if(pslfOn){
-    var pslfSaves=totalOOPrefi-totalOOPpslf;
-    var pslfWins=pslfSaves>0;
-
-    html+='<div class="g2">';
-
-    // PSLF column
-    html+='<div class="card"><div class="ctitle" style="color:var(--g)">✓ PSLF Path (IBR/RAP → forgiveness)</div>';
-    html+='<table class="tbl">';
-    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0){
-      html+='<tr><td>Residency (RAP/IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    }
-    if(attMosPSLF>0){
-      html+='<tr><td>Attending (IBR)</td><td>'+fk(attPmtPSLF)+'</td><td>'+pslfYrsRemaining+' yr'+(pslfYrsRemaining!==1?'s':'')+'</td><td>'+fk(attPaidPSLF)+'</td></tr>';
-    } else {
-      html+='<tr><td>PSLF completes during training</td><td colspan="2">—</td><td>$0</td></tr>';
-    }
-    html+='<tr class="hl"><td>Forgiven (tax-free)</td><td>—</td><td>PSLF</td><td>'+fk(balForgiven)+'</td></tr>';
-    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPpslf)+'</strong></td></tr>';
-    html+='</table>';
-    html+='<div style="font-size:10px;color:var(--mg);margin-top:8px;line-height:1.5">File annual employer certification (ECF) at studentaid.gov. Residency and fellowship count. Payments need not be consecutive.</div>';
-    html+='</div>';
-
-    // Private refi column
-    html+='<div class="card"><div class="ctitle" style="color:var(--b)">Private Refinance Path</div>';
-    html+='<table class="tbl">';
-    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0){
-      html+='<tr><td>Residency (RAP/IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    }
-    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
-    html+='<tr class="hl2"><td>Balance forgiven</td><td colspan="2">None (fully paid off)</td><td>$0</td></tr>';
-    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr>';
-    html+='</table>';
-    html+='<div class="box box-r" style="margin-top:8px"><div class="box-body">Refinancing forfeits PSLF eligibility <strong>permanently</strong>. If your employer qualifies, do not refinance until you are certain you are leaving nonprofit medicine.</div></div>';
-    html+='</div>';
-
-    html+='</div>';
-
-    // Recommendation
-    html+='<div class="box '+(pslfWins?'box-g':'box-b')+'">';
-    html+='<div class="box-title" style="color:'+(pslfWins?'var(--g)':'var(--b)')+'">';
-    if(pslfWins){
-      html+='✓ PSLF saves '+fk(pslfSaves)+' over private refinancing';
-    } else {
-      html+='→ Private refi is '+fk(-pslfSaves)+' cheaper — but read the nuance below';
-    }
-    html+='</div><div class="box-body">';
-    if(pslfWins){
-      html+='Your balance ('+fk(bal)+') is large enough that the <strong>'+fk(balForgiven)+' forgiven tax-free</strong> more than offsets any refi savings. PSLF is the clear winner as long as you stay at a qualifying employer. ';
-      html+='File your Employment Certification Form every year — it\'s the only documentation that proves your qualifying payment count.';
-    } else {
-      html+='At '+fk(sal)+' salary, your attending IBR payment ('+fk(attPmtPSLF)+'/mo) is close to or above what a standard 10-year payoff would cost, so little is left to forgive. ';
-      html+='However, PSLF still provides real value: protection if your income drops, no refi risk, and flexibility to leave nonprofit medicine later (just don\'t refinance). ';
-      html+='If your employer qualifies and certification is current, stay on PSLF unless you are certain about private practice — where private refi and aggressive payoff is the right call.';
-    }
-    html+='</div></div>';
-
-  } else {
-    // Non-PSLF: Federal standard vs Private refi
-    var refiSaves=totalOOPfedStd-totalOOPrefi;
-    var interestFed=totalOOPfedStd-bal;
-    var interestRefi=totalOOPrefi-bal;
-
-    html+='<div class="box box-r" style="margin-bottom:10px">';
-    html+='<div class="box-title" style="color:var(--rd)">⚠ Do not let loans ride on IDR — forgiveness is now taxable</div>';
-    html+='<div class="box-body">Carrying federal loans for 20–25 years on IBR/RAP without PSLF now results in taxable forgiveness. On '+fk(bal)+' that grows at '+rateStr+' for 20 years, the forgiven amount could trigger a $300–600k+ tax bill in your 50s. The old low-payment strategy is now a trap for private practice physicians. Pay it off.</div>';
-    html+='</div>';
-
-    html+='<div class="g2">';
-
-    // Federal standard
-    html+='<div class="card"><div class="ctitle">Federal Standard 10yr ('+rateStr+')</div>';
-    html+='<table class="tbl">';
-    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0){
-      html+='<tr><td>Residency (IBR)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    }
-    html+='<tr><td>Attending (standard '+rateStr+')</td><td>'+fk(fedStdPmt)+'</td><td>10 yrs</td><td>'+fk(fedStdPaid)+'</td></tr>';
-    html+='<tr class="hl2"><td>Interest paid</td><td colspan="2"></td><td>'+fk(interestFed)+'</td></tr>';
-    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPfedStd)+'</strong></td></tr>';
-    html+='</table></div>';
-
-    // Private refi
-    html+='<div class="card"><div class="ctitle" style="color:var(--g)">Private Refi + Attack ('+refiRateStr+')</div>';
-    html+='<table class="tbl">';
-    html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0){
-      html+='<tr><td>Residency (IBR, pre-refi)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    }
-    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
-    html+='<tr class="hl2"><td>Interest saved vs federal</td><td colspan="2"></td><td>'+fk(Math.max(0,interestFed-interestRefi))+'</td></tr>';
-    html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr>';
-    html+='</table></div>';
-
-    html+='</div>';
-
-    html+='<div class="box box-g">';
-    html+='<div class="box-title" style="color:var(--g)">→ Refinance at attending start and attack aggressively</div>';
-    html+='<div class="box-body">';
-    if(refiSaves>0){
-      html+='Refinancing saves <strong>'+fk(refiSaves)+'</strong> vs keeping the federal rate. ';
-    }
-    html+='For private practice surgeons, refinance to the lowest rate you qualify for (4–5.5% range for physicians, June 2026) and pay off in 10 years or less. ';
-    html+='Physician-focused lenders: Laurel Road, SoFi, Earnest, Splash Financial — compare at least 3 offers before signing. ';
-    html+='Do not extend the term past 10 years. Every extra year of interest delays FI by more than the lower monthly payment saves. ';
-    html+='This is the equivalent of a guaranteed '+rateStr+' return on every dollar paid — better than bonds, better than cash.';
-    html+='</div></div>';
-  }
-
-  $('sl-result').innerHTML=html;
-}
-
-// ── RENT VS BUY ────────────────────────────────────────────────────
-var STATE_TAX={AL:0.41,AK:1.04,AZ:0.62,AR:0.62,CA:0.71,CO:0.51,CT:1.79,DE:0.57,FL:0.89,
-  GA:0.92,HI:0.29,ID:0.69,IL:2.08,IN:0.87,IA:1.57,KS:1.41,KY:0.83,LA:0.56,ME:1.09,
-  MD:1.07,MA:1.14,MI:1.54,MN:1.12,MS:0.65,MO:0.97,MT:0.84,NE:1.73,NV:0.60,NH:1.93,
-  NJ:2.23,NM:0.78,NY:1.73,NC:0.82,ND:0.98,OH:1.62,OK:0.90,OR:0.97,PA:1.58,RI:1.53,
-  SC:0.57,SD:1.22,TN:0.71,TX:1.60,UT:0.58,VT:1.90,VA:0.87,WA:1.02,WV:0.59,WI:1.73,
-  WY:0.61,DC:0.55};
-
-function setRVBState(){
-  var st=$('rvb-state').value;
-  var rate=STATE_TAX[st]||1.0;
-  $('rvb-tax').value=rate;
-  calcRentBuy();
-}
-
-function setDP(pct){
-  curDP=pct;
-  [10,15,20].forEach(function(p){
-    var btn=$('dp-'+p);
-    if(btn) btn.classList.toggle('on',p===pct);
-  });
-  calcRentBuy();
-}
-
-function calcRentBuy(){
-  var price=+$('rvb-price').value;
-  var downPct=curDP/100;
-  var mortRate=+$('rvb-rate').value/100;
-  var rent=+$('rvb-rent').value;
-  var years=+$('rvb-yrs').value;
-  var apprRate=+$('rvb-appr').value/100;
-  var invReturn=+$('rvb-inv').value/100;
-  var taxRate=+$('rvb-tax').value/100;
-
-  // Update display
-  $('rvb-price-v').textContent=fk(price);
-  $('rvb-rate-v').textContent=(+$('rvb-rate').value).toFixed(2)+'%';
-  $('rvb-rent-v').textContent=fk(rent);
-  $('rvb-yrs-v').textContent=years+' yr'+(years!==1?'s':'');
-  $('rvb-appr-v').textContent=(+$('rvb-appr').value).toFixed(1)+'%';
-  $('rvb-inv-v').textContent=(+$('rvb-inv').value).toFixed(1)+'%';
-  $('rvb-tax-v').textContent=(+$('rvb-tax').value).toFixed(2)+'%';
-
-  // Owner monthly costs
-  var loan=price*(1-downPct);
-  var r=mortRate/12;
-  var pow360=Math.pow(1+r,360);
-  var mortPmt=r===0?Math.round(loan/360):Math.round(loan*r*pow360/(pow360-1));
-  var propTax=Math.round(price*taxRate/12);
-  var insur=Math.round(price*0.004/12);
-  var maint=Math.round(price*0.010/12);
-  var ownerTotal=mortPmt+propTax+insur+maint;
-  var downAmt=Math.round(price*downPct);
-  var gap=ownerTotal-rent;
-
-  // Renter invests down payment from day 1, plus monthly savings vs owning
-  var renterMonthlyInv=Math.max(0,gap);
-  var invR=invReturn/12;
-
-  // Build year-by-year data (month-by-month precision)
-  var renterWealth=downAmt;
-  var loanBal=loan;
-  var labels=[],renterData=[],grossData=[],netData=[];
-  var breakeven=null;
-
-  for(var yr=0;yr<=years;yr++){
-    var homeVal=price*Math.pow(1+apprRate,yr);
-    var grossEq=Math.max(0,homeVal-loanBal);
-    var netEq=Math.max(0,grossEq-homeVal*0.09);
-    labels.push(yr===0?'Now':'Yr '+yr);
-    renterData.push(Math.round(renterWealth/1000));
-    grossData.push(Math.round(grossEq/1000));
-    netData.push(Math.round(netEq/1000));
-    if(!breakeven&&yr>0&&netEq>renterWealth) breakeven=yr;
-    if(yr<years){
-      for(var m=0;m<12;m++){
-        renterWealth=renterWealth*(1+invR)+renterMonthlyInv;
-        var interest=loanBal*r;
-        var principal=mortPmt-interest;
-        loanBal=Math.max(0,loanBal-principal);
-      }
-    }
-  }
-
-  var finalRenter=renterData[years]*1000;
-  var finalNet=netData[years]*1000;
-  var diff=finalRenter-finalNet;
-  var renterWins=diff>0;
-
-  // Year 1 breakdown (month-by-month)
-  var tempBal=loan,yr1Int=0,yr1Prin=0;
-  for(var m=0;m<12;m++){
-    var i1=tempBal*r,p1=mortPmt-i1;
-    yr1Int+=i1; yr1Prin+=p1; tempBal-=p1;
-  }
-  yr1Int=Math.round(yr1Int); yr1Prin=Math.round(yr1Prin);
-  var yr1NonRec=yr1Int+propTax*12+insur*12+maint*12;
-
-  // ── Monthly cost cards ──
-  var gapSign=gap>0?'+':'';
-  $('rvb-costs').innerHTML=
-    '<div class="g2">'+
-    '<div class="card">'+
-    '<div class="ctitle" style="color:var(--g)">Renting</div>'+
-    '<table class="tbl"><tr><th>Item</th><th>Monthly</th></tr>'+
-    '<tr><td>Rent</td><td>'+fk(rent)+'</td></tr>'+
-    '<tr><td>Property tax</td><td>$0</td></tr>'+
-    '<tr><td>Insurance</td><td>$0</td></tr>'+
-    '<tr><td>Maintenance</td><td>$0</td></tr>'+
-    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fk(rent)+'</strong></td></tr>'+
-    '</table>'+
-    '<div style="font-size:11px;color:var(--g);margin-top:8px">Down payment <strong>'+fk(downAmt)+'</strong> invested at '+(+$('rvb-inv').value).toFixed(1)+'%/yr</div>'+
-    '</div>'+
-    '<div class="card">'+
-    '<div class="ctitle" style="color:var(--b)">Buying</div>'+
-    '<table class="tbl"><tr><th>Item</th><th>Monthly</th></tr>'+
-    '<tr><td>Mortgage P&amp;I</td><td>'+fk(mortPmt)+'</td></tr>'+
-    '<tr><td>Property tax</td><td>'+fk(propTax)+'</td></tr>'+
-    '<tr><td>Insurance</td><td>'+fk(insur)+'</td></tr>'+
-    '<tr><td>Maintenance (1%)</td><td>'+fk(maint)+'</td></tr>'+
-    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fk(ownerTotal)+'</strong></td></tr>'+
-    '</table>'+
-    '<div style="font-size:11px;color:'+(gap>0?'var(--rd)':'var(--g)')+';margin-top:8px">Extra vs renting: <strong>'+gapSign+fk(gap)+'/mo</strong></div>'+
-    '</div>'+
-    '</div>';
-
-  // ── Gap callout ──
-  $('rvb-gap').innerHTML=gap>0?
-    '<div class="box box-a" style="text-align:center"><strong>Owner pays '+fk(gap)+'/mo more than renter — '+fk(gap*12)+'/yr</strong></div>':
-    '<div class="box box-g" style="text-align:center"><strong>Buying is '+fk(-gap)+'/mo cheaper than renting — unusual for NJ, consider buying</strong></div>';
-
-  // ── Chart ──
-  if(rentChrt) rentChrt.destroy();
-  rentChrt=new Chart($('rent-chart'),{type:'line',data:{labels:labels,datasets:[
-    {label:'Renter wealth',data:renterData,borderColor:'#1D6B52',backgroundColor:'rgba(29,107,82,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
-    {label:'Owner gross equity',data:grossData,borderColor:'#2355A0',borderDash:[6,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
-    {label:'Owner net equity (after 9% sale cost)',data:netData,borderColor:'#C0392B',borderDash:[3,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
-  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
-    scales:{x:{grid:{display:false},ticks:{font:{size:10}}},
-      y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return '$'+v+'k';},font:{size:10}}}}}});
-
-  // ── Verdict ──
-  var beStr=breakeven?'year '+breakeven:'15+ years';
-  var verdictBox='',verdictTitle='',verdictBody='';
-  if(renterWins){
-    verdictBox='box-a'; verdictTitle='color:var(--am)';
-    if(!breakeven){
-      verdictBody='Buying does not become financially superior within '+years+' years at these assumptions. The down payment ('
-        +fk(downAmt)+') and monthly savings invested at '+(+$('rvb-inv').value).toFixed(1)+'% outpace home equity throughout the period. '
-        +'This is the common result in NJ — high taxes, high prices, and steep transaction costs make renting financially competitive for physicians who may move within 10 years.';
-    } else {
-      verdictBody='At '+years+' years, renting leads by <strong>'+fk(diff)+'</strong>. You would need to stay approximately <strong>'+beStr+'</strong> before buying becomes financially superior (owner net equity exceeds renter wealth). '
-        +'This analysis assumes the renter actually invests the monthly savings — if spent instead, buying wins faster.';
-    }
-  } else {
-    verdictBox='box-b'; verdictTitle='color:var(--b)';
-    verdictBody='At '+years+' years, buying wins by <strong>'+fk(-diff)+'</strong>. Breakeven was at '+beStr+'. After that, owner net equity exceeded renter wealth. Staying well beyond the breakeven year rewards the initial commitment.';
-  }
-  $('rvb-verdict').innerHTML='<div class="box '+verdictBox+'">'
-    +'<div class="box-title" style="'+verdictTitle+'">'+
-    (renterWins?'At '+years+' years, renting leads by '+fk(diff):
-                'At '+years+' years, buying leads by '+fk(-diff))
-    +'</div><div class="box-body">'+verdictBody+'</div></div>';
-
-  // ── Year 1 breakdown ──
-  $('rvb-breakdown').innerHTML=
-    '<div class="ctitle">Year 1: where the money actually goes</div>'+
-    '<table class="tbl">'+
-    '<tr><th>Category</th><th>Annual</th><th>Goes to</th></tr>'+
-    '<tr><td>Mortgage interest</td><td>'+fk(yr1Int)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
-    '<tr><td>Property tax</td><td>'+fk(propTax*12)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
-    '<tr><td>Insurance</td><td>'+fk(insur*12)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
-    '<tr><td>Maintenance (1% rule)</td><td>'+fk(maint*12)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
-    '<tr class="hl2"><td><strong>Total non-recoverable</strong></td><td><strong>'+fk(yr1NonRec)+'</strong></td><td style="color:var(--rd)"><strong>Gone</strong></td></tr>'+
-    '<tr><td>Mortgage principal</td><td>'+fk(yr1Prin)+'</td><td style="color:var(--g)">Equity</td></tr>'+
-    '</table>';
-
-  // ── Transaction cost warning (< 5 years) ──
-  var txnHtml='';
-  if(years<5){
-    var homeValAtSale=price*Math.pow(1+apprRate,years);
-    var txnCost=Math.round(homeValAtSale*0.09);
-    var txnYrs=Math.ceil(txnCost/yr1Prin);
-    txnHtml='<div class="box box-r">'
-      +'<div class="box-title" style="color:var(--rd)">⚠ Selling in '+years+' year'+(years!==1?'s':'')+' costs ~'+fk(txnCost)+' in transaction costs</div>'
-      +'<div class="box-body">That\'s 9% of the estimated home value ('+fk(Math.round(homeValAtSale))+') at year '+years+' — realtor commissions, NJ transfer tax, and closing costs. '
-      +'It takes roughly <strong>'+txnYrs+' years</strong> of mortgage principal paydown to recover that amount alone. '
-      +'WCI guideline: do not buy unless you plan to stay at least 5 years. Surgeons frequently move in years 2–4 when a group doesn\'t work out.</div>'
-      +'</div>';
-  }
-  $('rvb-txn-warn').innerHTML=txnHtml;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
