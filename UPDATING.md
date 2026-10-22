@@ -15,6 +15,8 @@ Everything is in the block marked `ANNUAL UPDATE` near the top of the script.
 | Federal student loan rates, RAP / IBR / PSLF rules | Student Loans tab text, `calcLoans()` | studentaid.gov (rates set each July) |
 | NJ seller "mansion tax" tiers | `mansionRate()` | NJ Division of Taxation |
 | NJ treatment of HSA contributions (taxed as of 2026; a bill to conform is pending) | HSA step text in `calcPlay()` | NJ Division of Taxation |
+| Gift tax annual exclusion and lifetime exemption (`giftExcl`, `giftLife`) | `var LIM=` | IRS cost-of-living announcement (Oct/Nov) |
+| Physician mortgage rate premium over conventional | `var PHYS=` | Quotes from physician-loan lenders |
 | Mortgage rate and property tax defaults | Rent vs Buy sliders `rvb-rate`, `rvb-tax` | Freddie Mac PMMS; NJ property tax averages |
 | Childcare cost hint, living-cost estimates | `daymo` slider hint, `var EST=` | Local daycare rates; household spending |
 
