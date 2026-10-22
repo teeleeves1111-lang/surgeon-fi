@@ -249,6 +249,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <p style="margin-top:8px;font-size:10px;opacity:.75">Have an offer? Enter it — in NJ, productivity bonuses and private practice can run well above the national average (vascular postings range from $400–600k base at hospital systems to $1M+ in outpatient private practice).</p>
 </div>
 
+<div class="box box-a" id="stale" style="display:none;margin-top:0"><div class="box-title" style="color:var(--am)">Some figures may be out of date</div><div class="box-body">Tax brackets, contribution limits and student-loan rules in this app were last updated for <span class="data-yr">2026</span>. They change most years — the logic and lessons still hold, but check current limits (irs.gov, studentaid.gov) before acting on a specific dollar amount.</div></div>
+
 <!-- TABS -->
 <div class="tabs" id="tabs">
   <button class="tab on" onclick="tab('reality')">📊 Reality Check</button>
@@ -303,9 +305,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
           <option value="403b" selected>Hospital / academic — 403(b)</option>
           <option value="401k">Private group — 401(k)</option>
         </select></div>
-      <div class="trow"><label>Max 403(b)/401(k) — $24,500</label>
+      <div class="trow"><label>Max 403(b)/401(k) — <span class="L" data-k="k401">$24,500</span></label>
         <label class="tog"><input type="checkbox" id="def401" checked onchange="go()"><span class="tsl"></span></label></div>
-      <div class="trow" id="def457-row"><label>Also max 457(b) — $24,500 (most hospitals offer one)</label>
+      <div class="trow" id="def457-row"><label>Also max 457(b) — <span class="L" data-k="k457">$24,500</span> (most hospitals offer one)</label>
         <label class="tog"><input type="checkbox" id="def457" onchange="go()"><span class="tsl"></span></label></div>
 
       <div class="subhd">Housing</div>
@@ -402,9 +404,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
           <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">Step 1 — What goes into savings</div>
           <div class="nr"><label>Payroll retirement<small>From "Retirement plan at work" on the left — check your pay stub</small></label>
             <div class="nin"><span id="act-def" style="font-weight:600;color:var(--dk)">$0/yr</span></div></div>
-          <div class="nr"><label>Backdoor Roth IRAs<small>$7,500 each, done once a year</small></label>
+          <div class="nr"><label>Backdoor Roth IRAs<small><span class="L" data-k="ira">$7,500</span> each, done once a year</small></label>
             <div class="nin"><select id="act-roth" onchange="go()" style="font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--bdr);font-family:var(--font)">
-              <option value="0">None</option><option value="7500">One — $7,500</option><option value="15000" selected>Both spouses — $15,000</option></select></div></div>
+              <option value="0">None</option><option value="7500" id="opt-roth1">One — $7,500</option><option value="15000" id="opt-roth2" selected>Both spouses — $15,000</option></select></div></div>
           <div class="nr"><label>Brokerage transfers<small>Automatic monthly amount into your taxable account</small></label>
             <div class="nin"><span>$</span><input type="number" id="act-brk" min="0" step="100" placeholder="0" oninput="go()"></div></div>
           <div class="nr"><label>Extra loan principal<small>Above the required payment, per month</small></label>
@@ -437,7 +439,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <div id="recon-msg"></div>
   <div class="box box-g">
     <div class="box-title" style="color:var(--g)">The real epiphany: it's not the 401k, it's the brokerage rate</div>
-    <div class="box-body">Every young surgeon already knows to max the 401k/403(b) and backdoor Roth every year — that part is basically automatic and capped by law. Hospital-employed surgeons usually also have a <strong>457(b)</strong>, another $24,500 pre-tax that many never use. Fewer know about <strong>cash balance / defined benefit plans</strong>, which some private groups offer and which can shelter a large additional amount pre-tax depending on age and group structure — worth asking your group's financial advisor or CPA about explicitly, since it isn't always volunteered. But the single biggest lever after that, the one actually within your control every single year, is your <strong>taxable brokerage savings rate</strong>. Tax-advantaged accounts are capped. The taxable brokerage does not. <strong>Pay yourself first, monthly, on autopilot</strong> — treat the taxable brokerage contribution like a bill that's due before lifestyle spending happens, and raise that automated amount every time pay increases or a big fixed cost ends. When daycare ends, when loans are paid off — redirect that exact amount the same month, before it gets absorbed.</div>
+    <div class="box-body">Every young surgeon already knows to max the 401k/403(b) and backdoor Roth every year — that part is basically automatic and capped by law. Hospital-employed surgeons usually also have a <strong>457(b)</strong>, another <span class="L" data-k="k457">$24,500</span> pre-tax that many never use. Fewer know about <strong>cash balance / defined benefit plans</strong>, which some private groups offer and which can shelter a large additional amount pre-tax depending on age and group structure — worth asking your group's financial advisor or CPA about explicitly, since it isn't always volunteered. But the single biggest lever after that, the one actually within your control every single year, is your <strong>taxable brokerage savings rate</strong>. Tax-advantaged accounts are capped. The taxable brokerage does not. <strong>Pay yourself first, monthly, on autopilot</strong> — treat the taxable brokerage contribution like a bill that's due before lifestyle spending happens, and raise that automated amount every time pay increases or a big fixed cost ends. When daycare ends, when loans are paid off — redirect that exact amount the same month, before it gets absorbed.</div>
   </div>
   <div id="att-sens" style="display:none">
     <div class="card"><div class="ctitle">If I change one thing — years of call saved</div>
@@ -462,6 +464,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
     <div class="hint no-print" style="margin:8px 0 0">Built from everything you entered on Reality Check. Change anything there or below and this updates. Your entries are saved privately in this browser on this device — no one else sees them, and other people's entries never change yours. To open your plan on another device, use <strong>Copy my plan link</strong> and bookmark or email it to yourself. Come back each year, update the numbers, and see where you stand.</div>
   </div>
 
+  <div class="box box-g" style="margin-top:0"><div class="box-body" style="font-size:12px"><strong>The one idea that matters most:</strong> a surgeon who saves 25% of $400k will retire earlier and wealthier than one who saves 10% of $600k. Income is not the variable. The gap between income and spending is — and you control the gap.</div></div>
   <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
 
   <div class="g2">
@@ -521,10 +524,73 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   </div>
 
   <div class="card">
-    <div class="ctitle">How to invest it</div>
-    <div style="font-size:11px;line-height:1.6;color:#444">Low-cost total-market index funds, in every account: a US total stock market fund (e.g. VTI / FSKAX / SWTSX) plus an international fund (e.g. VXUS), with bonds added as you get closer to retirement. Expense ratios under 0.10%. Rebalance once a year. Never sell in a crash. Avoid advisors charging 1% of assets; use a flat-fee fiduciary if you want help. Start reading with <strong>The White Coat Investor</strong> (Jim Dahle) and <strong>If You Can</strong> (William Bernstein, free, 16 pages).</div>
+    <div class="ctitle">Automate it — set up once, runs for years</div>
+    <div class="hint">You don't need discipline. You need a one-time setup, so the saving happens before you see the money.</div>
+    <table class="tbl" id="pb-auto"></table>
   </div>
-  <div class="hint">Assumptions: 5% real return, amounts in today's dollars, salary held flat in real terms, retirement spending from the FI Calculator tab. Social Security and employer contributions are not included — both make the picture better. Education only, not individual financial advice.</div>
+
+  <div class="card">
+    <div class="ctitle">Lifestyle creep and the 12-month rule</div>
+    <div style="font-size:11px;line-height:1.6;color:#444">Lifestyle creep doesn't feel like a decision — it feels like finally affording normal things. It is the main reason high-earning physicians aren't wealthy. <strong>The 12-month rule:</strong> when income rises (attending pay, a raise, a bonus, a cost that ends), keep spending flat for 12 months and send the difference to savings. After a year you won't miss what you never started spending, and the higher savings rate feels normal. Made once at the residency-to-attending transition, this decision is worth more than any investment choice you'll ever make.</div>
+    <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Size fixed costs to guaranteed pay.</strong> Bonuses can shrink or vanish with reimbursement cuts, a bad year, or a job change. The mortgage and tuition don't. If the house only works with the bonus, it's too much house.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Your retirement number</div>
+    <div id="pb-finum"></div>
+  </div>
+
+  <div class="card" id="pb-loans-card">
+    <div class="ctitle">Student loans — the rules</div>
+    <div id="pb-loans"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Housing — the rules</div>
+    <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px" id="pb-house"></ul>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Insurance — protect the income</div>
+    <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px" id="pb-ins"></ul>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">How to invest it</div>
+    <table class="tbl">
+      <tr><th>Fund type</th><th>Examples</th><th>Cost</th><th>Share</th></tr>
+      <tr><td>US total stock market</td><td>VTI / VTSAX, FSKAX, SWTSX</td><td>~0.03%</td><td>60–70%</td></tr>
+      <tr><td>International stocks</td><td>VXUS / VTIAX, FTIHX</td><td>~0.05–0.10%</td><td>20–30%</td></tr>
+      <tr><td>US bonds</td><td>BND / VBTLX, FXNAX</td><td>~0.03%</td><td>0–20%, more with age</td></tr>
+    </table>
+    <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px;margin-top:8px">
+      <li>Same simple funds in every account. Expense ratios under 0.10% — Vanguard, Fidelity and Schwab all qualify.</li>
+      <li>Rebalance once a year. Never sell in a crash. Time in the market beats timing the market.</li>
+      <li>Avoid advisors charging 1% of assets — on $2M that's $20,000 a year, forever. If you want help, use a flat-fee fiduciary.</li>
+      <li>No whole life, variable life, or IUL sold as investments.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Reading list — in this order</div>
+    <table class="tbl">
+      <tr><th>#</th><th>Book</th><th>Why</th></tr>
+      <tr><td>1</td><td><strong>The White Coat Investor</strong> — James Dahle MD</td><td>The physician playbook. Before your first paycheck.</td></tr>
+      <tr><td>2</td><td><strong>If You Can</strong> — William Bernstein</td><td>16 pages, free online. The whole game in a pamphlet.</td></tr>
+      <tr><td>3</td><td><strong>I Will Teach You to Be Rich</strong> — Ramit Sethi</td><td>Exactly how to automate everything.</td></tr>
+      <tr><td>4</td><td><strong>The Simple Path to Wealth</strong> — JL Collins</td><td>The case for index funds, plainly.</td></tr>
+      <tr><td>5</td><td><strong>The Psychology of Money</strong> — Morgan Housel</td><td>Why smart people make bad money decisions.</td></tr>
+      <tr><td>6</td><td><strong>The Millionaire Next Door</strong> — Stanley &amp; Danko</td><td>How wealthy people actually live. The physician chapter stings.</td></tr>
+      <tr><td>7</td><td><strong>The Bogleheads' Guide to Investing</strong> — Larimore et al.</td><td>Allocation, tax efficiency, withdrawals.</td></tr>
+      <tr><td>8</td><td><strong>The Physician Philosopher's Guide</strong> — James Turner MD</td><td>High-yield, physician-specific.</td></tr>
+      <tr><td>9</td><td><strong>Die With Zero</strong> — Bill Perkins</td><td>Spend on purpose, not just accumulate. Mid-career.</td></tr>
+      <tr><td>10</td><td><strong>Your Money or Your Life</strong> — Vicki Robin</td><td>The original FI book.</td></tr>
+    </table>
+    <div class="hint" style="margin-top:6px">Online: whitecoatinvestor.com · bogleheads.org/wiki · studentaid.gov (loans and PSLF)</div>
+  </div>
+
+  <div class="box box-g"><div class="box-body" style="font-size:12px;text-align:center">Financial independence isn't about being rich. It's about having enough — so your time belongs to you.</div></div>
+  <div class="hint">Figures current for <span class="data-yr">2026</span> tax year · last reviewed <span id="pb-reviewed"></span>. Assumptions: 5% real return, amounts in today's dollars, salary held flat in real terms, retirement spending from the FI Calculator tab. Social Security and employer contributions are not included — both make the picture better. Education only, not individual financial advice.</div>
 </div>
 
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
@@ -885,7 +951,19 @@ var SPECS={
   mis:{n:"MIS / Bariatric",sal:460000,lo:320000,hi:700000}
 };
 
-// ── 2026 CONSTANTS ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// ANNUAL UPDATE — everything that changes year to year lives here.
+// See UPDATING.md in the repo for the checklist and sources.
+//   DATA.year / DATA.reviewed .... bump every update
+//   LIM .......................... contribution limits, SS wage base
+//   FED .......................... federal brackets, standard deduction
+//   NJBR ......................... NJ brackets (change only by statute)
+//   SPECS (above) ................ Doximity salary averages
+//   taxCalc() .................... SALT cap ($40,400 → indexed; floor $10k), CTC $2,200
+//   Student Loans tab text ....... federal loan rates (set each July)
+// ════════════════════════════════════════════════════════════════
+var DATA={year:2026,reviewed:'October 2026'};
+function $L(n){return '$'+Math.round(n).toLocaleString('en-US');}
 var LIM={k401:24500,k457:24500,ira:7500,hsaFam:8750,dcfsa:7500,ssBase:184500};
 var FED={
   couple:{std:32200,br:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[1e12,.37]],addlMed:250000,ctcPh:400000},
@@ -1181,6 +1259,10 @@ function toggleSalOverride(){
 
 // ── MAIN ──────────────────────────────────────────────────────────
 function go(){
+  document.querySelectorAll('.L').forEach(function(e){e.textContent=$L(LIM[e.dataset.k]);});
+  $('opt-roth1').value=LIM.ira;$('opt-roth1').textContent='One — '+$L(LIM.ira);$('opt-roth2').value=2*LIM.ira;$('opt-roth2').textContent='Both spouses — '+$L(2*LIM.ira);
+  $('stale').style.display=new Date().getFullYear()>DATA.year?'block':'none';
+  document.querySelectorAll('.data-yr').forEach(function(e){e.textContent=DATA.year;});
   var s=sp();
   $('sal').textContent=fk(s.sal);
   $('sal-r').innerHTML=s.overridden?'Custom salary entered':(s.dox?'Doximity 2026 avg':'Estimated avg')+'<br>Range: '+fk(s.lo)+'–'+fk(s.hi);
@@ -1433,7 +1515,7 @@ function calcWaterfall(c){
   var msg='';
   if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|Call is not optional until '+coastAge+'. '+callYrsLine+' Biggest levers here: '+levers.slice(0,3).join(', ')+'. '+(MODE==='att'?'The sensitivity panel below shows which single change moves the needle most.':'It improves as loans pay off and childcare ends — but only if that money is redirected, not absorbed.');
   else if(displaySR<20) msg='box-a|Below the 20% WCI target ('+displaySR+'%)|Call becomes optional at '+coastAge+(extraVsIdeal?' — <strong>'+extraVsIdeal+' years later</strong> than the 25% path.':'.')+' Biggest levers: '+levers.slice(0,3).join(', ')+'.';
-  else msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ($24,500), 457(b) if offered ($24,500), and backdoor Roth for both spouses ($15,000) first. Add HSA ($8,750 family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
+  else msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ('+$L(LIM.k401)+'), 457(b) if offered ('+$L(LIM.k401)+'), and backdoor Roth for both spouses ('+$L(2*LIM.ira)+') first. Add HSA ('+$L(LIM.hsaFam)+' family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
   if(!c.actual) msg+=' <em>This is an estimate — turn on "Find my real savings rate" to see yours.</em>';
 
   // Down payment feasibility
@@ -1639,11 +1721,11 @@ function calcAction(){
   var hosp=$('plan-type').value==='403b';
 
   var ideal=[
-    {n:1,t:(hosp?'403(b)':'401(k)')+' — max before first paycheck',d:'$24,500/yr (2026). Pre-tax. Call HR on day 1.',a:Math.round(LIM.k401/12),c:'#1D6B52',pre:true},
-    hosp?{n:2,t:'457(b) — the hospital plan most surgeons skip',d:'Another $24,500 pre-tax (2026). Read the plan: non-governmental 457(b) money is an employer asset until paid out, so check distribution options.',a:Math.round(LIM.k457/12),c:'#1D6B52',pre:true}:
-         {n:2,t:'HSA — only if employer offers HDHP',d:'$8,750 family (2026). Triple tax advantage. Most surgeons have a PPO — verify.',a:Math.round(LIM.hsaFam/12),c:'#1D6B52'},
+    {n:1,t:(hosp?'403(b)':'401(k)')+' — max before first paycheck',d:''+$L(LIM.k401)+'/yr ('+DATA.year+'). Pre-tax. Call HR on day 1.',a:Math.round(LIM.k401/12),c:'#1D6B52',pre:true},
+    hosp?{n:2,t:'457(b) — the hospital plan most surgeons skip',d:'Another '+$L(LIM.k457)+' pre-tax ('+DATA.year+'). Read the plan: non-governmental 457(b) money is an employer asset until paid out, so check distribution options.',a:Math.round(LIM.k457/12),c:'#1D6B52',pre:true}:
+         {n:2,t:'HSA — only if employer offers HDHP',d:''+$L(LIM.hsaFam)+' family ('+DATA.year+'). Triple tax advantage. Most surgeons have a PPO — verify.',a:Math.round(LIM.hsaFam/12),c:'#1D6B52'},
     {n:3,t:'Emergency fund → high-yield savings',d:'3–6 months of expenses. Auto-transfer monthly until $25–40k reached. Compare current APYs.',a:2200,c:'#2355A0'},
-    {n:4,t:'Backdoor Roth IRA — $15,000 (both spouses), early January',d:'Traditional IRA → immediate Roth conversion. $7,500 each. Every year without exception.',a:Math.round(15000/12),c:'#2355A0'},
+    {n:4,t:'Backdoor Roth IRA — '+$L(2*LIM.ira)+' (both spouses), early January',d:'Traditional IRA → immediate Roth conversion. '+$L(LIM.ira)+' each. Every year without exception.',a:Math.round(15000/12),c:'#2355A0'},
     {n:5,t:'Student loans — PSLF or refinance + attack',d:'Nonprofit: IBR/RAP minimum, invest the rest. Private practice: refinance, pay off in 10 years. Decide on day 1.',a:Math.round(30000/12),c:'#E8A020'},
     {n:6,t:'Down payment savings → HYSA bucket',d:'2–3 year runway before buying. 20% down target to avoid PMI.',a:2000,c:'#8B4513'},
   ];
@@ -1676,11 +1758,11 @@ function calcAction(){
   var priority=[
     {n:1,t:'Retirement plan to employer match',d:'Free money. Always first.',c:'#1D6B52'},
     {n:2,t:'Emergency fund → HYSA',d:'$25–40k. One-time goal.',c:'#2355A0'},
-    {n:3,t:'Max 403(b)/401(k) to $24,500',d:'Before lifestyle expands.',c:'#1D6B52'},
-    {n:4,t:'457(b) if hospital-employed — $24,500',d:'Second full pre-tax bucket. Check the plan\'s distribution rules first.',c:'#1D6B52'},
-    {n:5,t:'Backdoor Roth — $15,000/yr (both spouses)',d:'Early January. $7,500 each. Every year.',c:'#2355A0'},
-    {n:6,t:'HSA if on HDHP plan',d:'Verify with HR. $8,750 family (2026). Triple tax.',c:'#1D6B52'},
-    {n:7,t:'Dependent care FSA if paying childcare',d:'$7,500 per household (2026). Pre-tax childcare — roughly $3–4k/yr saved for a surgeon.',c:'#1D6B52'},
+    {n:3,t:'Max 403(b)/401(k) to '+$L(LIM.k401)+'',d:'Before lifestyle expands.',c:'#1D6B52'},
+    {n:4,t:'457(b) if hospital-employed — '+$L(LIM.k401)+'',d:'Second full pre-tax bucket. Check the plan\'s distribution rules first.',c:'#1D6B52'},
+    {n:5,t:'Backdoor Roth — '+$L(2*LIM.ira)+'/yr (both spouses)',d:'Early January. '+$L(LIM.ira)+' each. Every year.',c:'#2355A0'},
+    {n:6,t:'HSA if on HDHP plan',d:'Verify with HR. '+$L(LIM.hsaFam)+' family ('+DATA.year+'). Triple tax.',c:'#1D6B52'},
+    {n:7,t:'Dependent care FSA if paying childcare',d:''+$L(LIM.dcfsa)+' per household ('+DATA.year+'). Pre-tax childcare — roughly $3–4k/yr saved for a surgeon.',c:'#1D6B52'},
     {n:8,t:'Loan strategy: PSLF or refinance + attack',d:'Decide day one. Never just let it ride.',c:'#E8A020'},
     {n:9,t:'Taxable brokerage — automatic monthly transfer',d:'Everything remaining. Raise it whenever pay rises or a fixed cost ends.',c:'#1D6B52'},
     {n:'🛡',t:'Disability insurance — before leaving residency',d:'Own-occupation. Discounted, simplified-underwriting offers are common in training — get it while healthy.',c:'#8B2020'},
@@ -1700,9 +1782,9 @@ function calcAction(){
   var isAtt=MODE==='att';
   $('chk-title').textContent=isAtt?'Attending audit — where do you actually stand?':'Pre-attending checklist';
   var chkItems=isAtt?[
-    {u:false,i:'✅',t:'Confirm 403(b)/401(k) is maxed at $24,500',d:'Verify with HR — many attendings set a percentage and miss the max.',w:'Verify now'},
-    {u:false,i:'➕',t:'Is the 457(b) being used?',d:'Hospital-employed: another $24,500 pre-tax. Read the distribution options before enrolling.',w:'Open enrollment'},
-    {u:false,i:'✅',t:'Backdoor Roth executed this year',d:'$15,000 (both spouses, $7,500 each) → converted. Prior-year contributions allowed until the tax filing deadline.',w:'January each year'},
+    {u:false,i:'✅',t:'Confirm 403(b)/401(k) is maxed at '+$L(LIM.k401)+'',d:'Verify with HR — many attendings set a percentage and miss the max.',w:'Verify now'},
+    {u:false,i:'➕',t:'Is the 457(b) being used?',d:'Hospital-employed: another '+$L(LIM.k401)+' pre-tax. Read the distribution options before enrolling.',w:'Open enrollment'},
+    {u:false,i:'✅',t:'Backdoor Roth executed this year',d:''+$L(2*LIM.ira)+' (both spouses, '+$L(LIM.ira)+' each) → converted. Prior-year contributions allowed until the tax filing deadline.',w:'January each year'},
     {u:false,i:'📊',t:'Know your actual savings rate',d:'Turn on "Find my real savings rate" on the Reality Check tab — it builds the number from your pay stub and account transfers. Most attendings overestimate theirs.',w:'Calculate this week'},
     {u:false,i:'🎯',t:'Know your call optionality number',d:'Use the FI Calculator tab. Track this quarterly — watching it approach is motivating.',w:'Calculate now'},
     {u:false,i:'👶',t:'Plan the day childcare ends',d:'Set the brokerage transfer increase now so it starts the month daycare stops.',w:'Before it happens'},
@@ -1712,9 +1794,9 @@ function calcAction(){
   ]:[
     {u:true,i:'🚨',t:'Disability insurance — before you graduate',d:'Get own-occupation disability insurance during training, while discounted and simplified-underwriting offers are available and you\'re healthy.',w:'Final year of residency'},
     {u:false,i:'📋',t:'Get on RAP or IBR — confirm PSLF eligibility',d:'SAVE is gone. RAP (from July 2026) or IBR keeps residency payments low, and these years count toward PSLF if you go nonprofit.',w:'PGY-4 or 5'},
-    {u:false,i:'💰',t:'Open Roth IRA — contribute $7,500',d:'While in a low tax bracket. Vanguard or Fidelity. Do this every year of residency.',w:'Each January in residency'},
+    {u:false,i:'💰',t:'Open Roth IRA — contribute '+$L(LIM.ira)+'',d:'While in a low tax bracket. Vanguard or Fidelity. Do this every year of residency.',w:'Each January in residency'},
     {u:false,i:'📞',t:'Call HR on day 1 — max the 403(b)/401(k) and 457(b)',d:'Before your first paycheck. You cannot reclaim missed pay periods.',w:'Day 1 of attending job'},
-    {u:false,i:'🔄',t:'Backdoor Roth — $7,500 each, early January',d:'Traditional IRA → immediate conversion. Every year. Non-negotiable.',w:'January of attending year 1'},
+    {u:false,i:'🔄',t:'Backdoor Roth — '+$L(LIM.ira)+' each, early January',d:'Traditional IRA → immediate conversion. Every year. Non-negotiable.',w:'January of attending year 1'},
     {u:false,i:'🏦',t:'Open a high-yield savings account',d:'Emergency fund. Auto-transfer monthly. 3–6 months of expenses.',w:'Month 1 of attending'},
     {u:false,i:'🧮',t:'Run your real budget before you commit',d:'House price, private school, childcare: enter real numbers in this app before signing — they decide your savings rate for a decade.',w:'Before any big purchase'},
     {u:false,i:'📖',t:'Read WCI book before signing your contract',d:'The White Coat Investor. Written by an EM physician for physicians.',w:'Before first contract'},
@@ -1737,9 +1819,9 @@ function calcAction(){
   $('acct-title').textContent='Year 1 account breakdown — where your '+targetSR+'% actually goes';
   var rows=[{a:hosp?'403(b)':'401(k)',v:LIM.k401,n:'Pre-tax. Reduces federal (and NJ, for a 401(k)) income tax.'}];
   if(hosp) rows.push({a:'457(b)',v:LIM.k457,n:'Hospital plans. Second pre-tax bucket. Check distribution rules.'});
-  rows.push({a:'Backdoor Roth IRA (both spouses)',v:15000,n:'Early January every year. $7,500 each. Tax-free growth.'});
+  rows.push({a:'Backdoor Roth IRA (both spouses)',v:2*LIM.ira,n:'Early January every year. '+$L(LIM.ira)+' each. Tax-free growth.'});
   if(c.save529On) rows.push({a:'529 college savings',v:c.save529Amt,n:c.nk+' child(ren). NJ allows a state deduction for NJBEST contributions at lower incomes only.'});
-  rows.push({a:'HSA (if HDHP — verify first)',v:0,n:'$8,750 family. Triple tax advantage. Most hospital surgeons have a PPO.'});
+  rows.push({a:'HSA (if HDHP — verify first)',v:0,n:''+$L(LIM.hsaFam)+' family. Triple tax advantage. Most hospital surgeons have a PPO.'});
   rows.push({a:'Cash balance / DB plan (if offered)',v:0,n:'Private group add-on, not universal. Ask your group\'s advisor/CPA — amount varies by age and plan design.'});
   var used2=rows.reduce(function(a,r){return a+r.v;},0);
   rows.push({a:'Taxable brokerage',v:Math.max(0,targetSav-used2),n:targetSav-used2>0?'Index funds. Automatic monthly transfer.':'Nothing left at this savings rate after tax-advantaged accounts.'});
@@ -2327,8 +2409,8 @@ function calcPlay(){
   var efTarget=Math.round(3*spendYr/12/1000)*1000;
   var steps=[];
   steps.push({on:c.def401>0,t:(hosp?'403(b)':'401(k)')+' — max it, starting with your first paycheck',d:'Pre-tax. Call HR on day 1 — you cannot make up missed pay periods. Take any employer match first.',a:LIM.k401,fix:c.def401>0?null:'Turn on in Reality Check'});
-  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another $24,500 pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' of call':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in Reality Check'});
-  steps.push({on:true,t:'Backdoor Roth IRA'+(couple?' — both spouses':''),d:'Every January: contribute $7,500 to a traditional IRA, convert to Roth right away. Keep no other pre-tax IRA balances (pro-rata rule).',a:couple?15000:7500});
+  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another '+$L(LIM.k401)+' pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' of call':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in Reality Check'});
+  steps.push({on:true,t:'Backdoor Roth IRA'+(couple?' — both spouses':''),d:'Every January: contribute '+$L(LIM.ira)+' to a traditional IRA, convert to Roth right away. Keep no other pre-tax IRA balances (pro-rata rule).',a:couple?15000:7500});
   steps.push({on:hsa>0,t:'HSA',d:hsa>0?'Triple tax advantage. Invest it and pay current medical bills from cash if you can.':'Only if your health plan is a high-deductible plan. Most hospital plans are PPOs — check at open enrollment.',a:hsa||LIM.hsaFam});
   if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
   steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). Build it in year 1, then stop. '+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
@@ -2374,11 +2456,11 @@ function calcPlay(){
     F.push({k:mustCover>baseTH?'r':'g',t:mustCover>baseTH?'Your base pay doesn\'t cover your bills':'Base pay covers your bills',b:'Guaranteed base of '+fk(base)+' takes home about '+fkPrecise(baseTH)+'/mo; your monthly costs are about '+fkPrecise(mustCover)+'. '+(mustCover>baseTH?'You\'re relying on bonuses for ordinary bills. When a bonus lands, move the shortfall ('+fkPrecise((mustCover-baseTH)*6)+' per six months) into a separate account and pay yourself from it monthly. Don\'t add fixed costs until base pay covers them.':'Good — send bonuses straight to savings the day they arrive.')});
   }
   if(c.childcareEst>0) F.push({k:'b',t:'The day childcare ends',b:'That frees '+fkPrecise(c.childcareEst/12)+'/mo. Set up the brokerage increase now so it starts the same month — otherwise it disappears into spending. '+(opts.dcRedir?'Your plan already counts on it.':'<strong>Your plan currently doesn\'t redirect it</strong> — turning that on moves call optionality from '+(plan.coast||'never')+' to '+(pbSim(c,Object.assign({},opts,{dcRedir:true})).coast||'never')+'.')});
-  if(c.def457===0&&hosp) F.push({k:'a',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another $24,500 a year pre-tax into a 457(b). Check your plan and turn it on in Reality Check.'});
+  if(c.def457===0&&hosp) F.push({k:'a',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another '+$L(LIM.k401)+' a year pre-tax into a 457(b). Check your plan and turn it on in Reality Check.'});
   if(c.nPriv>0) F.push({k:'a',t:'Private school',b:fk(c.schoolEst)+'/yr for '+c.nPriv+' child'+(c.nPriv!==1?'ren':'')+', for up to 13 years each. Paid from take-home, so it takes about '+fk(c.schoolEst/(1-0.46))+' of salary a year.'});
   if(c.cars>=24000) F.push({k:'a',t:'Cars',b:fk(c.cars)+'/yr. A paid-off car you keep 8–10 years is one of the easiest fixed costs to cut.'});
-  F.push({k:'b',t:'Disability insurance',b:'Your income is your biggest asset. Own-occupation, individually owned policy covering about 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers will issue'+($('pb-bonus').checked?', and make sure bonus pay is included in what\'s covered':'')+'. '+(MODE==='res'?'Buy it before you graduate, while you\'re healthy and resident discounts apply.':'Re-check coverage whenever income rises.')});
-  if(c.nk>0||couple) F.push({k:'b',t:'Term life insurance',b:'About 10–15× income for someone depending on you: '+fk(c.s.sal*10)+'–'+fk(c.s.sal*15)+', 20–30 year term. No whole life or IUL. Plus a $2M+ umbrella policy.'});
+  if(false)F.push({k:'b',t:'Disability insurance',b:'Your income is your biggest asset. Own-occupation, individually owned policy covering about 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers will issue'+($('pb-bonus').checked?', and make sure bonus pay is included in what\'s covered':'')+'. '+(MODE==='res'?'Buy it before you graduate, while you\'re healthy and resident discounts apply.':'Re-check coverage whenever income rises.')});
+  if(false) F.push({k:'b',t:'Term life insurance',b:'About 10–15× income for someone depending on you: '+fk(c.s.sal*10)+'–'+fk(c.s.sal*15)+', 20–30 year term. No whole life or IUL. Plus a $2M+ umbrella policy.'});
   $('pb-flags').innerHTML=F.map(function(f){return '<div class="pb-flag '+f.k+'"><div><b>'+f.t+'.</b> '+f.b+'</div></div>';}).join('');
 
   // Checklist
@@ -2386,7 +2468,7 @@ function calcPlay(){
   var chk=MODE==='res'?[
     ['Disability insurance — own-occupation','Final year of training'],
     ['Get on RAP or IBR, confirm PSLF eligibility of your future employer','Now'],
-    ['Roth IRA — $7,500 each year of residency','Every January'],
+    ['Roth IRA — '+$L(LIM.ira)+' each year of residency','Every January'],
     ['Ask about the 403(b)/401(k), 457(b), employer contribution and HSA before signing','During contract negotiation'],
     ['Day 1: max the retirement plan(s) before the first paycheck','First week as attending'],
     ['Set up the automatic brokerage transfer — even $250/mo','Month 1 as attending'],
@@ -2402,7 +2484,50 @@ function calcPlay(){
     ['Update this playbook with your new numbers','Every year']
   ].filter(Boolean);
   $('pb-chk').innerHTML=chk.map(function(x){return '<div class="oop-item" style="margin-bottom:5px"><div style="font-size:14px">☐</div><div class="oop-body"><div class="oop-title">'+x[0]+'</div></div><div style="font-size:10px;color:var(--mg);white-space:nowrap">'+x[1]+'</div></div>';}).join('');
+
+  // ── Handout content, personalized ──
+  $('pb-reviewed').textContent=DATA.reviewed;
+  var autoRows=[
+    [MODE==='res'?'Day 1 as attending':'Now, then at every raise','Call HR: max the '+(hosp?'403(b)'+(c.def457>0||true?' and 457(b)':''):'401(k)')+' — taken from pay before you see it','Pre-tax; can\'t reclaim missed pay periods'],
+    ['January, every year','Backdoor Roth: '+$L(LIM.ira)+' into a traditional IRA, convert to Roth'+(couple?' — each spouse':''),'Done for the year in one sitting'],
+    ['Open enrollment','Elect dependent care FSA'+(c.childcareEst>0?' ('+$L(LIM.dcfsa)+')':'')+' and HSA if on a high-deductible plan','Pre-tax'],
+    ['Payday','Automatic transfer to high-yield savings until the emergency fund ('+fk(efTarget)+') is full','Then redirect that transfer to the brokerage'],
+    ['Payday','Automatic brokerage investment: '+fkPrecise(brk)+'/mo now','Index funds; no decisions'],
+    ['Every raise / January','Raise the brokerage transfer'+(raise>0?' by '+fkPrecise(raise)+'/mo or more':' — your plan has no yearly raise yet'),'Before spending adjusts'],
+    ['The month a cost ends','Childcare, loans, a car payment — add the full amount to the brokerage transfer','The 12-month rule'],
+    ['The day a bonus lands','Decide in advance: a fixed share goes straight to the brokerage','Bonuses are the easiest money to lose']
+  ];
+  $('pb-auto').innerHTML='<tr><th>When</th><th>What</th><th>Why</th></tr>'+autoRows.map(function(r){return '<tr><td style="white-space:nowrap">'+r[0]+'</td><td>'+r[1]+'</td><td style="font-size:10px;color:var(--mg)">'+r[2]+'</td></tr>';}).join('');
+
+  var fiNum=spend*25;
+  $('pb-finum').innerHTML='<div style="font-size:11px;line-height:1.6;color:#444">Your full retirement number is <strong>25 × what you\'ll spend each year in retirement</strong> — at '+fk(spend)+'/yr that\'s <strong>'+fk(fiNum)+'</strong>. Withdrawing 4% a year from that portfolio, adjusted for inflation, has historically lasted 30+ years (the "4% rule"). Every $1,000 a year of permanent lifestyle adds $25,000 to the number.</div>'+
+    '<table class="tbl" style="margin-top:8px"><tr><th>Retirement spending</th><th>Full FI number</th><th>Needed at 45 for call to be optional</th><th>at 50</th><th>at 55</th></tr>'+
+    [130000,160000,200000,250000].concat([spend]).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;}).map(function(v){
+      var me=v===spend;return '<tr'+(me?' class="hl"':'')+'><td>'+fk(v)+'/yr'+(me?' (you)':'')+'</td><td>'+fk(v*25)+'</td><td>'+fk(callTarget(45,v*25,0.05))+'</td><td>'+fk(callTarget(50,v*25,0.05))+'</td><td>'+fk(callTarget(55,v*25,0.05))+'</td></tr>';}).join('')+'</table>'+
+    '<div class="hint" style="margin-top:6px">"Call optional" = saved enough that you could stop saving, take a lower-paying job without call that covers your living costs, and still reach your full number by '+retAge()+'. The amount needed rises with age because the money has less time to grow.</div>';
+
+  var hasL=c.loansOn&&c.lb>0;
+  $('pb-loans-card').style.display=hasL||MODE==='res'?'block':'none';
+  $('pb-loans').innerHTML='<div class="g2" style="gap:8px">'+
+    '<div class="pb-flag '+(c.pslf?'g':'b')+'" style="margin:0"><div><b>Nonprofit / academic — PSLF'+(c.pslf?' (you)':'')+'</b><br>Lowest income-driven payment (IBR or RAP). Certify your employer every year at studentaid.gov. Remainder forgiven tax-free after 120 payments; residency counts. <strong>Never refinance</strong> — it ends PSLF permanently. Invest everything you\'re not paying.</div></div>'+
+    '<div class="pb-flag '+(!c.pslf&&hasL?'g':'b')+'" style="margin:0"><div><b>Private practice — refinance and attack'+(!c.pslf&&hasL?' (you)':'')+'</b><br>Refinance soon after starting; compare 3+ lenders. Rate over 7%: pay it off before investing beyond the match. Under 4%: invest the difference. In between: do both. Pay off in 10 years or less, then send the whole payment to the brokerage.</div></div></div>'+
+    '<div class="hint" style="margin-top:6px">In residency: get on RAP or IBR (SAVE is gone). Payments stay low and count toward PSLF if you end up at a nonprofit. Non-PSLF forgiveness after 20–30 years is now taxable — don\'t let loans ride.</div>';
+
+  var houseItems=['Rent for the first 2 years. You don\'t yet know the job, the group, the town, or your real take-home — and many surgeons leave their first job within 2–3 years.',
+    'Buying and selling cost about 12% of the price in NJ (3% in, 9% out). On a '+fk(c.houseOn?c.hp:1500000)+' home that\'s '+fk((c.houseOn?c.hp:1500000)*0.12)+' gone if you move soon.',
+    'Price: about 2× household income is the ceiling in NJ, lower with kids in childcare. Size it to guaranteed base pay, not bonus.',
+    'Total housing (mortgage, property tax, insurance, upkeep) under 28% of gross. NJ property tax averages about 2.2% of value a year — and rises.',
+    'Put 20% down. Physician loans (0–10% down) work, but a small down payment plus an early forced sale can wipe out your cash.',
+    'Renting isn\'t throwing money away — owners lose interest, tax, insurance and upkeep instead. See the Rent vs Buy tab with your numbers.'];
+  $('pb-house').innerHTML=houseItems.map(function(t){return '<li>'+t+'</li>';}).join('');
+
+  var insItems=['<strong>Disability (most urgent):</strong> own-occupation, individually owned so it follows you between jobs, covering 60–70% of income (about '+fkPrecise(c.gross*0.6/12)+'/mo for you, up to what insurers issue). Add residual/partial and cost-of-living riders. '+(MODE==='res'?'Buy it before you leave training.':'Increase it as income rises.'),
+    (c.nk>0||couple)?'<strong>Term life:</strong> 10–20× income for anyone who depends on you, 20–30 year term. About '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you.':'<strong>Term life:</strong> only once someone depends on your income.',
+    '<strong>Umbrella liability:</strong> $2M+, a few hundred dollars a year. Essential once you have assets.',
+    '<strong>Say no</strong> to whole life, variable life and IUL. They\'re commission products sold as investments.'];
+  $('pb-ins').innerHTML=insItems.map(function(t){return '<li>'+t+'</li>';}).join('');
 }
+
 
 // ── SAVE / RESTORE INPUTS (this browser only) ─────────────────────
 var STATE_KEY='surgeonFI.v1',restoring=false;
