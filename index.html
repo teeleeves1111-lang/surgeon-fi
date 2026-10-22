@@ -196,6 +196,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 .pb-big .met{text-align:center;}
 .btn{padding:8px 14px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);}
 .btn.ghost{background:var(--card);color:var(--accent);}
+details.pb-more>summary{cursor:pointer;list-style:none;margin-bottom:0;display:flex;justify-content:space-between;align-items:center;}
+details.pb-more>summary::-webkit-details-marker{display:none;}
+details.pb-more>summary::after{content:'▸';font-size:13px;color:var(--accent);transition:transform .15s;}
+details.pb-more[open]>summary::after{transform:rotate(90deg);}
+details.pb-more[open]>summary{margin-bottom:9px;}
+.pb-top{border:2px solid var(--accent);}
+.pb-move{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);}
+.pb-move:last-child{border-bottom:none;padding-bottom:0;}
+.pb-move .pb-n{width:26px;height:26px;font-size:13px;}
 @media print{
   body{background:#fff;font-size:11px;}
   .mode-bar,.tabs,.no-print,.foot,#hdr .hdr-row,#hdr p{display:none!important;}
@@ -466,6 +475,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 
   <div class="box box-g" style="margin-top:0"><div class="box-body" style="font-size:12px"><strong>The one idea that matters most:</strong> a surgeon who saves 25% of $400k will retire earlier and wealthier than one who saves 10% of $600k. Income is not the variable. The gap between income and spending is — and you control the gap.</div></div>
   <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
+  <div class="card pb-top"><div class="ctitle" style="color:var(--accent)">Your top three moves</div><div id="pb-top3"></div></div>
 
   <div class="g2">
     <div class="card no-print">
@@ -523,56 +533,56 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
     <div id="pb-chk"></div>
   </div>
 
-  <div class="card">
-    <div class="ctitle">Automate it — set up once, runs for years</div>
+  <div class="ctitle" style="margin:16px 2px 6px">The playbook — tap a section to open</div>
+  <details class="card pb-more">
+    <summary class="ctitle">Automate it — set up once, runs for years</summary>
     <div class="hint">You don't need discipline. You need a one-time setup, so the saving happens before you see the money.</div>
     <table class="tbl" id="pb-auto"></table>
-  </div>
+  </details>
 
-  <div class="card">
-    <div class="ctitle">Lifestyle creep and the 12-month rule</div>
+  <details class="card pb-more">
+    <summary class="ctitle">Lifestyle creep and the 12-month rule</summary>
     <div style="font-size:11px;line-height:1.6;color:#444">Lifestyle creep doesn't feel like a decision — it feels like finally affording normal things. It is the main reason high-earning physicians aren't wealthy. <strong>The 12-month rule:</strong> when income rises (attending pay, a raise, a bonus, a cost that ends), keep spending flat for 12 months and send the difference to savings. After a year you won't miss what you never started spending, and the higher savings rate feels normal. Made once at the residency-to-attending transition, this decision is worth more than any investment choice you'll ever make.</div>
     <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Size fixed costs to guaranteed pay.</strong> Bonuses can shrink or vanish with reimbursement cuts, a bad year, or a job change. The mortgage and tuition don't. If the house only works with the bonus, it's too much house.</div></div>
-  </div>
+  </details>
 
-  <div class="card">
-    <div class="ctitle">Your retirement number</div>
+  <details class="card pb-more">
+    <summary class="ctitle">Your retirement number</summary>
     <div id="pb-finum"></div>
-  </div>
+  </details>
 
-  <div class="card" id="pb-loans-card">
-    <div class="ctitle">Student loans — the rules</div>
+  <details class="card pb-more" id="pb-loans-card">
+    <summary class="ctitle">Student loans — the rules</summary>
     <div id="pb-loans"></div>
-  </div>
+  </details>
 
-  <div class="card">
-    <div class="ctitle">Housing — the rules</div>
+  <details class="card pb-more">
+    <summary class="ctitle">Housing — the rules</summary>
     <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px" id="pb-house"></ul>
-  </div>
+  </details>
 
-  <div class="card">
-    <div class="ctitle">Insurance — protect the income</div>
+  <details class="card pb-more">
+    <summary class="ctitle">Insurance — protect the income</summary>
     <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px" id="pb-ins"></ul>
-  </div>
+  </details>
 
-  <div class="card">
-    <div class="ctitle">How to invest it</div>
-    <table class="tbl">
-      <tr><th>Fund type</th><th>Examples</th><th>Cost</th><th>Share</th></tr>
-      <tr><td>US total stock market</td><td>VTI / VTSAX, FSKAX, SWTSX</td><td>~0.03%</td><td>60–70%</td></tr>
-      <tr><td>International stocks</td><td>VXUS / VTIAX, FTIHX</td><td>~0.05–0.10%</td><td>20–30%</td></tr>
-      <tr><td>US bonds</td><td>BND / VBTLX, FXNAX</td><td>~0.03%</td><td>0–20%, more with age</td></tr>
-    </table>
-    <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px;margin-top:8px">
-      <li>Same simple funds in every account. Expense ratios under 0.10% — Vanguard, Fidelity and Schwab all qualify.</li>
-      <li>Rebalance once a year. Never sell in a crash. Time in the market beats timing the market.</li>
-      <li>Avoid advisors charging 1% of assets — on $2M that's $20,000 a year, forever. If you want help, use a flat-fee fiduciary.</li>
-      <li>No whole life, variable life, or IUL sold as investments.</li>
+  <details class="card pb-more">
+    <summary class="ctitle">How to invest it — the three-fund portfolio</summary>
+    <div style="font-size:11px;line-height:1.6;color:#444;margin-bottom:6px">Keep it simple. You don't need to pick stocks, time the market, or pay anyone to do it for you. Own the whole market, cheaply, and leave it alone.</div>
+    <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px">
+      <li><strong>Three low-cost index funds:</strong> a US total stock market fund, an international total stock market fund, and a US total bond market fund. That's the whole portfolio.</li>
+      <li><strong>Mostly stocks while you're young</strong> — they're what grows. <strong>Add bonds gradually</strong> as retirement gets closer, so a crash late in your career can't derail you.</li>
+      <li><strong>Keep costs low.</strong> Total-market index funds at Vanguard, Fidelity and Schwab cost a few hundredths of a percent a year.</li>
+      <li><strong>Automate it</strong> — the same funds, every month, in every account.</li>
+      <li><strong>Rebalance once a year</strong> back to your mix. Ignore the news the rest of the year.</li>
+      <li><strong>Never sell in a crash.</strong> Crashes are normal; selling is what makes them permanent.</li>
+      <li><strong>Skip the 1% advisor.</strong> On $2M that's $20,000 a year, forever. If you want help, pay a flat fee.</li>
     </ul>
-  </div>
+    <div class="hint" style="margin-top:4px">To go deeper: <em>The Simple Path to Wealth</em> (JL Collins) and the Bogleheads wiki's "Three-fund portfolio" page.</div>
+  </details>
 
-  <div class="card">
-    <div class="ctitle">Reading list — in this order</div>
+  <details class="card pb-more">
+    <summary class="ctitle">Reading list — in this order</summary>
     <table class="tbl">
       <tr><th>#</th><th>Book</th><th>Why</th></tr>
       <tr><td>1</td><td><strong>The White Coat Investor</strong> — James Dahle MD</td><td>The physician playbook. Before your first paycheck.</td></tr>
@@ -587,7 +597,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
       <tr><td>10</td><td><strong>Your Money or Your Life</strong> — Vicki Robin</td><td>The original FI book.</td></tr>
     </table>
     <div class="hint" style="margin-top:6px">Online: whitecoatinvestor.com · bogleheads.org/wiki · studentaid.gov (loans and PSLF)</div>
-  </div>
+  </details>
 
   <div class="box box-g"><div class="box-body" style="font-size:12px;text-align:center">Financial independence isn't about being rich. It's about having enough — so your time belongs to you.</div></div>
   <div class="hint">Figures current for <span class="data-yr">2026</span> tax year · last reviewed <span id="pb-reviewed"></span>. Assumptions: 5% real return, amounts in today's dollars, salary held flat in real terms, retirement spending from the FI Calculator tab. Social Security and employer contributions are not included — both make the picture better. Education only, not individual financial advice.</div>
@@ -2526,7 +2536,32 @@ function calcPlay(){
     '<strong>Umbrella liability:</strong> $2M+, a few hundred dollars a year. Essential once you have assets.',
     '<strong>Say no</strong> to whole life, variable life and IUL. They\'re commission products sold as investments.'];
   $('pb-ins').innerHTML=insItems.map(function(t){return '<li>'+t+'</li>';}).join('');
+
+  // ── Top three moves ──
+  var moves=[];
+  var yrsGain=function(alt){var x=pbSim(c,Object.assign({},opts,alt));var a=plan.coast||retAge()+5,b2=x.coast||retAge()+5;return a-b2;};
+  if($('pb-bonus').checked){var base0=+$('pb-base').value,bTH=base0*(c.takeHome/c.gross)/12,need=fixedMo+(c.otherCost/12);
+    if(need>bTH)moves.push({p:100,t:'Stop relying on bonuses for monthly bills',d:'Base pay covers about '+fkPrecise(bTH)+'/mo of '+fkPrecise(need)+' in costs. When a bonus lands, put the shortfall in a separate account and pay yourself from it monthly. Add no new fixed costs until base pay covers them.'});}
+  if(MODE==='res')moves.push({p:95,t:'Buy own-occupation disability insurance before you graduate',d:'Your future income is your biggest asset. Coverage is easiest to get, and cheapest, while you\'re still in training and healthy.'});
+  if(hosp&&c.def457===0){var g=yrsGain({taxAdv:taxAdv+LIM.k457});moves.push({p:80+g,t:'Start the 457(b) — '+$L(LIM.k457)+'/yr pre-tax',d:'Your hospital almost certainly offers one. On your plan it makes call optional '+(g>0?g+' year'+(g!==1?'s':'')+' sooner':'sooner')+'. Check its distribution rules, then sign up at open enrollment.'});}
+  if(hasDC&&!opts.dcRedir){var g2=yrsGain({dcRedir:true});moves.push({p:85+g2,t:'Send the childcare money to the brokerage when it ends',d:fkPrecise(c.childcareEst/12)+'/mo frees up in about '+dcEnd+' years. Redirecting it makes call optional '+(g2>0?g2+' years sooner':'sooner')+'. Schedule the transfer increase before the last daycare bill.'});}
+  else if(hasDC)moves.push({p:60,t:'Lock in the childcare redirect now',d:'In about '+dcEnd+' years, '+fkPrecise(c.childcareEst/12)+'/mo frees up. Your plan depends on that money going to the brokerage the same month — set a reminder or schedule it now.'});
+  if(brk===0)moves.push({p:90,t:'Start an automatic brokerage transfer — even '+fkPrecise(Math.max(250,needRaise||500))+'/mo',d:'It\'s the only account with no limit, and it\'s what makes call optional. Start small, but start, and raise it every year.'});
+  else if(!goalMet&&needRaise!==null)moves.push({p:88,t:'Raise your brokerage '+fkPrecise(needRaise)+'/mo every year',d:'That reaches call optionality by '+goal+'. Do it every January or with every raise, before spending catches up.'});
+  else if(!goalMet)moves.push({p:88,t:'Your goal of '+goal+' needs a bigger change',d:'No realistic yearly raise gets there from today. Look at retirement spending ('+fk(spend)+'/yr), a later goal age, or the biggest fixed cost — usually the house.'});
+  else moves.push({p:40,t:'Keep the plan on autopilot',d:'You\'re on track for call optional at '+plan.coast+'. Raise the brokerage '+fkPrecise(raise)+'/mo every year and add every cost that ends.'});
+  if(!c.actual&&MODE==='att')moves.push({p:75,t:'Find your real savings rate',d:'This plan uses estimates. Turn on "Find my real savings rate" on Reality Check — most attendings overestimate theirs.'});
+  if(fixedMo/th>0.6)moves.push({p:70,t:'Add no new fixed costs',d:'Housing, childcare, loans and cars already take '+Math.round(fixedMo/th*100)+'% of take-home. Each $1,000/mo of permanent cost needs about '+fk(12000/(1-0.46))+'/yr of salary.'});
+  if(c.houseOn&&!c.houseOwned&&c.buyYr===0)moves.push({p:72,t:'Rent for two years before buying',d:'You\'ll buy knowing your job, town and real take-home — and avoid a forced sale if the first job doesn\'t work out.'});
+  if(c.houseOn&&c.hp/c.gross>2.5&&!c.houseOwned)moves.push({p:78,t:'Aim for a house closer to '+fk(c.gross*2)+'',d:'Your '+fk(c.hp)+' target is '+(c.hp/c.gross).toFixed(1)+'× income. See the True Cost tab for what the difference does to your timeline.'});
+  if(c.loansOn&&c.lb>0&&c.pslf)moves.push({p:65,t:'Certify PSLF employment every year',d:'Lowest income-driven payment, never refinance, and file the employer certification annually at studentaid.gov.'});
+  if(c.loansOn&&c.lb>0&&!c.pslf&&!c.loansRefi)moves.push({p:62,t:'Refinance the loans and pay them off in 10 years',d:'Compare 3+ lenders. Then send the whole payment to the brokerage the month they\'re gone.'});
+  if(c.childcareEst>0)moves.push({p:50,t:'Use the dependent care FSA',d:'Pays '+$L(LIM.dcfsa)+' of childcare with pre-tax money — about $3,000+ a year saved.'});
+  if(hosp&&c.def401===0||(!hosp&&c.def401===0))moves.push({p:99,t:'Max the '+(hosp?'403(b)':'401(k)'),d:$L(LIM.k401)+'/yr pre-tax, from your first paycheck.'});
+  moves.sort(function(a,b){return b.p-a.p;});
+  $('pb-top3').innerHTML=moves.slice(0,3).map(function(m,i){return '<div class="pb-move"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t" style="font-size:13px">'+m.t+'</div><div class="pb-d">'+m.d+'</div></div></div>';}).join('');
 }
+
 
 
 // ── SAVE / RESTORE INPUTS (this browser only) ─────────────────────
@@ -2566,6 +2601,8 @@ function copyPlanLink(btn){
   catch(e){window.prompt('Copy your plan link:',url);}
 }
 function confirmReset(){var b=document.activeElement;if(b&&b.dataset.armed){return true;}if(b){b.dataset.armed='1';b.textContent='Tap again to clear';setTimeout(function(){delete b.dataset.armed;b.textContent='Reset';},3000);}return false;}
+window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
+window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
 function resetState(){
   try{localStorage.removeItem(STATE_KEY);}catch(e){}
   location.reload();
