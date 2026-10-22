@@ -122,6 +122,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 .ms-dot.y{border-color:var(--am);background:var(--lam);border-width:3px;}
 .ms-age{font-size:11px;font-weight:700;}
 .ms-lbl{font-size:9px;color:var(--mg);line-height:1.3;}
+@media(max-width:500px){.ms-item{min-width:0;}.ms-age{font-size:10px;line-height:1.2;}}
 .ms-sub{font-size:9px;color:var(--g);font-weight:600;}
 
 /* Waterfall */
@@ -727,6 +728,7 @@ details.how ol:empty{display:none;}
   <div class="card">
     <div class="ctitle">Net worth trajectory — <span id="path-lbl">Ideal</span></div>
     <div class="cw" style="height:230px"><canvas id="paths-chart"></canvas></div>
+    <div class="hint" id="paths-chart-note" style="margin-top:2px"></div>
     <div class="ms-strip" id="ms-strip"></div>
   </div>
 
@@ -1102,6 +1104,8 @@ function fk(n){
   var s=a>=1e6?'$'+(a/1e6).toFixed(1)+'M':a>=1000?'$'+Math.round(a/1000)+'k':'$'+a;
   return neg?'−'+s:s;
 }
+// Chart values are in $ thousands: 933 → $933k, 7131 → $7.1M
+function fmtK(v){if(Math.round(v)===0)return '$0';var a=Math.abs(v),t=a>=1000?'$'+(a/1000).toFixed(a%1000===0||a>=10000?0:1)+'M':'$'+Math.round(a)+'k';return v<0?'−'+t:t;}
 function fkPrecise(n){
   if(n===undefined||isNaN(n))return '$0';
   return (n<0?'−':'')+'$'+Math.abs(Math.round(n)).toLocaleString('en-US');
@@ -1767,7 +1771,8 @@ function calcWaterfall(c){
 
 // ── THREE PATHS ────────────────────────────────────────────────────
 function calcPaths(){
-  var s=sp(),rr=0.05,yrs=38;
+  var s=sp(),rr=0.05;
+  var yrs=Math.max(10,retAge()-startAge()); // chart runs to full-retirement age
   var sa=startAge(),nwStart=startNW();
   var fi=retSpend(getCosts())*25;
   var c=getCosts();
@@ -1796,11 +1801,13 @@ function calcPaths(){
     }
     var ms=project(sa,nwStart,function(j){return yrSav(j)-(path.isMe&&downPayment&&j===c.buyYr?downPayment*(1+rr):0);},fi,rr,60);
     if(ms.coast!==null&&ms.coast>=retAge())ms.coast=null;
-    var data=[],nwChart=nwStart;
+    // Once a path reaches full FI it stops saving and starts living on the portfolio (4% of the target a year)
+    var data=[],nwChart=nwStart,reached=false;
     for(var i=0;i<=yrs;i++){
       if(pi===0) labels.push(sa+i);
       if(path.isMe&&downPayment&&i===c.buyYr) nwChart-=downPayment;
-      nwChart=Math.round(nwChart*(1+rr)+yrSav(i));
+      if(!reached&&nwChart>=fi) reached=true;
+      nwChart=Math.round(reached?nwChart*(1+rr)-fi/25:nwChart*(1+rr)+yrSav(i));
       data.push(Math.round(nwChart/1000));
     }
     msAll.push(ms);
@@ -1824,10 +1831,10 @@ function calcPaths(){
   var msSel=msAll[Math.min(curPath,3)];
   $('ms-strip').innerHTML=[
     {l:'Today',dot:MODE==='att'?'y':''},
-    {l:msSel.zero?'Age '+msSel.zero:'—',sub:'Zero NW',dot:msSel.zero?'r':''},
-    {l:msSel.million?'Age '+msSel.million:'—',sub:'$1M milestone',dot:msSel.million?'r':''},
-    {l:msSel.coast?'Age '+msSel.coast:'—',sub:'Work optional',sub2:msSel.coast?fk(callTarget(msSel.coast,fi,rr))+' saved':'',dot:msSel.coast?'k':''},
-    {l:msSel.fi?'Age '+msSel.fi:'—',sub:'Full FI',sub2:fk(fi)+' target',dot:msSel.fi?'k':''},
+    {l:msSel.zero?'Age '+msSel.zero:'Not reached',sub:'Zero NW',dot:msSel.zero?'r':''},
+    {l:msSel.million?'Age '+msSel.million:'Not reached',sub:'$1M milestone',dot:msSel.million?'r':''},
+    {l:msSel.coast?'Age '+msSel.coast:'Not before '+retAge(),sub:'Work optional',sub2:msSel.coast?fk(callTarget(msSel.coast,fi,rr))+' saved':'',dot:msSel.coast?'k':''},
+    {l:msSel.fi?'Age '+msSel.fi:'Not reached',sub:'Full FI',sub2:fk(fi)+' target',dot:msSel.fi?'k':''},
   ].map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
       (m.dot==='k'?'⭐':m.dot==='r'?'✓':m.dot==='y'?'📍':'◎')+'</div>'+
@@ -1899,10 +1906,12 @@ function calcPaths(){
     if(pathChrt) pathChrt.destroy();
     pathChrt=new Chart($('paths-chart'),{type:'line',data:{labels:labels,datasets:datasets},
       options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
         scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:10}},
-          y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return v>=0?'$'+v+'k':'−$'+Math.abs(v)+'k';},font:{size:10}}}}}});
+          y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return fmtK(v);},font:{size:10}}}},
+        plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}},
+          tooltip:{callbacks:{title:function(it){return 'Age '+it[0].label;},label:function(it){return ' '+it.dataset.label+': '+fmtK(it.parsed.y);}}}}}});
   }
+  $('paths-chart-note').textContent='Net worth in today\'s dollars, through age '+retAge()+'. Each path stops saving once it reaches full FI ('+fk(fi)+') and lives on it after that.';
   $('path-lbl').textContent=paths[curPath].n;
 }
 
