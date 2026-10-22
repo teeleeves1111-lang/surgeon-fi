@@ -656,6 +656,45 @@ details.how li{margin-bottom:3px;}
 
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
 <div id="tab-paths" class="panel">
+  <div class="card" style="border:2px solid var(--accent)">
+    <div class="ctitle" style="color:var(--accent);font-size:11px">The simple math — how much you need, and why your savings rate matters most</div>
+
+    <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">1. How much do I need? The 4% rule</div>
+    <ol style="font-size:12px;line-height:1.6;color:#333;padding-left:18px">
+      <li><strong>Where it comes from.</strong> In the 1990s, researchers tested every historical stretch of the US market — including the Great Depression and the inflation of the 1970s — to see how much retirees could safely spend.</li>
+      <li><strong>What it says.</strong> Take 4% of your portfolio in your first year of retirement, raise that dollar amount with inflation every year after, and historically the money lasted at least 30 years.</li>
+      <li><strong>The arithmetic.</strong> Divide what you'll spend each year by 4% — the same as multiplying by 25. <span id="mm-mynum"></span></li>
+      <li><strong>The fine print.</strong> Retiring before about 55 means a longer retirement, so a more cautious 3.5% (×28.6) is reasonable: <span id="mm-cautious"></span>. Social Security at 70 isn't counted and adds a cushion later.</li>
+    </ol>
+
+    <div class="subhd">2. Why your savings rate matters more than your salary</div>
+    <div style="font-size:12px;line-height:1.6;color:#333">Your savings rate works on <strong>both ends</strong> at once. Every dollar you save is a dollar invested <em>and</em> a dollar you've learned to live without — so the number you need shrinks too. Salary helps, but only through what you save: a raise that turns into a bigger house and a nicer car raises your number as fast as your savings. Drag the two sliders and watch which one moves the finish line.</div>
+
+    <div class="g2" style="margin-top:10px">
+      <div>
+        <div class="sr"><label>Salary</label>
+          <input type="range" min="300000" max="1200000" step="50000" value="600000" id="mm-sal" oninput="this.dataset.touched=1;calcMath()">
+          <span class="sv" id="mm-sal-v">$600k</span></div>
+        <div class="sr"><label>Savings rate (% of gross)</label>
+          <input type="range" min="5" max="60" value="20" id="mm-sr" oninput="this.dataset.touched=1;calcMath()">
+          <span class="sv" id="mm-sr-v">20%</span></div>
+        <details class="how" style="margin-top:0"><summary>Assumption</summary>
+          <div class="sr" style="margin-top:6px"><label>Share of today's spending that continues in retirement</label>
+            <input type="range" min="40" max="80" step="5" value="55" id="mm-k" oninput="calcMath()">
+            <span class="sv" id="mm-k-v">55%</span></div>
+          <div style="font-size:10px;color:var(--mg);line-height:1.5">In retirement the mortgage, kids' costs and saving stop, so spending drops. 55% of what you spend now, plus 15% for taxes on withdrawals, lands a $600k surgeon near $200k/yr. Starts from $0 saved; 5% real return; New Jersey and federal taxes.</div>
+        </details>
+      </div>
+      <div><div class="g3" id="mm-out" style="margin-bottom:0"></div></div>
+    </div>
+    <div style="overflow-x:auto;margin-top:8px"><table class="tbl" id="mm-grid"></table></div>
+    <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Make $10 million a year and spend $10 million a year, and you never retire.</strong> Income only buys freedom through the part you keep.</div></div>
+
+    <details class="how" style="margin-top:10px"><summary>The famous chart — years to retirement by savings rate (Mr. Money Mustache)</summary>
+      <div style="font-size:10px;color:var(--mg);margin:6px 0">The pure math: starting from $0, 5% real return, 4% rule, savings rate as a share of take-home pay. Income isn't in the formula at all.</div>
+      <div id="mm-chart"></div>
+    </details>
+  </div>
   <div class="fu res" id="fu">
     <h2>When does work become optional?</h2>
     <p>Work optional = saved enough that you could stop saving and still retire on time. From then on your paycheck only has to cover today's bills — so you can leave a bad job, go part-time, or pay for call coverage. Some people call it FU money.</p>
@@ -1142,7 +1181,7 @@ function tab(id){
   CUR_TAB=id;
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   $('tab-'+id).classList.add('on');
-  if(id==='paths'){calcPaths();syncFISR();calcFI();}
+  if(id==='paths'){calcMath();calcPaths();syncFISR();calcFI();}
   if(id==='loans'){
     $('sl-bal').value=$('lb').value;
     $('sl-pslf').checked=$('pslf').checked;
@@ -1383,7 +1422,7 @@ function go(){
   calcWaterfall(c);
   calcPaths();
   var activePanel=document.querySelector('.panel.on');
-  if(activePanel&&activePanel.id==='tab-paths'){syncFISR();calcFI();}
+  if(activePanel&&activePanel.id==='tab-paths'){calcMath();syncFISR();calcFI();}
   if(activePanel&&activePanel.id==='tab-true')calcTrue();
   if(activePanel&&activePanel.id==='tab-play')calcPlay();
   $('tab-btn-loans').style.display=$('loans').checked||MODE==='res'?'':'none';
@@ -1890,6 +1929,42 @@ function calcFI(){
     }).join('')||'<div style="font-size:12px;color:var(--mg)">Already at or above these rates.</div>';
     $('fi-sens').style.display='block';
   }
+}
+
+
+// ── THE SIMPLE MATH (4% rule + savings rate vs salary) ─────────────
+function mmYears(sal,r,k){
+  var t=taxCalc({sal:sal,pinc:0,hh:'couple',deferFed:Math.min(LIM.k401,sal*r),deferNJ:0,nk:2}).total;
+  var save=sal*r,spend=Math.max(0,sal-t-save),ret=spend*k*1.15,target=25*ret,nw=0,y=0;
+  while(nw<target&&y<80){nw=nw*1.05+save;y++;}
+  return {y:y,spend:spend,ret:ret,target:target,save:save};
+}
+function mmPure(r){var nw=0,y=0,target=25*(1-r);while(nw<target&&y<100){nw=nw*1.05+r;y++;}return y;}
+function calcMath(){
+  var c=getCosts();
+  var spend=retSpend(c);
+  $('mm-mynum').innerHTML='Your estimate: <strong>'+fk(spend)+'/yr ÷ 4% = '+fk(spend*25)+'</strong>. ($150k/yr → $3.75M; $200k/yr → $5M.)';
+  $('mm-cautious').textContent=fk(spend)+'/yr ÷ 3.5% = '+fk(spend/0.035);
+  if(!$('mm-sal').dataset.touched)$('mm-sal').value=Math.min(1200000,Math.max(300000,Math.round(c.s.sal/50000)*50000));
+  if(!$('mm-sr').dataset.touched)$('mm-sr').value=c.actual?Math.min(60,Math.max(5,effSR(c))):20;
+  var sal=+$('mm-sal').value,r=+$('mm-sr').value/100,k=+$('mm-k').value/100;
+  $('mm-sal-v').textContent=fk(sal);$('mm-sr-v').textContent=Math.round(r*100)+'%';$('mm-k-v').textContent=Math.round(k*100)+'%';
+  var o=mmYears(sal,r,k),sa=startAge();
+  var lo=mmYears(400000,r,k).y,hi=mmYears(1000000,r,k).y,r10=mmYears(sal,0.10,k).y,r30=mmYears(sal,0.30,k).y;
+  $('mm-out').innerHTML=[
+    {l:'Years to full retirement',v:o.y>=80?'80+':o.y,s:'from $0 saved · age '+(o.y>=80?'—':sa+o.y)+' if you start at '+sa,c:o.y<=20?'good':o.y<=28?'warn':'bad'},
+    {l:'You\'ll need',v:fk(o.target),s:fk(o.ret)+'/yr × 25',c:''},
+    {l:'Salary $400k → $1M',v:(lo-hi)+' yrs',s:'sooner, same '+Math.round(r*100)+'% savings',c:''},
+    {l:'Savings 10% → 30%',v:(r10-r30)+' yrs',s:'sooner, same '+fk(sal)+' salary',c:'good'}
+  ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
+  var sals=[400000,600000,800000,1000000],rates=[10,20,30,40];
+  var curS=sals.reduce(function(a,b){return Math.abs(b-sal)<Math.abs(a-sal)?b:a;}),curR=rates.reduce(function(a,b){return Math.abs(b-r*100)<Math.abs(a-r*100)?b:a;});
+  $('mm-grid').innerHTML='<tr><th>Years to retire</th>'+rates.map(function(x){return '<th>Save '+x+'%</th>';}).join('')+'</tr>'+
+    sals.map(function(S){return '<tr><td><strong>'+fk(S)+'</strong></td>'+rates.map(function(x){var y=mmYears(S,x/100,k).y;var me=S===curS&&x===curR;return '<td style="'+(me?'background:var(--lb);font-weight:700;color:var(--b)':'')+'">'+(y>=80?'80+':y)+'</td>';}).join('')+'</tr>';}).join('')+
+    '<tr><td colspan="5" style="font-size:9px;color:var(--mg)">Read down a column: more salary, a few years sooner. Read across a row: more savings, decades sooner.</td></tr>';
+  var bars=[5,10,15,20,25,30,40,50,60,70];
+  $('mm-chart').innerHTML=bars.map(function(x){var y=mmPure(x/100),me=Math.abs(x-r*100)<3;
+    return '<div class="wfr"><div class="wfl" style="width:70px;min-width:60px'+(me?';font-weight:700;color:var(--dk)':'')+'">Save '+x+'%</div><div class="wfb"><div class="wfbar" style="width:'+Math.round(y/66*100)+'%;background:'+(me?'var(--b)':'var(--g)')+';opacity:.8"></div><span class="wfamt">'+y+' yrs</span></div></div>';}).join('');
 }
 
 // ── STUDENT LOANS ─────────────────────────────────────────────────
