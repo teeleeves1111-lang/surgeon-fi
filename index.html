@@ -59,7 +59,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 .sr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .sr label{font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;line-height:1.3;}
 .sr input[type=range]{flex:1;min-width:0;accent-color:var(--accent);}
-.sr select{flex:1;font-size:12px;padding:5px 7px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--dk);font-family:var(--font);}
+.sr select{flex:1;min-width:0;width:0;max-width:100%;text-overflow:ellipsis;font-size:12px;padding:5px 7px;border-radius:6px;border:1px solid var(--bdr);background:var(--card);color:var(--dk);font-family:var(--font);}
 .sv{font-size:12px;font-weight:600;color:var(--dk);min-width:60px;text-align:right;}
 .tog{position:relative;width:34px;height:19px;flex-shrink:0;}
 .tog input{opacity:0;width:0;height:0;}
@@ -431,15 +431,15 @@ details.how ol:empty{display:none;}
         <span class="sv" id="famsup-v">$0</span></div>
       <div class="sr" style="margin-top:8px"><label>Car costs</label>
         <select id="car-cost" onchange="go()">
-          <option value="0">Paid-off residency car(s) — $0/mo</option>
-          <option value="4800">One modest used car — $400/mo</option>
-          <option value="9600">Two modest used cars — $800/mo</option>
-          <option value="14400" selected>One financed car — $1,200/mo</option>
-          <option value="19200">One financed + one used — $1,600/mo</option>
-          <option value="24000">One luxury lease — $2,000/mo</option>
-          <option value="28800">Two financed cars — $2,400/mo</option>
-          <option value="38400">One luxury lease + one financed — $3,200/mo</option>
-          <option value="48000">Two luxury leases — $4,000/mo</option>
+          <option value="0">Paid-off car(s) — $0</option>
+          <option value="4800">1 used car — $400/mo</option>
+          <option value="9600">2 used cars — $800/mo</option>
+          <option value="14400" selected>1 financed car — $1,200/mo</option>
+          <option value="19200">1 financed + 1 used — $1,600/mo</option>
+          <option value="24000">1 luxury lease — $2,000/mo</option>
+          <option value="28800">2 financed cars — $2,400/mo</option>
+          <option value="38400">1 lease + 1 financed — $3,200/mo</option>
+          <option value="48000">2 luxury leases — $4,000/mo</option>
         </select>
       </div>
       <div class="hint">Each car's payment or lease, plus insurance, gas and upkeep.</div>
