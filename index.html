@@ -99,12 +99,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 .fu.att{background:linear-gradient(135deg,#1A2D6B,#2355A0);}
 .fu h2{font-size:18px;font-weight:700;margin-bottom:3px;}
 .fu p{font-size:11px;opacity:.85;line-height:1.5;margin-bottom:10px;}
-.fu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.fu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
 .fu-cell{background:rgba(255,255,255,.12);border-radius:8px;padding:9px 8px;text-align:center;}
 .fu-num{font-size:21px;font-weight:700;color:#7FFFD4;}
 .fu-lbl{font-size:10px;opacity:.8;margin-top:2px;line-height:1.3;}
 
 /* Path tabs */
+details.fold>summary{cursor:pointer;list-style:none;margin-bottom:0;}
+details.fold>summary::-webkit-details-marker{display:none;}
+details.fold>summary::before{content:'▸ ';}
+details.fold[open]>summary::before{content:'▾ ';}
+details.fold[open]>summary{margin-bottom:8px;}
 .ptabs{display:flex;gap:4px;margin-bottom:9px;flex-wrap:wrap;}
 .ptab{padding:6px 12px;font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;border:1px solid var(--bdr);background:var(--card);color:var(--mg);transition:all .15s;}
 .ptab.on{background:var(--g);color:white;border-color:var(--g);}
@@ -177,7 +182,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   .sr label{width:110px;min-width:80px;font-size:11px;}
   .wfl{width:120px;min-width:90px;}
   .fu h2{font-size:16px;}
-  .fu-grid{grid-template-columns:repeat(3,1fr);}
+  .fu-grid{grid-template-columns:repeat(2,1fr);}
   .hdr h1{font-size:14px;}
   .nr input[type=number]{width:84px;}
 }
@@ -673,8 +678,8 @@ details.how ol:empty{display:none;}
 
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
 <div id="tab-paths" class="panel">
-  <div class="card" style="border:2px solid var(--accent)">
-    <div class="ctitle" style="color:var(--accent);font-size:11px">The simple math — how much you need, and why your savings rate matters most</div>
+  <details class="card fold" id="simple-math" style="border:2px solid var(--accent)">
+    <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math — how much you need, and why your savings rate matters most</summary>
 
     <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">1. How much do I need? The 4% rule</div>
     <ol style="font-size:12px;line-height:1.6;color:#333;padding-left:18px">
@@ -711,27 +716,50 @@ details.how ol:empty{display:none;}
       <div style="font-size:10px;color:var(--mg);margin:6px 0">The pure math: starting from $0, 5% real return, 4% rule, savings rate as a share of take-home pay. Income isn't in the formula at all.</div>
       <div id="mm-chart"></div>
     </details>
-  </div>
+  </details>
   <div class="fu res" id="fu">
     <h2>When does work become optional?</h2>
     <p>Work optional = saved enough that you could stop saving and still retire on time. From then on your paycheck only has to cover today's bills — so you can leave a bad job, go part-time, or pay for call coverage. Some people call it FU money.</p>
     <div class="fu-grid" id="fu-grid"></div>
   </div>
-
-  <div class="ptabs" id="ptabs">
-    <button class="ptab" onclick="setPath(0)">🟢 Ideal — 25%</button>
-    <button class="ptab" onclick="setPath(1)">🟡 Typical — 12%</button>
-    <button class="ptab" onclick="setPath(2)">🔴 Lifestyle creep — 5%</button>
-    <button class="ptab me" onclick="setPath(3)">📍 My path</button>
-  </div>
-
   <div class="card">
     <div class="ctitle">Net worth trajectory — <span id="path-lbl">Ideal</span></div>
     <div class="cw" style="height:230px"><canvas id="paths-chart"></canvas></div>
     <div class="hint" id="paths-chart-note" style="margin-top:2px"></div>
     <div class="ms-strip" id="ms-strip"></div>
   </div>
-
+  <div class="card">
+    <div class="ctitle">What if I saved more?</div>
+      <div class="sr"><label>Savings rate (% of gross pay)</label>
+        <input type="range" min="3" max="50" value="25" id="fi-sr" oninput="calcFI()">
+        <span class="sv" id="fi-sr-v">25%</span></div>
+    <div class="hint" id="fi-sr-note" style="display:none"></div>
+    <div id="fi-msg"></div>
+  </div>
+  <div class="box box-a">
+    <div class="box-title" style="color:var(--am)">The path nobody warns you about</div>
+    <div class="box-body">No loans, no luxury cars — and still saving under 10%. Full-time childcare (about $70k a year for two), a North Jersey mortgage and property tax, and the ordinary cost of running a family can absorb a surgeon's income. Nothing extravagant; it just adds up. The fix isn't monthly discipline. It's deciding the house, school and childcare with the real numbers in hand <em>before</em> they lock in, and sending childcare money to the brokerage the month it ends.</div>
+  </div>
+  <details class="card fold" id="paths-more">
+    <summary class="ctitle">See the details — assumptions, all paths compared, savings-rate table</summary>
+    <div class="subhd">Assumptions</div>
+      <div class="trow"><label>Estimate retirement spending from how I live now</label>
+        <label class="tog"><input type="checkbox" id="fi-spend-auto" checked onchange="go();calcFI()"><span class="tsl"></span></label></div>
+      <div class="sr"><label>Retirement spending / yr</label>
+        <input type="range" min="60000" max="400000" step="5000" value="130000" id="fi-spend" oninput="$('fi-spend-auto').checked=false;go();calcFI()">
+        <span class="sv" id="fi-spend-v">$130k</span></div>
+      <div class="hint" id="fi-spend-note"></div>
+      <div class="sr"><label>Full retirement age</label>
+        <input type="range" min="55" max="70" value="65" id="fi-retage" oninput="go();calcFI()">
+        <span class="sv" id="fi-retage-v">65</span></div>
+      <div class="sr"><label>Real return (inflation-adj)</label>
+        <input type="range" min="4" max="8" step="0.5" value="5" id="fi-rr" oninput="calcFI()">
+        <span class="sv" id="fi-rr-v">5%</span></div>
+      <div class="box box-b" style="margin:8px 0 0"><div class="box-body"><strong>What "work optional" means:</strong> you've saved enough that you could stop saving entirely and what you have would still grow to full retirement by age <span class="ret-age-txt">65</span>. From then on your paycheck only has to cover today's bills — so you can leave a bad job or partner, go part-time, take a non-operative role, or pay someone to cover your call. Some people call it FU money. In surgery, call rarely becomes optional on its own; this is what lets you change how you work.</div></div>
+    <div class="subhd">Your numbers at the savings rate above</div>
+    <div class="g3" id="fi-metrics"></div>
+  <div class="cw" style="height:220px"><canvas id="fi-chart"></canvas></div>
+    <div class="subhd">All paths compared</div>
   <div class="g2">
     <div class="card">
       <div class="ctitle">What produces this path</div>
@@ -750,45 +778,7 @@ details.how ol:empty{display:none;}
     <div class="box-title" style="color:var(--rd)">The worst path</div>
     <div class="box-body">Luxury car lease day 1. House year 1. Kids in private school immediately. Loan minimums only. Invest whatever is left — usually nothing. Each felt like a reward. Together they add 10–15 years before work becomes optional.</div>
   </div>
-
-  <div class="box box-a">
-    <div class="box-title" style="color:var(--am)">The path nobody warns you about</div>
-    <div class="box-body">No loans, no luxury cars — and still saving under 10%. Three kids, full-time childcare for two (~$70k/yr), a North Jersey mortgage and property tax, and the ordinary cost of running a five-person household can absorb a $700–800k income. Nothing extravagant; it just adds up. The fix is not monthly discipline — it is deciding house price, school, and childcare with the real numbers in hand <em>before</em> they lock in, and redirecting childcare money to the brokerage the month it ends.</div>
-  </div>
-
-
-  <div class="ctitle" style="margin:18px 2px 8px;font-size:12px;color:var(--dk)">🎯 Your retirement math — try different savings rates</div>
-
-  <div class="g2">
-    <div class="card">
-      <div class="ctitle">Your targets</div>
-      <div class="sr"><label>Savings rate (% gross)</label>
-        <input type="range" min="3" max="50" value="25" id="fi-sr" oninput="calcFI()">
-        <span class="sv" id="fi-sr-v">25%</span></div>
-      <div class="trow"><label>Estimate retirement spending from how I live now</label>
-        <label class="tog"><input type="checkbox" id="fi-spend-auto" checked onchange="go();calcFI()"><span class="tsl"></span></label></div>
-      <div class="sr"><label>Retirement spending / yr</label>
-        <input type="range" min="60000" max="400000" step="5000" value="130000" id="fi-spend" oninput="$('fi-spend-auto').checked=false;go();calcFI()">
-        <span class="sv" id="fi-spend-v">$130k</span></div>
-      <div class="hint" id="fi-spend-note"></div>
-      <div class="sr"><label>Full retirement age</label>
-        <input type="range" min="55" max="70" value="65" id="fi-retage" oninput="go();calcFI()">
-        <span class="sv" id="fi-retage-v">65</span></div>
-      <div class="sr"><label>Real return (inflation-adj)</label>
-        <input type="range" min="4" max="8" step="0.5" value="5" id="fi-rr" oninput="calcFI()">
-        <span class="sv" id="fi-rr-v">5%</span></div>
-      <div class="hint" id="fi-sr-note" style="display:none"></div>
-      <div class="box box-b" style="margin:8px 0 0"><div class="box-body"><strong>What "work optional" means:</strong> you've saved enough that you could stop saving entirely and what you have would still grow to full retirement by age <span class="ret-age-txt">65</span>. From then on your paycheck only has to cover today's bills — so you can leave a bad job or partner, go part-time, take a non-operative role, or pay someone to cover your call. Some people call it FU money. In surgery, call rarely becomes optional on its own; this is what lets you change how you work.</div></div>
-    </div>
-    <div class="card">
-      <div class="ctitle">Results</div>
-      <div class="g3" id="fi-metrics"></div>
-    </div>
-  </div>
-
-  <div class="cw" style="height:220px"><canvas id="fi-chart"></canvas></div>
-  <div id="fi-msg"></div>
-
+    <div class="subhd">Savings-rate table</div>
   <!-- Savings rate reference table -->
   <div class="card" style="margin-top:10px">
     <div class="ctitle">WCI savings rate reference — physician-specific timelines</div>
@@ -797,7 +787,6 @@ details.how ol:empty{display:none;}
     </div>
     <table class="tbl" id="sr-tbl"></table>
   </div>
-
   <!-- Attending sensitivity -->
   <div id="fi-sens" style="display:none">
     <div class="card" style="margin-top:10px">
@@ -805,8 +794,8 @@ details.how ol:empty{display:none;}
       <div class="sens" id="fi-sensitivity"></div>
     </div>
   </div>
+  </details>
 </div>
-
 <!-- ═══ TAB 5: STUDENT LOANS ══════════════════════════════════════════ -->
 <div id="tab-loans" class="panel">
   <div class="box box-r">
@@ -1821,12 +1810,10 @@ function calcPaths(){
 
   $('fu').className='fu '+(MODE==='res'?'res':'att');
   $('fu-grid').innerHTML=
-    '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(mems.coast||'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🔓 Work optional<br>Could stop saving &amp; walk away<br><span style="opacity:0.7">At your '+(c.actual?'actual':'current')+' savings rate</span></div></div>'+
-    '<div class="fu-cell"><div class="fu-num" style="color:#FFD580">'+(mems.coast&&mems.fi?mems.coast+'–'+mems.fi:'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🌤️ Transition window<br>Work optional to Full FI<br><span style="opacity:0.7">At 25% ideal: '+(idealms.coast||'—')+'–'+(idealms.fi||'—')+'</span></div></div>'+
-    '<div class="fu-cell"><div class="fu-num" style="color:#7FFFD4">'+(mems.fi||'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🎯 Full FI<br>Work completely optional<br><span style="opacity:0.7">'+fk(fi)+' portfolio</span></div></div>';
+    '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(mems.coast?'Age '+mems.coast:'Not before '+retAge())+'</div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🔓 Work optional<br>could stop saving and still retire on time</div></div>'+
+    '<div class="fu-cell"><div class="fu-num" style="color:#7FFFD4">'+(mems.fi?'Age '+mems.fi:'Not reached')+'</div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🎯 Full retirement<br>'+fk(fi)+' saved — work completely optional</div></div>';
 
   var msSel=msAll[Math.min(curPath,3)];
   $('ms-strip').innerHTML=[
@@ -1940,7 +1927,7 @@ function calcFI(){
     'Set manually. Turn the toggle back on to estimate it from My Numbers.';
   var rr=+$('fi-rr').value/100; $('fi-rr-v').textContent=(rr*100).toFixed(1)+'%';
   var sa=startAge(),nwStart=startNW();
-  var savings=Math.round(c.gross*sr);
+  var savings=Math.round(sr*100)===effSR(c)?effInvest(c):Math.round(c.gross*sr); // at your own rate, use your exact savings
   var fi=spend*25;
   var pj=project(sa,nwStart,savings,fi,rr,45);
   var labels=[],nws=[],coastL=[],fiL=[];
@@ -1981,7 +1968,7 @@ function calcFI(){
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
     (fiYr?(coastYr?'Work optional at '+coastYr:'Not work-optional before '+retAge())+' · full FI at '+fiYr:'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(c.gross)+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
+    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(c.gross)+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement.':
     (coastYr?'Work becomes optional at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
     'At this savings rate, neither work optional nor full FI arrives in the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
     '</div></div>';
