@@ -222,6 +222,13 @@ details.pb-more[open]>summary{margin-bottom:9px;}
 #setup .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:12px;color:var(--mg);}
 #setup .row input{max-width:130px;}
 @media(max-width:500px){.hdr-note,#hdr-sub{display:none;}.hdr{padding:11px 13px;}}
+details.how{margin-top:5px;font-size:11px;color:#444;}
+details.how>summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:11px;list-style:none;}
+details.how>summary::-webkit-details-marker{display:none;}
+details.how>summary::before{content:'▸ ';}
+details.how[open]>summary::before{content:'▾ ';}
+details.how ol{margin:5px 0 2px 16px;line-height:1.55;}
+details.how li{margin-bottom:3px;}
 @media print{#sumbar,#setup{display:none!important;}
   body{background:#fff;font-size:11px;}
   .mode-bar,.tabs,.no-print,.foot,#hdr .hdr-row,#hdr p{display:none!important;}
@@ -2363,8 +2370,64 @@ function calcPlay(){
   if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year 10 — then that payment moves to the brokerage.',a:c.loanPay});
   if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=Math.round(c.hp*0.23),dpMo=Math.max(0,dpNeed-Math.max(0,startNW()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' (20% down + closing) for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
   steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.',a:brk*12,brk:true});
+  // ── "How to do it" for each step ──
+  var perCheck=function(a){return $L(Math.ceil(a/26))+' per paycheck if paid every two weeks ('+$L(Math.ceil(a/24))+' if twice a month)';};
+  var HOW=function(t){
+    if(/^(403\(b\)|401\(k\)) —/.test(t))return [
+      'Log in to your employer\'s benefits portal (or ask HR on day 1) and find the 403(b)/401(k) election.',
+      'Enter a dollar amount rather than a percent: '+perCheck(LIM.k401)+' reaches '+$L(LIM.k401)+' by December. Ask whether maxing out early in the year still gets the full employer match.',
+      'Choose an investment: a low-cost target-date fund or the total-market index funds. Don\'t leave it in the default cash/stable-value fund.',
+      'Check your first pay stub to confirm the deduction, and update the amount every January when the limit rises.'];
+    if(/^457\(b\)/.test(t))return [
+      'Same benefits portal — the 457(b) is a separate election from the 403(b).',
+      'Ask HR two questions: is it a governmental or non-governmental plan, and what are the payout options when you leave? (Non-governmental money belongs to the employer until paid out and usually can\'t be rolled into an IRA.)',
+      'Elect '+perCheck(LIM.k457)+' and pick a low-cost index fund.',
+      'If the payout options are poor and you may leave soon, ask a flat-fee planner before contributing heavily.'];
+    if(/^Employer contribution/.test(t))return [
+      'Find the vesting schedule in the plan\'s Summary Plan Description (ask HR for it). Unvested money is lost if you leave early.',
+      'Some plans only contribute if you contribute; make sure your own election qualifies for the full amount.'];
+    if(/^Partner/.test(t))return [
+      'Your partner does the same as step 1 through their own employer\'s benefits portal: a dollar amount that reaches '+$L(LIM.k401)+', invested in a low-cost index or target-date fund.'];
+    if(/^Backdoor Roth/.test(t))return [
+      'First, make sure you have no pre-tax IRA money (old rollovers, SEP-IRA) on December 31 — if you do, roll it into your workplace plan. Otherwise the conversion becomes partly taxable (the "pro-rata rule").',
+      'At Fidelity, Vanguard or Schwab, open a Traditional IRA and a Roth IRA'+(couple?' — each spouse opens their own pair':'')+'.',
+      'Contribute '+$L(LIM.ira)+' to the Traditional IRA and leave it in cash. Don\'t take a deduction.',
+      'After it settles (a few days), choose "Convert to Roth" and move the whole balance to the Roth IRA. Then invest it in your index funds inside the Roth.',
+      'At tax time, report it on Form 8606 — tax software asks about "nondeductible IRA contributions." Repeat every January.'];
+    if(/^HSA/.test(t))return [
+      'Only available if you choose a high-deductible (HSA-eligible) health plan at open enrollment — compare its total cost against the PPO first.',
+      'Set a payroll contribution up to '+$L(LIM.hsaFam)+' (family). Inside the HSA, move money from cash into an index fund once you pass the provider\'s minimum.',
+      'Pay medical bills from regular cash if you can and keep the receipts — you can reimburse yourself tax-free years later. New Jersey taxes HSA contributions; the federal savings still make it worthwhile.'];
+    if(/^Dependent care FSA/.test(t))return [
+      'Elect it at open enrollment, or within 30 days of a birth or other qualifying event: '+$L(LIM.dcfsa)+' per household, not per parent.',
+      'Get your daycare\'s tax ID number, then submit receipts (or set up recurring claims) through the FSA website.',
+      'It\'s use-it-or-lose-it each year, so elect only what you\'re sure to spend on care.'];
+    if(/^Emergency fund/.test(t))return [
+      'Open a high-yield savings account at an online bank, or use a money-market fund at your brokerage.',
+      'Set an automatic transfer every payday until you reach '+fk(efTarget)+', then switch that same transfer to the brokerage.',
+      'Keep it separate from checking so it doesn\'t get spent.'];
+    if(/^Student loans — PSLF/.test(t))return [
+      'At studentaid.gov, use the PSLF Help Tool to certify your employer and have HR sign the employment certification. Do it every year and whenever you change jobs.',
+      'Enroll in IBR or RAP (whichever gives the lower payment) and recertify your income every year.',
+      'Keep your own records of every certification and payment count. Never refinance federal loans you plan to have forgiven.'];
+    if(/^Student loans — refinance/.test(t))return [
+      'Only once you\'re sure you won\'t work for a nonprofit employer — refinancing ends PSLF eligibility permanently.',
+      'Get rate quotes from at least three lenders (physician-focused lenders such as Laurel Road, SoFi, Earnest, Splash); quotes use a soft credit check.',
+      'Pick the shortest term you can comfortably pay (10 years or less) and turn on autopay for the rate discount.',
+      'The month they\'re paid off, raise your brokerage transfer by the full payment.'];
+    if(/^Down payment/.test(t))return [
+      'Keep it in high-yield savings or Treasury bills — not stocks — if you\'re buying within about three years.',
+      'Automate a monthly transfer into a separate account labeled for the house.'];
+    if(/^Taxable brokerage/.test(t))return [
+      'Open an individual or joint taxable account at Vanguard, Fidelity or Schwab and link your checking account.',
+      'Set up an automatic investment every payday into total-market index funds — US and international stocks. Hold your bonds in the 403(b)/401(k), where they\'re sheltered from tax.',
+      'Turn on dividend reinvestment.',
+      'Put a reminder in your calendar every January and every raise to increase the amount. Never sell in a downturn.'];
+    return null;
+  };
+  steps.forEach(function(st){st.how=HOW(st.t);});
   $('pb-steps').innerHTML=steps.map(function(st,i){
-    return '<div class="pb-step'+(st.on?'':' off')+'"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t">'+st.t+'</div><div class="pb-d">'+st.d+(st.fix?' <em>('+st.fix+')</em>':'')+'</div></div>'+
+    return '<div class="pb-step'+(st.on?'':' off')+'"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t">'+st.t+'</div><div class="pb-d">'+st.d+(st.fix?' <em>('+st.fix+')</em>':'')+'</div>'+(st.how?'<details class="how"><summary>How to do it</summary><ol>'+st.how.map(function(h){return '<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</div>'+
       '<div class="pb-amt">'+(st.once?fk(st.a)+'<small>one-time</small>':(st.brk?fkPrecise(brk)+'/mo<small>then rising</small>':fkPrecise(st.a/12)+'/mo<small>'+fk(st.a)+'/yr</small>'))+'</div></div>';
   }).join('');
 
@@ -2476,6 +2539,7 @@ function calcPlay(){
     (c.nk>0||couple)?'<strong>Term life:</strong> 10–20× income for anyone who depends on you, 20–30 year term. About '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you.':'<strong>Term life:</strong> only once someone depends on your income.',
     '<strong>Umbrella liability:</strong> $2M+, a few hundred dollars a year. Essential once you have assets.',
     '<strong>Say no</strong> to whole life, variable life and IUL. They\'re commission products sold as investments.'];
+  insItems[0]+='<details class="how"><summary>How to do it</summary><ol><li>Get quotes through an independent broker who sells several companies and works with physicians — don\'t rely on your employer\'s group policy alone, which ends when you leave.</li><li>Ask for: true own-occupation (specialty-specific) definition, residual/partial disability, cost-of-living adjustment, and a future-increase option so you can raise coverage later without new medical exams.</li><li>'+(MODE==='res'?'Buy before you finish training, while resident discounts apply and your health history is clean.':'Raise coverage as income rises, using the future-increase option.')+'</li></ol></details>';
   $('pb-ins').innerHTML=insItems.map(function(t){return '<li>'+t+'</li>';}).join('');
 
   // ── Top three moves ──
@@ -2614,8 +2678,8 @@ function copyPlanLink(btn){
   catch(e){window.prompt('Copy your plan link:',url);}
 }
 function confirmReset(){var b=document.activeElement;if(b&&b.dataset.armed){return true;}if(b){b.dataset.armed='1';b.textContent='Tap again to clear';setTimeout(function(){delete b.dataset.armed;b.textContent='Reset';},3000);}return false;}
-window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
-window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
+window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more, details.how').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
+window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more, details.how').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
 function resetState(){
   try{localStorage.removeItem(STATE_KEY);}catch(e){}
   location.reload();
