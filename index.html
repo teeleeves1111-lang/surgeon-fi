@@ -361,6 +361,12 @@ details.how li{margin-bottom:3px;}
         <div id="buy-yr-row" class="sr"><label>Years before buying</label>
           <input type="range" min="0" max="5" value="2" id="buy-yr" oninput="go()">
           <span class="sv" id="buy-yr-v">Yr 2</span></div>
+        <div id="mort-row" class="sr"><label>Mortgage</label>
+          <select id="mort-type" onchange="go()">
+            <option value="conv" selected>Conventional — 20% down</option>
+            <option value="phys10">Physician loan — 10% down</option>
+            <option value="phys5">Physician loan — 5% down</option>
+          </select></div>
         <div class="hint" id="house-hint">Uses property tax and mortgage rate from the Rent vs Buy tab (NJ 2.23%, 6.75%).</div>
       </div>
       <div id="rent-opts" class="sub-opts" style="display:none">
@@ -1057,6 +1063,8 @@ var SPECS={
 // ════════════════════════════════════════════════════════════════
 var DATA={year:2026,reviewed:'October 2026'};
 function $L(n){return '$'+Math.round(n).toLocaleString('en-US');}
+// Physician mortgage: typical rate premium over a conventional loan (2026: about 0.125–0.5 points), no PMI
+var PHYS={prem:0.25};
 var LIM={k401:24500,k457:24500,ira:7500,hsaFam:8750,dcfsa:7500,ssBase:184500,compCap:360000,dcTotal:72000};
 var FED={
   couple:{std:32200,br:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[1e12,.37]],addlMed:250000,ctcPh:400000},
@@ -1242,8 +1250,10 @@ function getCosts(){
   var hp=+$('hp').value;
   var buyYr=houseOn&&!houseOwned?+$('buy-yr').value:0;
   var mRate=+$('rvb-rate').value, pTax=+$('rvb-tax').value/100;
-  var loanAmt=hp*0.80;
-  var ownHousing=houseOn?mtgPmt12(loanAmt,mRate)+Math.round(hp*pTax)+Math.round(hp*.004)+Math.round(hp*.01):0;
+  var MT=mortTerms(houseOwned),mRateEff=mRate+MT.prem;
+  var loanAmt=hp*(1-MT.down);
+  var downNeeded=houseOn&&!houseOwned?Math.round(hp*(MT.down+0.03)):0;
+  var ownHousing=houseOn?mtgPmt12(loanAmt,mRateEff)+Math.round(hp*pTax)+Math.round(hp*.004)+Math.round(hp*.01):0;
   var housingEst=houseOn&&buyYr===0?ownHousing:0;
   var rentEst=(houseOn&&buyYr>0)||!houseOn?+$('rent').value*12:0;
   var owningNow=houseOn&&buyYr===0;
@@ -1295,7 +1305,7 @@ function getCosts(){
   var dcfsa=childcareForFSA>0?LIM.dcfsa:0;
 
   // Taxes
-  var mortInt=owningNow?Math.round(Math.min(loanAmt,750000)*mRate/100*0.99):0;
+  var mortInt=owningNow?Math.round(Math.min(loanAmt,750000)*mRateEff/100*0.99):0;
   var propTaxAmt=owningNow?Math.round(hp*pTax):0;
   var taxParams={sal:s.sal,pinc:pinc,hh:hh,deferFed:deferrals+dcfsa,deferNJ:(planType==='401k'?def401:0)+defP,
     propTax:propTaxAmt,mortInt:mortInt,nk:nk};
@@ -1320,7 +1330,7 @@ function getCosts(){
 
   return{s:s,gross:gross,pinc:pinc,hh:hh,actual:actual,A:A,tax:t,taxes:t.total,
     deferrals:deferrals,def401:def401,def457:def457,planType:planType,dcfsa:dcfsa,
-    houseOn:houseOn,houseOwned:houseOwned,hp:hp,buyYr:buyYr,ownHousing:ownHousing,housingEst:housingEst,rentEst:rentEst,owningNow:owningNow,
+    houseOn:houseOn,houseOwned:houseOwned,hp:hp,buyYr:buyYr,MT:MT,mRateEff:mRateEff,loanAmt:loanAmt,downNeeded:downNeeded,ownHousing:ownHousing,housingEst:housingEst,rentEst:rentEst,owningNow:owningNow,
     housingCost:housingCost,kidsCost:kidsCost,childcareEst:childcareEst,schoolEst:schoolEst,kidsOn:kidsOn,nk:nk,nDay:nDay,nPriv:nPriv,
     save529On:save529On,save529Amt:save529Amt,
     livingEst:livingEst,discEst:discEst,lifestyleEst:lifestyleEst,otherCost:otherCost,
@@ -1377,8 +1387,9 @@ function go(){
   $('house-opts').style.display=$('house').checked?'block':'none';
   $('hp-v').textContent=fk(+$('hp').value);
   $('buy-yr-row').style.display=$('house-owned').checked?'none':'flex';
+  $('mort-row').style.display=$('house-owned').checked?'none':'flex';
   if($('house').checked){var byv=+$('buy-yr').value;$('buy-yr-v').textContent=byv===0?'Now':'Yr '+byv;}
-  $('house-hint').textContent='Uses property tax ('+(+$('rvb-tax').value).toFixed(2)+'%) and mortgage rate ('+(+$('rvb-rate').value).toFixed(2)+'%) from the Rent vs Buy tab, 20% down, 0.4% insurance, 1% upkeep.';
+  $('house-hint').textContent='Uses property tax ('+(+$('rvb-tax').value).toFixed(2)+'%) and mortgage rate ('+(+$('rvb-rate').value).toFixed(2)+'%) from the Rent vs Buy tab, '+(function(m){return m.down===0.2?'20% down':m.lbl+' (rate +'+m.prem+'%, no PMI)';})(mortTerms($('house-owned').checked))+', 0.4% insurance, 1% upkeep.';
   var rentingNow=!$('house').checked||(!$('house-owned').checked&&+$('buy-yr').value>0);
   $('rent-opts').style.display=rentingNow?'block':'none';
   $('rent-lbl').textContent=$('house').checked?'Rent / month until you buy':'Rent / month';
@@ -1448,11 +1459,11 @@ function retSpendEst(c){
     if(A.other!==null)living=Math.max(0,A.other*12-(EST.perChildLiving+EST.perChildDisc)*12*c.nk);
     if(A.total!==null){
       // total entered: remove the parts that end
-      var ending=c.childcareEst+c.schoolEst+c.loanEst+(c.owningNow?mtgPmt12(c.hp*0.8,mRate):0)+(EST.perChildLiving+EST.perChildDisc)*12*c.nk;
+      var ending=c.childcareEst+c.schoolEst+c.loanEst+(c.owningNow?mtgPmt12(c.loanAmt,c.mRateEff):0)+(EST.perChildLiving+EST.perChildDisc)*12*c.nk;
       var cont=Math.max(0,A.total*12-ending);
       return {spend:Math.round(cont*1.15/5000)*5000,base:cont};
     }
-    if(A.housing!==null&&c.owningNow)housingCont=Math.max(0,A.housing*12-mtgPmt12(c.hp*0.8,mRate));
+    if(A.housing!==null&&c.owningNow)housingCont=Math.max(0,A.housing*12-mtgPmt12(c.loanAmt,c.mRateEff));
     else if(A.housing!==null)housingCont=A.housing*12;
   }
   var base=housingCont+living+cars;
@@ -1487,6 +1498,75 @@ function project(sa,nw0,sav,fiNum,rr,yrs){
   return m;
 }
 
+// ── DOWN PAYMENT & PHYSICIAN MORTGAGE ─────────────────────────────
+function mortTerms(owned){
+  var v=owned?'conv':(($('mort-type')||{}).value||'conv');
+  if(v==='phys5')return {v:v,down:0.05,prem:PHYS.prem,lbl:'physician loan, 5% down'};
+  if(v==='phys10')return {v:v,down:0.10,prem:PHYS.prem,lbl:'physician loan, 10% down'};
+  return {v:'conv',down:0.20,prem:0,lbl:'conventional, 20% down'};
+}
+// Loan balance after k monthly payments, and interest paid in the first 12
+function mtgAfter(loan,rate,k){
+  var mr=rate/100/12,pmt=loan*mr/(1-Math.pow(1+mr,-360)),b=loan,int1=0;
+  for(var i=0;i<k;i++){var it=b*mr;if(i<12)int1+=it;b=b+it-pmt;}
+  return {pmt:pmt,bal:b,int1:int1};
+}
+var DP_CASH_RET=0.02; // high-yield savings after federal + NJ tax at a surgeon's bracket
+function dpCard(c,nwNow){
+  var hp=c.hp,Y=c.buyYr,baseRate=+$('rvb-rate').value,couple=c.hh==='couple';
+  var rentYr=c.rentEst>0?c.rentEst:+$('rent').value*12;
+  // Cash that can go to a down payment each year while renting
+  var roth=0,sav,splitHtml;
+  if(c.actual){
+    sav=c.brk+c.osav;
+    splitHtml='From your numbers: <strong>'+fk(sav)+'/yr</strong> goes to the brokerage and other savings — the money outside retirement accounts that can become a down payment.';
+  } else {
+    var leftRenting=Y>0?c.cashLeft:c.cashLeft+c.housingCost-rentYr;
+    roth=couple?2*LIM.ira:LIM.ira;
+    sav=Math.max(0,leftRenting-roth);
+    splitHtml='While renting, about <strong>'+fk(Math.max(0,leftRenting))+'/yr</strong> of cash is left over'+(c.loanPay>0?', after <strong>'+fk(c.loanPay)+'</strong> of loan payments':'')+'. The backdoor Roth'+(couple?'s take ':' takes ')+fk(roth)+', leaving <strong>'+fk(sav)+'/yr</strong> for the down payment — only if all of it goes there and none to a brokerage account.';
+  }
+  var nw0=Math.max(0,nwNow);
+  function savedBy(y){var s=nw0;for(var i=0;i<y;i++)s=s*(1+DP_CASH_RET)+sav;return Math.round(s);}
+  var have=savedBy(Y);
+  var opts=[{v:'conv',down:0.20,prem:0,n:'Conventional, 20% down'},{v:'phys10',down:0.10,prem:PHYS.prem,n:'Physician loan, 10% down'},{v:'phys5',down:0.05,prem:PHYS.prem,n:'Physician loan, 5% down'}];
+  var convPmt=mtgAfter(hp*0.8,baseRate,0).pmt,sale=saleCost(hp);
+  opts.forEach(function(o){
+    o.need=Math.round(hp*(o.down+0.03));
+    var m=mtgAfter(hp*(1-o.down),baseRate+o.prem,24);
+    o.pmt=m.pmt;o.extra=m.pmt-convPmt;
+    o.sell2=Math.round(hp-sale-m.bal); // flat prices, sold 24 months after buying
+    o.ok=have>=o.need;
+  });
+  var chosen=c.MT.v,ch=opts.filter(function(o){return o.v===chosen;})[0];
+  var when=Y>0?'in attending year '+Y:'now';
+  var wait=null;for(var y=Y;y<=Y+10;y++){if(savedBy(y)>=opts[0].need){wait=y;break;}}
+  var smaller=Math.floor(have/0.23/25000)*25000;
+  var rows=opts.map(function(o){
+    var sellTxt=o.sell2>=0?'get back '+fk(o.sell2):'<span style="color:var(--rd);font-weight:600">bring a '+fk(-o.sell2)+' check</span>';
+    return '<tr'+(o.v===chosen?' class="hl"':'')+'><td>'+o.n+(o.v===chosen?' ←':'')+'</td>'+
+      '<td>'+fk(o.need)+(o.ok?' ✓':'<br><span style="color:var(--rd);font-size:10px">short '+fk(o.need-have)+'</span>')+'</td>'+
+      '<td>'+fkPrecise(Math.round(o.pmt/100)*100)+(o.extra>50?'<br><span style="font-size:10px;color:var(--mg)">+'+fkPrecise(Math.round(o.extra/10)*10)+'</span>':'')+'</td>'+
+      '<td>'+sellTxt+'<br><span style="font-size:10px;color:var(--mg)">of '+fk(o.need)+' put in</span></td></tr>';
+  }).join('');
+  var anyOk=opts.some(function(o){return o.ok;});
+  var good=ch.ok&&ch.sell2>0;
+  var cls=good?'box-g':anyOk?'box-a':'box-r',col=good?'var(--g)':anyOk?'var(--am)':'var(--rd)';
+  var title=(ch.ok?'✓ ':'⚠ ')+'Down payment for a '+fk(hp)+' home '+when+': '+(ch.ok?'covered with '+(ch.v==='conv'?'20% down':'a '+ch.n.toLowerCase()):'short '+fk(ch.need-have));
+  var bits=[];
+  if(!opts[0].ok)bits.push(wait!==null?'<strong>Wait for 20% down:</strong> ready '+(wait===0?'now':'in attending year '+wait)+'.':'<strong>Wait for 20% down:</strong> not within 10 years at this saving rate.');
+  if(smaller<hp&&smaller>=200000)bits.push('<strong>Smaller house:</strong> about '+fk(smaller)+' with 20% down '+when+'.');
+  if(ch.down<0.2)bits.push('<strong>The physician loan</strong> costs about '+fkPrecise(Math.round(ch.extra/10)*10)+'/mo more than 20% down: a bigger loan at about '+PHYS.prem+' points more, with no PMI. About '+fkPrecise(10*Math.round((mtgAfter(hp*(1-ch.down),baseRate+ch.prem,12).int1-mtgAfter(hp*0.8,baseRate,12).int1)/120))+'/mo of that is extra interest; the rest is principal you keep.');
+  return '<div class="box '+cls+'"><div class="box-title" style="color:'+col+'">'+title+'</div>'+
+    '<div class="box-body">'+splitHtml+' Saved by then: <strong>'+fk(have)+'</strong>'+(nw0>0?' (counting today\'s '+fk(nw0)+' net worth as usable cash)':'')+'. Retirement accounts can\'t be used for a down payment.'+
+    '<div style="overflow-x:auto;margin:8px 0 6px"><table class="tbl dp-tbl"><tr><th>How you buy</th><th>Cash at closing</th><th>Mortgage / mo</th><th>Sell after 2 yrs*</th></tr>'+rows+'</table></div>'+
+    (bits.length?bits.join(' ')+' ':'')+
+    'Choose the mortgage under Housing on the left; the housing cost and the Paths & Retirement projection use it.'+
+    (Y===0?' <strong>The savings rate above assumes this home is already owned.</strong>':'')+
+    '<div style="font-size:10px;color:var(--mg);margin-top:5px">* If the first job doesn\'t work out and you sell 2 years after buying, with prices flat: about '+Math.round(sale/hp*100)+'% selling costs (commission, NJ transfer fee, mansion tax). The loss is about the same either way; a small down payment means you may have to write a check to leave. Down payment cash grows at about 2% after tax in high-yield savings. Mortgage is principal and interest, 30-year fixed.</div>'+
+    '</div></div>';
+}
+
 // ── WATERFALL ─────────────────────────────────────────────────────
 function calcWaterfall(c){
   c=c||getCosts();
@@ -1494,7 +1574,7 @@ function calcWaterfall(c){
   var A=c.A,useTotal=A.total!==null;
   $('wf-title').textContent=c.actual?'your numbers (annual)':'year 1 attending (estimates)';
   var hp=c.hp;
-  var downNeeded=c.houseOn&&!c.houseOwned?Math.round(hp*0.23):0;
+  var downNeeded=c.downNeeded;
   var nwNow=startNW();
   var dpAlert=c.houseOn&&!c.houseOwned&&c.buyYr===0&&downNeeded>0&&downNeeded>nwNow;
   var pct=function(a){return Math.round(a/c.gross*100);};
@@ -1639,36 +1719,9 @@ function calcWaterfall(c){
       'The difference is whether the leftover is automated on day one. <em>Turn on "Find my real savings rate" to see what you actually save.</em>';
   }
 
-  // Down payment feasibility
-  var dpWarning='';
+  // Down payment: three ways to buy, and what a forced early sale costs
+  var dpWarning=(c.houseOn&&!c.houseOwned&&downNeeded>0)?dpCard(c,nwNow):'';
   var housing=c.housingCost;
-  if(c.houseOn&&!c.houseOwned&&downNeeded>0){
-    if(c.buyYr>0){
-      var nwAtBuy=nwNow;
-      nwAtBuy=Math.max(0,nwNow);
-      for(var byi=0;byi<c.buyYr;byi++) nwAtBuy=Math.round(nwAtBuy*1.05+Math.max(0,c.cashLeft));
-      var canAfford=nwAtBuy>=downNeeded;
-      dpWarning='<div class="box '+(canAfford?'box-g':'box-a')+'">'+
-        '<div class="box-title" style="color:'+(canAfford?'var(--g)':'var(--am)')+'">'+
-        (canAfford?'✓ Down payment on track for year '+c.buyYr:'⚠ Down payment gap at year '+c.buyYr)+'</div>'+
-        '<div class="box-body">'+fk(hp)+' home needs <strong>'+fk(downNeeded)+'</strong> at closing (20% down + 3% closing). '+
-        'Retirement accounts can\'t be used for a down payment, so this counts only cash saved outside them. By attending year '+c.buyYr+': <strong>'+fk(Math.max(0,nwAtBuy))+'</strong>. '+
-        (canAfford?'Enough to cover the down payment. Waiting also lets you learn the area and your group before committing.':
-          'Still <strong>'+fk(Math.max(0,downNeeded-Math.max(0,nwAtBuy)))+' short</strong>. Options: lower home price, wait one more year, or physician loan (0–10% down, higher rate).')+
-        '</div></div>';
-    } else if(dpAlert){
-      var noHouseSav=c.cashLeft+c.housingCost-c.rentEst;
-      var dpGap=Math.max(0,downNeeded-Math.max(0,nwNow));
-      var dpYrs=noHouseSav>0?Math.ceil(dpGap/noHouseSav):null;
-      var dpYrsStr=dpYrs?(dpYrs<=1?'Renting and saving hard, you can accumulate the down payment in <strong>roughly 1 year</strong>. ':'Renting and saving hard, it takes roughly <strong>'+dpYrs+' years</strong> to accumulate the down payment. '):'';
-      dpWarning='<div class="box box-r">'+
-        '<div class="box-title" style="color:var(--rd)">⚠ Not yet affordable — down payment gap</div>'+
-        '<div class="box-body">A '+fk(hp)+' home requires <strong>'+fk(downNeeded)+'</strong> cash at closing (20% down + 3% closing costs). '+
-        'Current net worth is '+fk(nwNow)+' — that gap must be saved first. '+dpYrsStr+
-        '<strong>The savings rate above assumes this home is already owned.</strong> '+
-        'Physician loan programs (0–10% down, no PMI) exist but carry higher rates — WCI still recommends 20% down and waiting at least 2 years to know your area and group.</div></div>';
-    }
-  }
   if(!dpWarning&&housing/c.gross>0.28&&(c.owningNow||A.housing!==null)){
     dpWarning='<div class="box box-a">'+
       '<div class="box-title" style="color:var(--am)">Housing is '+pct(housing)+'% of gross — above the 28% guideline</div>'+
@@ -1708,7 +1761,7 @@ function calcPaths(){
   if(c.houseOn&&c.buyYr>0&&c.A.housing===null&&c.A.total===null){
     var pbLifestyle=Math.round(Math.max(0,c.hp-1000000)*0.05);
     postBuyInv=myInv-(c.ownHousing+pbLifestyle-c.rentEst);
-    downPayment=Math.round(c.hp*0.23);
+    downPayment=c.downNeeded;
   }
 
   var paths=[
@@ -2458,7 +2511,7 @@ function calcPlay(){
   if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
   steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). Build it in year 1, then stop. '+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
   if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year 10 — then that payment moves to the brokerage.',a:c.loanPay});
-  if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=Math.round(c.hp*0.23),dpMo=Math.max(0,dpNeed-Math.max(0,startNW()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' (20% down + closing) for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
+  if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=c.downNeeded,dpMo=Math.max(0,dpNeed-Math.max(0,startNW()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' ('+Math.round(c.MT.down*100)+'% down + closing) for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
   steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.',a:brk*12,brk:true});
   // ── "How to do it" for each step ──
   var perCheck=function(a){return $L(Math.ceil(a/26))+' per paycheck if paid every two weeks ('+$L(Math.ceil(a/24))+' if twice a month)';};
@@ -2507,7 +2560,8 @@ function calcPlay(){
       'The month they\'re paid off, raise your brokerage transfer by the full payment.'];
     if(/^Down payment/.test(t))return [
       'Keep it in high-yield savings or Treasury bills — not stocks — if you\'re buying within about three years.',
-      'Automate a monthly transfer into a separate account labeled for the house.'];
+      'Automate a monthly transfer into a separate account labeled for the house.',
+      'If you\'re looking at a physician loan: get quotes from at least three lenders, ask for a 30-year fixed rate, and compare the rate with a conventional loan. A small down payment is fine only if you could sell in two years and cover the loss — the down payment card on My Numbers shows that number.'];
     if(/^Taxable brokerage/.test(t))return [
       'Open an individual or joint taxable account at Vanguard, Fidelity or Schwab and link your checking account.',
       'Set up an automatic investment every payday into total-market index funds — US and international stocks. Hold your bonds in the 403(b)/401(k), where they\'re sheltered from tax.',
