@@ -18,4 +18,4 @@ Everything is in the block marked `ANNUAL UPDATE` near the top of the script.
 | Mortgage rate and property tax defaults | Rent vs Buy sliders `rvb-rate`, `rvb-tax` | Freddie Mac PMMS; NJ property tax averages |
 | Childcare cost hint, living-cost estimates | `daymo` slider hint, `var EST=` | Local daycare rates; household spending |
 
-After editing: open the app, check every tab for errors, and spot-check one known case (e.g. $600k salary, age 34, net worth −$150k, $200k retirement spending, 403(b) + 457(b) + both Roths + $4,000/mo brokerage → call optional ~51, full retirement ~60 at 2026 figures).
+After editing: open the app, check every tab for errors, and spot-check one known case (e.g. $600k salary, age 34, net worth −$150k, $200k retirement spending, 403(b) + 457(b) + both Roths + $4,000/mo brokerage → work optional ~51, full retirement ~60 at 2026 figures).

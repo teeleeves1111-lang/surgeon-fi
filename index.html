@@ -253,7 +253,7 @@ details.how li{margin-bottom:3px;}
 <!-- HEADER -->
 <div class="hdr res" id="hdr">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><h1 id="hdr-title">Surgeon Financial Independence — Resident View</h1><button class="btn ghost no-print" style="padding:5px 9px;font-size:11px;flex-shrink:0;background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)" onclick="openSetup()">⚡ Quick setup</button></div>
-  <p id="hdr-sub">Model your trajectory before your first contract. The decisions you make in years 1–3 determine when call becomes optional.</p>
+  <p id="hdr-sub">Model your trajectory before your first contract. The decisions you make in years 1–3 determine when work becomes optional.</p>
   <div class="hdr-row">
     <select id="spec" onchange="specChanged()">
       <option value="gen_surg">General Surgery — $501k</option>
@@ -482,7 +482,7 @@ details.how li{margin-bottom:3px;}
 <details class="box box-g pb-more" style="display:block"><summary class="box-title" style="color:var(--g);cursor:pointer">The real epiphany: it's not the 401k, it's the brokerage rate</summary><div class="box-body">Every young surgeon already knows to max the 401k/403(b) and backdoor Roth every year — that part is basically automatic and capped by law. Hospital-employed surgeons usually also have a <strong>457(b)</strong>, another <span class="L" data-k="k457">$24,500</span> pre-tax that many never use. Fewer know about <strong>cash balance / defined benefit plans</strong>, which some private groups offer and which can shelter a large additional amount pre-tax depending on age and group structure — worth asking your group's financial advisor or CPA about explicitly, since it isn't always volunteered. But the single biggest lever after that, the one actually within your control every single year, is your <strong>taxable brokerage savings rate</strong>. Tax-advantaged accounts are capped. The taxable brokerage does not. <strong>Pay yourself first, monthly, on autopilot</strong> — treat the taxable brokerage contribution like a bill that's due before lifestyle spending happens, and raise that automated amount every time pay increases or a big fixed cost ends. When daycare ends, when loans are paid off — redirect that exact amount the same month, before it gets absorbed.</div>
   </details>
   <div id="att-sens" style="display:none">
-    <div class="card"><div class="ctitle">If I change one thing — years of call saved</div>
+    <div class="card"><div class="ctitle">If I change one thing — years sooner to work optional</div>
       <div class="sens" id="sensitivity"></div></div>
   </div>
 </div>
@@ -511,7 +511,7 @@ details.how li{margin-bottom:3px;}
   <div class="g2">
     <div class="card no-print">
       <div class="ctitle">Your goal and your brokerage plan</div>
-      <div class="sr"><label>I want call to be optional by age</label>
+      <div class="sr"><label>I want to be work-optional by age</label>
         <input type="range" min="42" max="64" value="50" id="pb-goal" oninput="go()">
         <span class="sv" id="pb-goal-v">50</span></div>
       <div class="sr"><label>Brokerage I invest now / month</label>
@@ -566,7 +566,7 @@ details.how li{margin-bottom:3px;}
 
   <div class="card">
     <div class="ctitle">Step 2 — Your brokerage, year by year</div>
-    <div class="hint">The brokerage is the one account with no limit, so it decides when call becomes optional. This is your plan: start where you can, raise it every year, and add every cost that ends.</div>
+    <div class="hint">The brokerage is the one account with no limit, so it decides when work becomes optional. This is your plan: start where you can, raise it every year, and add every cost that ends.</div>
     <div style="overflow-x:auto"><table class="tbl" id="pb-ramp"></table></div>
   </div>
 
@@ -654,8 +654,8 @@ details.how li{margin-bottom:3px;}
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
 <div id="tab-paths" class="panel">
   <div class="fu res" id="fu">
-    <h2>When can you walk away from call?</h2>
-    <p>Call optional = enough saved that you could stop saving, take a job without call that covers your bills, and still retire on time. Before that, call is a necessity; after it, a choice.</p>
+    <h2>When does work become optional?</h2>
+    <p>Work optional = saved enough that you could stop saving and still retire on time. From then on your paycheck only has to cover today's bills — so you can leave a bad job, go part-time, or pay for call coverage. Some people call it FU money.</p>
     <div class="fu-grid" id="fu-grid"></div>
   </div>
 
@@ -688,7 +688,7 @@ details.how li{margin-bottom:3px;}
   </div>
   <div class="box box-r">
     <div class="box-title" style="color:var(--rd)">The worst path</div>
-    <div class="box-body">Luxury car lease day 1. House year 1. Kids in private school immediately. Loan minimums only. Invest whatever is left — usually nothing. Each felt like a reward. Together they cost 10–15 years of mandatory call.</div>
+    <div class="box-body">Luxury car lease day 1. House year 1. Kids in private school immediately. Loan minimums only. Invest whatever is left — usually nothing. Each felt like a reward. Together they add 10–15 years before work becomes optional.</div>
   </div>
 
   <div class="box box-a">
@@ -718,7 +718,7 @@ details.how li{margin-bottom:3px;}
         <input type="range" min="4" max="8" step="0.5" value="5" id="fi-rr" oninput="calcFI()">
         <span class="sv" id="fi-rr-v">5%</span></div>
       <div class="hint" id="fi-sr-note" style="display:none"></div>
-      <div class="box box-b" style="margin:8px 0 0"><div class="box-body"><strong>What "call optional" means here:</strong> you have saved enough that you could stop saving entirely — take a lower-paying job without call that still covers your living costs — and what you already have would grow on its own to full retirement by age <span class="ret-age-txt">65</span>. Before that point, dropping call costs you your retirement. After it, call is a choice.</div></div>
+      <div class="box box-b" style="margin:8px 0 0"><div class="box-body"><strong>What "work optional" means:</strong> you've saved enough that you could stop saving entirely and what you have would still grow to full retirement by age <span class="ret-age-txt">65</span>. From then on your paycheck only has to cover today's bills — so you can leave a bad job or partner, go part-time, take a non-operative role, or pay someone to cover your call. Some people call it FU money. In surgery, call rarely becomes optional on its own; this is what lets you change how you work.</div></div>
     </div>
     <div class="card">
       <div class="ctitle">Results</div>
@@ -741,7 +741,7 @@ details.how li{margin-bottom:3px;}
   <!-- Attending sensitivity -->
   <div id="fi-sens" style="display:none">
     <div class="card" style="margin-top:10px">
-      <div class="ctitle">What changing my savings rate does to call optionality age</div>
+      <div class="ctitle">What changing my savings rate does to work optional age</div>
       <div class="sens" id="fi-sensitivity"></div>
     </div>
   </div>
@@ -1115,7 +1115,7 @@ function setMode(m){
     'Surgeon Financial Independence — Resident View':
     'Surgeon Financial Independence — Attending View';
   $('hdr-sub').textContent=m==='res'?
-    'Model your trajectory before your first contract. Years 1–3 determine when call becomes optional.':
+    'Model your trajectory before your first contract. Years 1–3 determine when work becomes optional.':
     'See where you stand today, where each path leads, and which single change moves the needle most.';
   $('res-only').style.display=m==='res'?'block':'none';
   $('att-only').style.display=m==='att'?'block':'none';
@@ -1388,7 +1388,7 @@ function go(){
   saveState();
 }
 
-// ── RETIREMENT SPENDING & CALL OPTIONALITY ───────────────────────
+// ── RETIREMENT SPENDING & WORK OPTIONAL ───────────────────────
 // Retirement spending estimated from current life minus costs that end
 // (childcare, school, student loans, mortgage principal & interest, kids' share of living),
 // plus ~15% for income tax on retirement withdrawals.
@@ -1553,7 +1553,7 @@ function calcWaterfall(c){
   }
   $('recon-msg').innerHTML=recon;
 
-  // Call optionality estimate
+  // Work optional estimate
   var rr=0.05,sa=startAge(),nwv=startNW();
   var wfFI=retSpend(c)*25;
   function coastAt(sav){var m=project(sa,nwv,sav,wfFI,rr,60);return m.coast!==null&&m.coast<retAge()?m.coast:null;}
@@ -1562,7 +1562,7 @@ function calcWaterfall(c){
   var coast25=coastAt(c.gross*0.25),coast12=coastAt(c.gross*0.12);
   var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>age '+retAge()+' or later</strong>';
   var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(retAge()-coast25):null);
-  var callYrsLine=extraVsIdeal?'That is <strong>'+extraVsIdeal+' extra years</strong> of mandatory call vs the 25% path.':
+  var callYrsLine=extraVsIdeal?'That is <strong>'+extraVsIdeal+' extra years</strong> before work is optional vs the 25% path.':
     (coastEst&&coast25&&coastEst<=coast25)?'On pace with the ideal 25% path.':'';
 
   var displaySR=effSR(c);
@@ -1573,16 +1573,16 @@ function calcWaterfall(c){
   if(c.cars>14400) levers.push('cars ('+fk(c.cars)+'/yr)');
   levers.push('partner income','keeping spending flat as pay rises');
   var msg='';
-  if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|Call is not optional until '+coastAge+'. '+callYrsLine+' Biggest levers here: '+levers.slice(0,3).join(', ')+'. '+(MODE==='att'?'The sensitivity panel below shows which single change moves the needle most.':'It improves as loans pay off and childcare ends — but only if that money is redirected, not absorbed.');
-  else if(displaySR<20) msg='box-a|Below the 20% WCI target ('+displaySR+'%)|Call becomes optional at '+coastAge+(extraVsIdeal?' — <strong>'+extraVsIdeal+' years later</strong> than the 25% path.':'.')+' Biggest levers: '+levers.slice(0,3).join(', ')+'.';
-  else if(c.actual) msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ('+$L(LIM.k401)+'), 457(b) if offered ('+$L(LIM.k401)+'), and backdoor Roth for both spouses ('+$L(2*LIM.ira)+') first. Add HSA ('+$L(LIM.hsaFam)+' family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
+  if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|Work is not optional until '+coastAge+'. '+callYrsLine+' Biggest levers here: '+levers.slice(0,3).join(', ')+'. '+(MODE==='att'?'The sensitivity panel below shows which single change moves the needle most.':'It improves as loans pay off and childcare ends — but only if that money is redirected, not absorbed.');
+  else if(displaySR<20) msg='box-a|Below the 20% WCI target ('+displaySR+'%)|Work becomes optional at '+coastAge+(extraVsIdeal?' — <strong>'+extraVsIdeal+' years later</strong> than the 25% path.':'.')+' Biggest levers: '+levers.slice(0,3).join(', ')+'.';
+  else if(c.actual) msg='box-g|On track at '+displaySR+'%|Work becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ('+$L(LIM.k401)+'), 457(b) if offered ('+$L(LIM.k401)+'), and backdoor Roth for both spouses ('+$L(2*LIM.ira)+') first. Add HSA ('+$L(LIM.hsaFam)+' family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
   if(!c.actual){
     // Estimate mode: show the room to save honestly, next to what happens if only the retirement accounts get funded
     var floorSav=c.deferrals+(c.hh==='couple'?2*LIM.ira:LIM.ira);
     var floorAge=coastAt(floorSav),floorSR=Math.round(floorSav/c.gross*100);
     msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.left))+' a year</strong> is left over. '+
-      'If that is automated into savings, call becomes optional at '+coastAge+'. '+
-      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income), call becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
+      'If that is automated into savings, work becomes optional at '+coastAge+'. '+
+      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income), work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
       'The difference is whether the leftover is automated on day one. <em>Turn on "Find my real savings rate" to see what you actually save.</em>';
   }
 
@@ -1691,9 +1691,9 @@ function calcPaths(){
   $('fu').className='fu '+(MODE==='res'?'res':'att');
   $('fu-grid').innerHTML=
     '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(mems.coast||'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">📞 Call optional<br>Could stop saving &amp; drop call<br><span style="opacity:0.7">At your '+(c.actual?'actual':'current')+' savings rate</span></div></div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🔓 Work optional<br>Could stop saving &amp; walk away<br><span style="opacity:0.7">At your '+(c.actual?'actual':'current')+' savings rate</span></div></div>'+
     '<div class="fu-cell"><div class="fu-num" style="color:#FFD580">'+(mems.coast&&mems.fi?mems.coast+'–'+mems.fi:'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🌤️ Transition window<br>Call optionality to Full FI<br><span style="opacity:0.7">At 25% ideal: '+(idealms.coast||'—')+'–'+(idealms.fi||'—')+'</span></div></div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🌤️ Transition window<br>Work optional to Full FI<br><span style="opacity:0.7">At 25% ideal: '+(idealms.coast||'—')+'–'+(idealms.fi||'—')+'</span></div></div>'+
     '<div class="fu-cell"><div class="fu-num" style="color:#7FFFD4">'+(mems.fi||'—')+'</div>'+
       '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🎯 Full FI<br>Work completely optional<br><span style="opacity:0.7">'+fk(fi)+' portfolio</span></div></div>';
 
@@ -1702,7 +1702,7 @@ function calcPaths(){
     {l:'Today',dot:MODE==='att'?'y':''},
     {l:msSel.zero?'Age '+msSel.zero:'—',sub:'Zero NW',dot:msSel.zero?'r':''},
     {l:msSel.million?'Age '+msSel.million:'—',sub:'$1M milestone',dot:msSel.million?'r':''},
-    {l:msSel.coast?'Age '+msSel.coast:'—',sub:'Call optional',sub2:msSel.coast?fk(callTarget(msSel.coast,fi,rr))+' saved':'',dot:msSel.coast?'k':''},
+    {l:msSel.coast?'Age '+msSel.coast:'—',sub:'Work optional',sub2:msSel.coast?fk(callTarget(msSel.coast,fi,rr))+' saved':'',dot:msSel.coast?'k':''},
     {l:msSel.fi?'Age '+msSel.fi:'—',sub:'Full FI',sub2:fk(fi)+' target',dot:msSel.fi?'k':''},
   ].map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
@@ -1735,7 +1735,7 @@ function calcPaths(){
   var meSavGap=Math.round(c.gross*.25)-myInv;
   $('compare-tbl').innerHTML=
     '<tr><th>Milestone</th><th>Ideal 25%</th><th>Typical 12%</th><th>Creep 5%</th><th>My path '+mySR+'%</th></tr>'+
-    [['📞 Call optional',function(m){return m.coast||'—';},'hl-b'],
+    [['🔓 Work optional',function(m){return m.coast||'—';},'hl-b'],
      ['🎯 Full FI — '+fk(fi),function(m){return m.fi||'—';},'hl'],
      ['Extra years vs Ideal 25%',function(m,i){
        if(i===0) return 'Baseline';
@@ -1751,7 +1751,7 @@ function calcPaths(){
     '<tr><td colspan="5" style="font-size:9px;color:var(--g);padding-top:5px">'+
     '✓ Your savings meets or exceeds the 25% Ideal benchmark.</td></tr>')+
     '<tr><td colspan="5" style="font-size:9px;color:var(--mg);padding-top:5px">'+
-    'Generic paths apply a savings rate to household gross income. Call optional = enough saved that, with no more saving, it grows to the full FI number ('+fk(fi)+') by age '+retAge()+'. Biggest levers: your savings rate and how much you will spend in retirement.</td></tr>';
+    'Generic paths apply a savings rate to household gross income. Work optional = enough saved that, with no more saving, it grows to the full FI number ('+fk(fi)+') by age '+retAge()+'. Biggest levers: your savings rate and how much you will spend in retirement.</td></tr>';
 
   var g=c.gross;
   var idSav=Math.round(g*.25/12),typSav=Math.round(g*.12/12),crpSav=Math.round(g*.05/12);
@@ -1766,7 +1766,7 @@ function calcPaths(){
      ['Loans','$3,000 aggr.','$2,500 slow','$1,200 min.',myLoan],
      ['Cars','$300 (old car)','$1,300 (loan)','$2,000 (lease)',myCars],
      ['Kids & school','public only','$3,300 (1 priv)','$6,700 (2 priv)',myKids],
-     ['Call optionality age',idealms.coast||'—',typms.coast||'—',crpms.coast||'—',mems.coast||'—'],
+     ['Work optional age',idealms.coast||'—',typms.coast||'—',crpms.coast||'—',mems.coast||'—'],
     ].map(function(r,ri){
       return '<tr'+(ri===5?' class="hl"':'')+'><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td></tr>';
     }).join('');
@@ -1821,7 +1821,7 @@ function calcFI(){
   var coastFI=coastYr?callTarget(coastYr,fi,rr):callTarget(Math.min(50,retAge()),fi,rr);
   var acc=MODE==='att'?'var(--b)':'var(--g)';
   $('fi-metrics').innerHTML=[
-    {l:'Call optional at',v:coastYr?'age '+coastYr:'not before '+retAge(),s:'could stop saving and still retire at '+retAge(),c:coastYr&&coastYr<=50?'good':coastYr&&coastYr<=55?'warn':'bad'},
+    {l:'Work optional at',v:coastYr?'age '+coastYr:'not before '+retAge(),s:'could stop saving and still retire at '+retAge(),c:coastYr&&coastYr<=50?'good':coastYr&&coastYr<=55?'warn':'bad'},
     {l:'Needed then',v:fk(coastFI),s:coastYr?'saved by age '+coastYr+' — grows to '+fk(fi)+' by '+retAge():'what you would need at age '+Math.min(50,retAge()),c:''},
     {l:'Full FI target',v:fk(fi),s:'25× retirement spending',c:''},
     {l:'Full FI age',v:fiYr?'age '+fiYr:'past '+endAge,s:'work completely optional',c:fiYr&&fiYr<=60?'good':fiYr&&fiYr<=65?'warn':'bad'},
@@ -1835,7 +1835,7 @@ function calcFI(){
     if(fiChrt) fiChrt.destroy();
     fiChrt=new Chart($('fi-chart'),{type:'line',data:{labels:labels,datasets:[
       {label:'Your portfolio',data:nws,borderColor:acc,backgroundColor:MODE==='att'?'rgba(35,85,160,0.08)':'rgba(29,158,117,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
-      {label:'Needed for call to be optional',data:coastL,borderColor:'#E8A020',borderDash:[6,3],pointRadius:0,borderWidth:1.5,fill:false},
+      {label:'Needed to be work-optional',data:coastL,borderColor:'#E8A020',borderDash:[6,3],pointRadius:0,borderWidth:1.5,fill:false},
       {label:'Full FI',data:fiL,borderColor:'#C0392B',borderDash:[3,3],pointRadius:0,borderWidth:1.5,fill:false},
     ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
@@ -1846,11 +1846,11 @@ function calcFI(){
   var bxCls=MODE==='att'?'box-b':'box-g';
   var ttlCol=MODE==='att'?'var(--b)':'var(--g)';
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
-    (fiYr?(coastYr?'Call optional at '+coastYr:'Call not optional before '+retAge())+' · full FI at '+fiYr:'Extend your timeline')+
+    (fiYr?(coastYr?'Work optional at '+coastYr:'Not work-optional before '+retAge())+' · full FI at '+fiYr:'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(c.gross)+', call becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
-    (coastYr?'Call becomes optional at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
-    'At this savings rate, neither call optionality nor full FI arrives in the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
+    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(c.gross)+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
+    (coastYr?'Work becomes optional at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
+    'At this savings rate, neither work optional nor full FI arrives in the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
     '</div></div>';
 
   var tblFI=spend*25,tblSA=34,tblNW=-150000;
@@ -1862,7 +1862,7 @@ function calcFI(){
   function ageDisp(age){return age?'age '+age:'past 84';}
   function coastDisp(age){return age?'age '+age:'not before '+retAge();}
   var curSRpct=Math.round(sr*100);
-  $('sr-tbl').innerHTML='<tr><th>Gross savings rate</th><th>Call optionality age*</th><th>Full FI age*</th><th>WCI benchmark</th></tr>'+
+  $('sr-tbl').innerHTML='<tr><th>Gross savings rate</th><th>Work optional age*</th><th>Full FI age*</th><th>WCI benchmark</th></tr>'+
     [5,10,15,20,25,30,35,40,50].map(function(r){
       var t=calcTL(r),hi=Math.abs(r-curSRpct)<3;
       return '<tr'+(hi?' class="hl"':'')+'><td>'+(hi?'→ ':'')+r+'%'+(hi?' (you)':'')+'</td>'+
@@ -1872,7 +1872,7 @@ function calcFI(){
           (r>=30?'WCI: retire early':r>=20?'WCI: end of career':r>=15?'Borderline':'Below target')+'</td></tr>';
     }).join('')+
     '<tr><td colspan="4" style="font-size:9px;color:var(--mg);padding-top:5px">'+
-    '* Assumptions: '+fk(c.gross)+' household gross, start age 34, NW −$150k, 5% real return, '+fk(spend)+'/yr retirement spending → '+fk(tblFI)+' FI number, full retirement at '+retAge()+'. Call optional = enough saved to stop saving and still reach that number by '+retAge()+'. '+
+    '* Assumptions: '+fk(c.gross)+' household gross, start age 34, NW −$150k, 5% real return, '+fk(spend)+'/yr retirement spending → '+fk(tblFI)+' FI number, full retirement at '+retAge()+'. Work optional = enough saved to stop saving and still reach that number by '+retAge()+'. '+
     'Social Security at 70 (~$30–50k/yr for a surgeon) not included — reduces portfolio needed in late retirement.</td></tr>';
 
   if(MODE==='att'){
@@ -1883,7 +1883,7 @@ function calcFI(){
       var delta=base.coast&&t.coast?base.coast-t.coast:null;
       return testSR>curSR2&&delta!==null&&delta>0?
         '<div class="sens-item"><div class="sens-l">Savings rate: <strong>'+testSR+'%</strong></div>'+
-        '<div class="sens-v">Call optional at '+t.coast+' (−'+delta+' yrs)</div></div>':'';
+        '<div class="sens-v">Work optional at '+t.coast+' (−'+delta+' yrs)</div></div>':'';
     }).join('')||'<div style="font-size:12px;color:var(--mg)">Already at or above these rates.</div>';
     $('fi-sens').style.display='block';
   }
@@ -2075,7 +2075,7 @@ function calcTrue(){
     {l:'Share of take-home',v:Math.round(pctTake*100)+'%',s:fk(amt)+' of '+fk(c.takeHome/12)+'/mo — feels like '+Math.round(annual/c.gross*100)+'% of gross',c:'warn'},
     {l:'Lost wealth after 20 yrs',v:fk(lost20),s:'paid '+fk(paid)+' — plus what it would have grown to',c:'bad'},
     {l:'FI number goes up',v:ret?'+'+fk(annual*retPct*25):'$0',s:ret?fk(annual*retPct)+'/yr still owed in retirement × 25':'ends before retirement',c:ret?'bad':''},
-    {l:'Call optional',v:coastDelay===null?'—':(coastDelay>0?'+'+coastDelay+' yr'+(coastDelay!==1?'s':''):'no change'),s:'age '+(A0.coast||retAge()+'+')+' → '+(A1.coast||'not before '+retAge()),c:coastDelay>0?'bad':''},
+    {l:'Work optional',v:coastDelay===null?'—':(coastDelay>0?'+'+coastDelay+' yr'+(coastDelay!==1?'s':''):'no change'),s:'age '+(A0.coast||retAge()+'+')+' → '+(A1.coast||'not before '+retAge()),c:coastDelay>0?'bad':''},
     {l:'Full FI',v:fiDelay===null?'—':(fiDelay==='60+'?'never':(fiDelay>0?'+'+fiDelay+' yrs':'no change')),s:'age '+(A0.fi||'—')+' → '+(A1.fi||'never'),c:fiDelay?'bad':''},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
@@ -2088,7 +2088,7 @@ function calcTrue(){
     '<tr><td>Saved per year</td><td>'+fk(base)+'</td><td>'+fk(base-annual)+(base-annual<0?' (deficit)':'')+'</td></tr>'+
     '<tr><td>Net worth in 20 years</td><td>'+fk(A0.nw20)+'</td><td>'+fk(A1.nw20)+'</td></tr>'+
     '<tr><td>FI number</td><td>'+fk(fiBase)+'</td><td>'+fk(fiWith)+'</td></tr>'+
-    '<tr class="hl-b"><td>Call optional at</td><td>'+(A0.coast||'not before '+retAge())+'</td><td>'+(A1.coast||'not before '+retAge())+'</td></tr>'+
+    '<tr class="hl-b"><td>Work optional at</td><td>'+(A0.coast||'not before '+retAge())+'</td><td>'+(A1.coast||'not before '+retAge())+'</td></tr>'+
     '<tr class="hl"><td>Full FI at</td><td>'+(A0.fi||'—')+'</td><td>'+(A1.fi||'never')+'</td></tr>'+
     '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">Starting from age '+sa+', net worth '+fk(nw0)+', saving '+fk(base)+'/yr ('+effSR(c)+'% — '+(c.actual?'your actual rate':'estimate from My Numbers')+'). Retirement spending from the Paths & Retirement tab ('+fk(fiBase/25)+'/yr). 5% real return; amounts in today\'s dollars.</td></tr>';
 }
@@ -2338,20 +2338,20 @@ function calcPlay(){
   var goalMet=plan.coast!==null&&plan.coast<=goal;
   $('pb-big').innerHTML=[
     {l:'Saving now',v:Math.round((taxAdv+12*brk)/c.gross*100)+'%',s:fk(taxAdv+12*brk)+'/yr incl. '+fkPrecise(brk)+'/mo brokerage',c:(taxAdv+12*brk)/c.gross>=0.2?'good':(taxAdv+12*brk)/c.gross>=0.12?'warn':'bad'},
-    {l:'Call optional',v:(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+'),s:'if nothing changes → on your plan',c:goalMet?'good':plan.coast?'warn':'bad'},
+    {l:'Work optional',v:(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+'),s:'if nothing changes → on your plan',c:goalMet?'good':plan.coast?'warn':'bad'},
     {l:'Full retirement',v:(flat.fi||'—')+' → '+(plan.fi||'—'),s:'if nothing changes → on your plan',c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
   // Outcome
-  var out='<table class="tbl"><tr><th></th><th>Call optional</th><th>Full retirement</th></tr>'+
+  var out='<table class="tbl"><tr><th></th><th>Work optional</th><th>Full retirement</th></tr>'+
     '<tr><td>Brokerage stays at '+fkPrecise(brk)+'/mo forever</td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
     '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr></table>';
-  if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Call becomes optional at '+plan.coast+'. The single most important thing now is that the raises and redirects actually happen — set them up as automatic transfers.</div></div>';
-  else out+='<div class="pb-flag a" style="margin-top:8px"><div><b>To make call optional by '+goal+':</b> '+
+  if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Work becomes optional at '+plan.coast+'. The single most important thing now is that the raises and redirects actually happen — set them up as automatic transfers.</div></div>';
+  else out+='<div class="pb-flag a" style="margin-top:8px"><div><b>To be work-optional by '+goal+':</b> '+
     (needRaise!==null?'raise your brokerage by <strong>'+fkPrecise(needRaise)+'/mo every year</strong> instead of '+fkPrecise(raise)+'. ':'no realistic yearly raise gets there from this start — ')+
     (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
     'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
-  out+='<div class="hint" style="margin-top:6px">For reference: a steady '+(needLevel!==null?fkPrecise(needLevel):'—')+'/mo from '+yr1+' reaches call optionality at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.</div>';
+  out+='<div class="hint" style="margin-top:6px">For reference: a steady '+(needLevel!==null?fkPrecise(needLevel):'—')+'/mo from '+yr1+' makes you work-optional at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.</div>';
   $('pb-outcome').innerHTML=out;
 
   // Steps
@@ -2362,7 +2362,7 @@ function calcPlay(){
   steps.push({on:c.def401>0,t:(hosp?'403(b)':'401(k)')+' — max it, starting with your first paycheck',d:'Pre-tax. Call HR on day 1 — you cannot make up missed pay periods. Take any employer match first.',a:LIM.k401,fix:c.def401>0?null:'Turn on in My Numbers'});
   if(c.emp>0) steps.push({on:true,t:'Employer contribution',d:'Your employer adds this on top of salary — make sure you meet any vesting schedule before changing jobs.',a:c.emp});
   if(c.defP>0) steps.push({on:true,t:'Partner\'s 401(k)/403(b)',d:'Your partner maxes their own plan — pre-tax, through their payroll.',a:c.defP});
-  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another '+$L(LIM.k401)+' pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' of call':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in My Numbers'});
+  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another '+$L(LIM.k401)+' pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' sooner to work optional':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in My Numbers'});
   steps.push({on:true,t:'Backdoor Roth IRA'+(couple?' — both spouses':''),d:'Every January: contribute '+$L(LIM.ira)+' to a traditional IRA, convert to Roth right away. Keep no other pre-tax IRA balances (pro-rata rule).',a:couple?15000:7500});
   steps.push({on:hsa>0,t:'HSA',d:hsa>0?'Triple tax advantage federally (New Jersey still taxes HSA contributions). Invest it and pay current medical bills from cash if you can.':'Only if your health plan is a high-deductible plan. Most hospital plans are PPOs — check at open enrollment.',a:hsa||LIM.hsaFam});
   if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
@@ -2445,9 +2445,9 @@ function calcPlay(){
     if(c.pslf&&loanEnd&&y===loanEnd)ev.push('<strong>PSLF forgiveness</strong>');
     var age=sa+y;
     var hl=(plan.coast&&age===plan.coast)||(y===dcEnd&&opts.dcRedir);
-    rows+='<tr'+(plan.coast===age+1?' class="hl-b"':'')+'><td>'+(y+1)+'</td><td>'+(age+1)+(plan.coast===age+1?' 📞 call optional':'')+'</td><td>'+fkPrecise(plan.brkAt(y))+'</td><td>'+fk(taxAdv+12*plan.brkAt(y))+' ('+Math.round((taxAdv+12*plan.brkAt(y))/c.gross*100)+'%)</td><td>'+fk(plan.series[y+1])+'</td><td style="font-size:10px">'+ev.join(' · ')+'</td></tr>';
+    rows+='<tr'+(plan.coast===age+1?' class="hl-b"':'')+'><td>'+(y+1)+'</td><td>'+(age+1)+(plan.coast===age+1?' 🔓 work optional':'')+'</td><td>'+fkPrecise(plan.brkAt(y))+'</td><td>'+fk(taxAdv+12*plan.brkAt(y))+' ('+Math.round((taxAdv+12*plan.brkAt(y))/c.gross*100)+'%)</td><td>'+fk(plan.series[y+1])+'</td><td style="font-size:10px">'+ev.join(' · ')+'</td></tr>';
   });
-  rows+='<tr><td colspan="6" style="font-size:9px;color:var(--mg)">Net worth at end of each year. "All saving" = retirement plans'+(hsa?' + HSA':'')+' + Roth + brokerage. 📞 = enough saved that call becomes optional (needed at that age: '+(plan.coast?fk(callTarget(plan.coast,plan.fiNum,0.05)):'—')+').</td></tr>';
+  rows+='<tr><td colspan="6" style="font-size:9px;color:var(--mg)">Net worth at end of each year. "All saving" = retirement plans'+(hsa?' + HSA':'')+' + Roth + brokerage. 🔓 = enough saved that work becomes optional (needed at that age: '+(plan.coast?fk(callTarget(plan.coast,plan.fiNum,0.05)):'—')+').</td></tr>';
   $('pb-ramp').innerHTML=rows;
 
   // Flags
@@ -2465,7 +2465,7 @@ function calcPlay(){
     var mustCover=fixedMo+(c.otherCost/12);
     F.push({k:mustCover>baseTH?'r':'g',t:mustCover>baseTH?'Your base pay doesn\'t cover your bills':'Base pay covers your bills',b:'Guaranteed base of '+fk(base)+' takes home about '+fkPrecise(baseTH)+'/mo; your monthly costs are about '+fkPrecise(mustCover)+'. '+(mustCover>baseTH?'You\'re relying on bonuses for ordinary bills. When a bonus lands, move the shortfall ('+fkPrecise((mustCover-baseTH)*6)+' per six months) into a separate account and pay yourself from it monthly. Don\'t add fixed costs until base pay covers them.':'Good — send bonuses straight to savings the day they arrive.')});
   }
-  if(c.childcareEst>0) F.push({k:'b',t:'The day childcare ends',b:'That frees '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo. Set up the brokerage increase now so it starts the same month — otherwise it disappears into spending. '+(opts.dcRedir?'Your plan already counts on it.':'<strong>Your plan currently doesn\'t redirect it</strong> — turning that on moves call optionality from '+(plan.coast||'never')+' to '+(pbSim(c,Object.assign({},opts,{dcRedir:true})).coast||'never')+'.')});
+  if(c.childcareEst>0) F.push({k:'b',t:'The day childcare ends',b:'That frees '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo. Set up the brokerage increase now so it starts the same month — otherwise it disappears into spending. '+(opts.dcRedir?'Your plan already counts on it.':'<strong>Your plan currently doesn\'t redirect it</strong> — turning that on moves work optional from '+(plan.coast||'never')+' to '+(pbSim(c,Object.assign({},opts,{dcRedir:true})).coast||'never')+'.')});
   if(c.def457===0&&hosp) F.push({k:'a',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another '+$L(LIM.k401)+' a year pre-tax into a 457(b). Check your plan and turn it on in My Numbers.'});
   if(c.nPriv>0) F.push({k:'a',t:'Private school',b:fk(c.schoolEst)+'/yr for '+c.nPriv+' child'+(c.nPriv!==1?'ren':'')+', for up to 13 years each. Paid from take-home, so it takes about '+fk(c.schoolEst/(1-0.46))+' of salary a year.'});
   if(c.cars>=24000) F.push({k:'a',t:'Cars',b:fk(c.cars)+'/yr. A paid-off car you keep 8–10 years is one of the easiest fixed costs to cut.'});
@@ -2515,10 +2515,10 @@ function calcPlay(){
 
   var fiNum=spend*25;
   $('pb-finum').innerHTML='<div style="font-size:11px;line-height:1.6;color:#444">Your full retirement number is <strong>25 × what you\'ll spend each year in retirement</strong> — at '+fk(spend)+'/yr that\'s <strong>'+fk(fiNum)+'</strong>. Withdrawing 4% a year from that portfolio, adjusted for inflation, has historically lasted 30+ years (the "4% rule"). Every $1,000 a year of permanent lifestyle adds $25,000 to the number.</div>'+
-    '<table class="tbl" style="margin-top:8px"><tr><th>Retirement spending</th><th>Full FI number</th><th>Needed at 45 for call to be optional</th><th>at 50</th><th>at 55</th></tr>'+
+    '<table class="tbl" style="margin-top:8px"><tr><th>Retirement spending</th><th>Full FI number</th><th>Needed at 45 for work to be optional</th><th>at 50</th><th>at 55</th></tr>'+
     [130000,160000,200000,250000].concat([spend]).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;}).map(function(v){
       var me=v===spend;return '<tr'+(me?' class="hl"':'')+'><td>'+fk(v)+'/yr'+(me?' (you)':'')+'</td><td>'+fk(v*25)+'</td><td>'+fk(callTarget(45,v*25,0.05))+'</td><td>'+fk(callTarget(50,v*25,0.05))+'</td><td>'+fk(callTarget(55,v*25,0.05))+'</td></tr>';}).join('')+'</table>'+
-    '<div class="hint" style="margin-top:6px">"Call optional" = saved enough that you could stop saving, take a lower-paying job without call that covers your living costs, and still reach your full number by '+retAge()+'. The amount needed rises with age because the money has less time to grow.</div>';
+    '<div class="hint" style="margin-top:6px">"Work optional" (some call it FU money) = saved enough that you could stop saving and still reach your full number by '+retAge()+'. Your paycheck then only has to cover today\'s bills, so you can leave a bad job, go part-time, or pay for call coverage. The amount needed rises with age because the money has less time to grow.</div>';
 
   var hasL=c.loansOn&&c.lb>0;
   $('pb-loans-card').style.display=hasL||MODE==='res'?'block':'none';
@@ -2548,13 +2548,13 @@ function calcPlay(){
   if($('pb-bonus').checked){var base0=+$('pb-base').value,bTH=base0*(c.takeHome/c.gross)/12,need=fixedMo+(c.otherCost/12);
     if(need>bTH)moves.push({p:100,t:'Stop relying on bonuses for monthly bills',d:'Base pay covers about '+fkPrecise(bTH)+'/mo of '+fkPrecise(need)+' in costs. When a bonus lands, put the shortfall in a separate account and pay yourself from it monthly. Add no new fixed costs until base pay covers them.'});}
   if(MODE==='res')moves.push({p:95,t:'Buy own-occupation disability insurance before you graduate',d:'Your future income is your biggest asset. Coverage is easiest to get, and cheapest, while you\'re still in training and healthy.'});
-  if(hosp&&c.def457===0){var g=yrsGain({taxAdv:taxAdv+LIM.k457});moves.push({p:80+g,t:'Start the 457(b) — '+$L(LIM.k457)+'/yr pre-tax',d:'Your hospital almost certainly offers one. On your plan it makes call optional '+(g>0?g+' year'+(g!==1?'s':'')+' sooner':'sooner')+'. Check its distribution rules, then sign up at open enrollment.'});}
-  if(hasDC&&!opts.dcRedir){var g2=yrsGain({dcRedir:true});moves.push({p:85+g2,t:'Send the childcare money to the brokerage when it ends',d:fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo frees up in about '+dcEnd+' years. Redirecting it makes call optional '+(g2>0?g2+' years sooner':'sooner')+'. Schedule the transfer increase before the last daycare bill.'});}
+  if(hosp&&c.def457===0){var g=yrsGain({taxAdv:taxAdv+LIM.k457});moves.push({p:80+g,t:'Start the 457(b) — '+$L(LIM.k457)+'/yr pre-tax',d:'Your hospital almost certainly offers one. On your plan it makes you work-optional '+(g>0?g+' year'+(g!==1?'s':'')+' sooner':'sooner')+'. Check its distribution rules, then sign up at open enrollment.'});}
+  if(hasDC&&!opts.dcRedir){var g2=yrsGain({dcRedir:true});moves.push({p:85+g2,t:'Send the childcare money to the brokerage when it ends',d:fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo frees up in about '+dcEnd+' years. Redirecting it makes you work-optional '+(g2>0?g2+' years sooner':'sooner')+'. Schedule the transfer increase before the last daycare bill.'});}
   else if(hasDC)moves.push({p:60,t:'Lock in the childcare redirect now',d:'In about '+dcEnd+' years, '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo frees up. Your plan depends on that money going to the brokerage the same month — set a reminder or schedule it now.'});
-  if(brk===0)moves.push({p:90,t:'Start an automatic brokerage transfer — even '+fkPrecise(Math.max(250,needRaise||500))+'/mo',d:'It\'s the only account with no limit, and it\'s what makes call optional. Start small, but start, and raise it every year.'});
-  else if(!goalMet&&needRaise!==null)moves.push({p:88,t:'Raise your brokerage '+fkPrecise(needRaise)+'/mo every year',d:'That reaches call optionality by '+goal+'. Do it every January or with every raise, before spending catches up.'});
+  if(brk===0)moves.push({p:90,t:'Start an automatic brokerage transfer — even '+fkPrecise(Math.max(250,needRaise||500))+'/mo',d:'It\'s the only account with no limit, and it\'s what makes you work-optional. Start small, but start, and raise it every year.'});
+  else if(!goalMet&&needRaise!==null)moves.push({p:88,t:'Raise your brokerage '+fkPrecise(needRaise)+'/mo every year',d:'That makes you work-optional by '+goal+'. Do it every January or with every raise, before spending catches up.'});
   else if(!goalMet)moves.push({p:88,t:'Your goal of '+goal+' needs a bigger change',d:'No realistic yearly raise gets there from today. Look at retirement spending ('+fk(spend)+'/yr), a later goal age, or the biggest fixed cost — usually the house.'});
-  else moves.push({p:40,t:'Keep the plan on autopilot',d:'You\'re on track for call optional at '+plan.coast+'. Raise the brokerage '+fkPrecise(raise)+'/mo every year and add every cost that ends.'});
+  else moves.push({p:40,t:'Keep the plan on autopilot',d:'You\'re on track for work optional at '+plan.coast+'. Raise the brokerage '+fkPrecise(raise)+'/mo every year and add every cost that ends.'});
   if(!c.actual&&MODE==='att')moves.push({p:75,t:'Find your real savings rate',d:'This plan uses estimates. Turn on "Find my real savings rate" on My Numbers — most attendings overestimate theirs.'});
   if(fixedMo/th>0.6)moves.push({p:70,t:'Add no new fixed costs',d:'Housing, childcare, loans and cars already take '+Math.round(fixedMo/th*100)+'% of take-home. Each $1,000/mo of permanent cost needs about '+fk(12000/(1-0.46))+'/yr of salary.'});
   if(c.houseOn&&!c.houseOwned&&c.buyYr===0)moves.push({p:72,t:'Rent for two years before buying',d:'You\'ll buy knowing your job, town and real take-home — and avoid a forced sale if the first job doesn\'t work out.'});
@@ -2590,7 +2590,7 @@ function updateSumbar(c){
   var sr=Math.round((P.taxAdv+12*P.brk)/c.gross*100);
   $('sumbar').style.display=CUR_TAB==='play'?'none':'flex';
   $('sumbar').innerHTML='<div class="sb-i"><span class="sb-l">Saving now</span><b>'+sr+'%</b></div>'+
-    '<div class="sb-i"><span class="sb-l">Call optional</span><b>'+(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+')+'</b></div>'+
+    '<div class="sb-i"><span class="sb-l">Work optional</span><b>'+(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+')+'</b></div>'+
     '<div class="sb-i"><span class="sb-l">Retire</span><b>'+(flat.fi||'—')+' → '+(plan.fi||'—')+'</b></div>'+
     '<div style="font-size:10px;color:var(--accent);font-weight:600">'+(CUR_TAB==='play'?'today → plan':'plan ›')+'</div>';
 }
