@@ -313,9 +313,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
           <input type="range" min="0" max="5" value="2" id="nday" oninput="go()">
           <span class="sv" id="nday-v">2</span></div>
         <div class="sr" id="daymo-row"><label>Childcare per child / month</label>
-          <input type="range" min="1000" max="5000" step="100" value="2500" id="daymo" oninput="go()">
+          <input type="range" min="500" max="8000" step="100" value="2500" id="daymo" oninput="go()">
           <span class="sv" id="daymo-v">$2,500</span></div>
-        <div class="hint" id="daymo-hint">North Jersey full-time daycare / Montessori typically runs $2,000–3,500 per child per month.</div>
+        <div class="hint" id="daymo-tot" style="font-weight:600;color:var(--dk);margin-top:-4px"></div>
+        <div class="hint" id="daymo-hint">North Jersey full-time daycare / Montessori typically runs $2,000–3,500 per child per month; a full-time nanny $5,000–8,000 for the household.</div>
         <div class="sr"><label>In private school (K–12)</label>
           <input type="range" min="0" max="5" value="0" id="npriv" oninput="go()">
           <span class="sv" id="npriv-v">0</span></div>
@@ -1050,6 +1051,7 @@ function go(){
   $('daymo-row').style.display=+$('nday').value>0?'flex':'none';
   $('daymo-hint').style.display=+$('nday').value>0?'block':'none';
   $('daymo-v').textContent=fkPrecise(+$('daymo').value);
+  $('daymo-tot').textContent=+$('nday').value>1?'Total: '+fkPrecise(+$('daymo').value*+$('nday').value)+'/mo for '+$('nday').value+' children':'';
   $('tuit-row').style.display=+$('npriv').value>0?'flex':'none';
   $('tuit-v').textContent=fk(+$('tuit').value);
   $('save529-opts').style.display=$('save529').checked?'block':'none';
