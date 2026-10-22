@@ -229,6 +229,8 @@ details.how>summary::before{content:'▸ ';}
 details.how[open]>summary::before{content:'▾ ';}
 details.how ol{margin:5px 0 2px 16px;line-height:1.55;}
 details.how li{margin-bottom:3px;}
+details.how .how-h{font-weight:700;color:var(--dk);margin:8px 0 0;font-size:11px;}
+details.how ol:empty{display:none;}
 @media print{#sumbar,#setup{display:none!important;}
   body{background:#fff;font-size:11px;}
   .mode-bar,.tabs,.no-print,.foot,#hdr .hdr-row,#hdr p{display:none!important;}
@@ -2572,16 +2574,38 @@ function calcPlay(){
       'Keep it in high-yield savings or Treasury bills — not stocks — if you\'re buying within about three years.',
       'Automate a monthly transfer into a separate account labeled for the house.',
       'If you\'re looking at a physician loan: get quotes from at least three lenders, ask for a 30-year fixed rate, and compare the rate with a conventional loan. A small down payment is fine only if you could sell in two years and cover the loss — the down payment card on My Numbers shows that number.'];
-    if(/^Taxable brokerage/.test(t))return [
+    if(/^Taxable brokerage/.test(t)){
+      var brkFor=function(r){return Math.max(0,Math.round((r*c.gross-taxAdv)/12/50)*50);};
+      var b20=brkFor(0.20),b25=brkFor(0.25);
+      var roomMo=Math.max(0,Math.round((c.cashLeft-roth-hsa)/12/50)*50);
+      var L=[
+      '§Your savings target',
+      needLevel!==null?'<strong>Your number:</strong> to be work-optional by '+goal+' (your goal above), invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> here starting now'+(needRaise!==null&&needRaise>0?' — or start at '+fkPrecise(brk)+'/mo and raise it <strong>'+fkPrecise(needRaise)+'/mo every year</strong>':'')+'. With the accounts above, the steady version is '+Math.round((taxAdv+12*needLevel)/c.gross*100)+'% of gross pay.':
+        '<strong>Your number:</strong> no realistic brokerage amount makes you work-optional by '+goal+' from this start. Try a later goal age, lower retirement spending, or a smaller fixed cost — usually the house.',
+      'Cross-check with the common guideline: <strong>20% of gross</strong> for a comfortable retirement at the end of a career, <strong>25–30%</strong> to retire in your 50s, counting retirement plans, employer money, Roths, HSA and brokerage. '+(b20>0?'For you, 20% would mean about '+fkPrecise(b20)+'/mo here, 25% about '+fkPrecise(b25)+'/mo.':'Your retirement accounts alone already reach 20%.')+' The guideline is for full retirement'+(needLevel!==null&&(taxAdv+12*needLevel)/c.gross<0.2?', and work optional comes earlier — that\'s why your number can be lower':'')+'. It also doesn\'t know your age, what you\'ve saved or what you\'ll spend; your number does.',
+      c.actual?'Today you invest '+fkPrecise(c.brk/12)+'/mo here. Close the gap one raise at a time.':
+        'After the app\'s estimated spending, about <strong>'+fkPrecise(roomMo)+'/mo</strong> is left for this. If your number is more than that, start with what fits — then raise it every January, with every pay raise, and the month any cost ends. Don\'t wait until it feels comfortable.',
+      'Pick one number, set it as an automatic transfer on payday, and treat it like a bill.',
+      '§Setting it up',
       'Open an individual or joint taxable account at Vanguard, Fidelity or Schwab and link your checking account.',
       'Set up an automatic investment every payday into total-market index funds — US and international stocks. Hold your bonds in the 403(b)/401(k), where they\'re sheltered from tax.',
       'Turn on dividend reinvestment.',
       'Put a reminder in your calendar every January and every raise to increase the amount. Never sell in a downturn.'];
+      if(couple)L=L.concat([
+      '§Getting your partner on board',
+      'Talk about what the money buys, not percentages: the age when work becomes optional, and the freedom to drop call, go part-time or leave a bad job. Open this plan together and agree on the work-optional age you\'re aiming for.',
+      'Pay yourselves first, then spend freely. Savings move automatically on payday; whatever is left is yours to spend without a line-by-line budget or arguments over small purchases.',
+      'Give each of you a set personal amount every month that the other doesn\'t question.',
+      'Decide the big fixed costs together — house, private school, childcare, cars — with the True Cost tab open. They decide your savings rate far more than everyday spending does.',
+      'Make it a joint plan: both of you can see every account, and you sit down once a year in January to review it and raise the transfer together. Mark the milestones — the first $100k, the first $1M.',
+      'If you keep disagreeing, one session with a flat-fee planner gives you a neutral referee.']);
+      return L;
+    }
     return null;
   };
   steps.forEach(function(st){st.how=HOW(st.t);});
   $('pb-steps').innerHTML=steps.map(function(st,i){
-    return '<div class="pb-step'+(st.on?'':' off')+'"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t">'+st.t+'</div><div class="pb-d">'+st.d+(st.fix?' <em>('+st.fix+')</em>':'')+'</div>'+(st.how?'<details class="how"><summary>How to do it</summary><ol>'+st.how.map(function(h){return '<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</div>'+
+    return '<div class="pb-step'+(st.on?'':' off')+'"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t">'+st.t+'</div><div class="pb-d">'+st.d+(st.fix?' <em>('+st.fix+')</em>':'')+'</div>'+(st.how?'<details class="how"><summary>How to do it</summary><ol>'+st.how.map(function(h){return h.charAt(0)==='§'?'</ol><div class="how-h">'+h.slice(1)+'</div><ol>':'<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</div>'+
       '<div class="pb-amt">'+(st.once?fk(st.a)+'<small>one-time</small>':(st.brk?fkPrecise(brk)+'/mo<small>then rising</small>':fkPrecise(st.a/12)+'/mo<small>'+fk(st.a)+'/yr</small>'))+'</div></div>';
   }).join('');
 
