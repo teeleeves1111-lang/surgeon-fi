@@ -233,6 +233,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <button class="tab" onclick="tab('fi')">🎯 FI Calculator</button>
   <button class="tab" onclick="tab('loans')">🎓 Student Loans</button>
   <button class="tab" onclick="tab('rent')">🏠 Rent vs Buy</button>
+  <button class="tab" onclick="tab('true')">💸 True Cost</button>
 </div>
 
 <!-- ═══ TAB 1: REALITY CHECK ═══════════════════════════════════════ -->
@@ -588,6 +589,49 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <div id="sl-result"></div>
 </div>
 
+<!-- ═══ TAB 7: TRUE COST ════════════════════════════════════════════ -->
+<div id="tab-true" class="panel">
+  <div class="box box-r" style="margin-top:0">
+    <div class="box-title" style="color:var(--rd)">Fixed costs are the decision that decides everything else</div>
+    <div class="box-body">A new attending salary feels unlimited, so a $4,000/month house upgrade or a $2,000/month lease feels small. It isn't. It is paid from take-home, not gross. Every dollar needs almost two dollars of salary. It never goes away when income dips. And it hits twice: it is money not saved <em>and</em> it raises the amount you need before you can stop working. Pick a cost below and see what it really costs.</div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">The cost</div>
+      <div class="ptabs" id="tc-presets" style="margin-bottom:10px">
+        <button class="ptab" onclick="tcPreset('house')">🏠 House +$500k</button>
+        <button class="ptab" onclick="tcPreset('lease')">🚗 Luxury lease</button>
+        <button class="ptab" onclick="tcPreset('school')">🎒 Private school ×2</button>
+        <button class="ptab" onclick="tcPreset('nanny')">👶 Nanny vs daycare</button>
+        <button class="ptab" onclick="tcPreset('club')">⛳ Club + 2nd home</button>
+      </div>
+      <div class="sr"><label>Monthly cost</label>
+        <input type="range" min="250" max="15000" step="250" value="4000" id="tc-amt" oninput="calcTrue()">
+        <span class="sv" id="tc-amt-v">$4,000</span></div>
+      <div class="sr"><label>How long it lasts</label>
+        <input type="range" min="1" max="31" value="31" id="tc-yrs" oninput="calcTrue()">
+        <span class="sv" id="tc-yrs-v">Permanent</span></div>
+      <div class="hint" id="tc-desc">Default: a $1.5M house instead of $1M in NJ — mortgage, 2.23% property tax, insurance, and upkeep on the extra $500k (≈$4,000/mo).</div>
+      <div class="trow"><label>Continues into retirement (raises your FI number)</label>
+        <label class="tog"><input type="checkbox" id="tc-ret" onchange="calcTrue()"><span class="tsl"></span></label></div>
+      <div class="sr"><label>Part that continues in retirement</label>
+        <input type="range" min="0" max="100" step="5" value="37" id="tc-retpct" oninput="calcTrue()">
+        <span class="sv" id="tc-retpct-v">37%</span></div>
+      <div class="hint">For a house, the mortgage ends but property tax, insurance and upkeep don't (≈37% of the extra cost in NJ). A lease you'd keep replacing is 100%.</div>
+      <div class="hint" style="margin-top:8px">Uses your salary, household and current savings from Reality Check. Real return 5%.</div>
+    </div>
+    <div class="card">
+      <div class="ctitle">What it really costs</div>
+      <div class="g3" id="tc-metrics"></div>
+    </div>
+  </div>
+  <div id="tc-msg"></div>
+  <div class="card">
+    <div class="ctitle">Your timeline — with and without this cost</div>
+    <table class="tbl" id="tc-tbl"></table>
+  </div>
+</div>
+
 <!-- ═══ TAB 6: RENT VS BUY ══════════════════════════════════════════ -->
 <div id="tab-rent" class="panel">
   <div class="g2">
@@ -699,6 +743,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
     <div class="ctitle">Wealth comparison — renter vs owner</div>
     <div class="cw" style="height:240px"><canvas id="rent-chart"></canvas></div>
   </div>
+
+  <div id="rvb-myth" style="margin-top:10px"></div>
 
   <div id="rvb-verdict" style="margin-top:10px"></div>
 
@@ -849,7 +895,7 @@ function setMode(m){
 
 function tab(id){
   document.querySelectorAll('.tab').forEach(function(t,i){
-    t.classList.toggle('on',['reality','paths','action','fi','loans','rent'][i]===id);
+    t.classList.toggle('on',['reality','paths','action','fi','loans','rent','true'][i]===id);
   });
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   $('tab-'+id).classList.add('on');
@@ -863,6 +909,7 @@ function tab(id){
     calcLoans();
   }
   if(id==='rent')calcRentBuy();
+  if(id==='true')calcTrue();
 }
 
 function setPath(n){
@@ -962,8 +1009,9 @@ function getCosts(){
   // Taxes
   var mortInt=owningNow?Math.round(Math.min(loanAmt,750000)*mRate/100*0.99):0;
   var propTaxAmt=owningNow?Math.round(hp*pTax):0;
-  var t=taxCalc({sal:s.sal,pinc:pinc,hh:hh,deferFed:deferrals+dcfsa,deferNJ:planType==='401k'?def401:0,
-    propTax:propTaxAmt,mortInt:mortInt,nk:nk});
+  var taxParams={sal:s.sal,pinc:pinc,hh:hh,deferFed:deferrals+dcfsa,deferNJ:planType==='401k'?def401:0,
+    propTax:propTaxAmt,mortInt:mortInt,nk:nk};
+  var t=taxCalc(taxParams);
 
   var left=gross-t.total-totalSpend;        // includes payroll deferrals (they're savings)
   var srPct=gross>0?Math.round(Math.max(0,left)/gross*100):0;
@@ -990,7 +1038,7 @@ function getCosts(){
     livingEst:livingEst,discEst:discEst,lifestyleEst:lifestyleEst,otherCost:otherCost,
     cars:cars,carsEst:carsEst,loanPay:loanPay,loanEst:loanEst,loansOn:loansOn,lb:lb,pslf:pslf,pslfYrs:pslfYrs,pslfYrsLeft:pslfYrsLeft,loansRefi:loansRefi,
     totalSpend:totalSpend,left:left,srPct:srPct,cashLeft:cashLeft,invest:invest,investSR:investSR,unassigned:unassigned,
-    takeHome:takeHome,nonPayInv:nonPayInv,rothAmt:rothAmt,brk:brk,prepay:prepay,osav:osav,spendEntered:spendEntered,impliedSpend:impliedSpend};
+    taxParams:taxParams,takeHome:takeHome,nonPayInv:nonPayInv,rothAmt:rothAmt,brk:brk,prepay:prepay,osav:osav,spendEntered:spendEntered,impliedSpend:impliedSpend};
 }
 
 // Effective savings rate used for projections (% of gross)
@@ -1082,6 +1130,7 @@ function go(){
   var activePanel=document.querySelector('.panel.on');
   if(activePanel&&activePanel.id==='tab-action')calcAction();
   if(activePanel&&activePanel.id==='tab-fi'){syncFISR();calcFI();}
+  if(activePanel&&activePanel.id==='tab-true')calcTrue();
 }
 
 // ── WATERFALL ─────────────────────────────────────────────────────
@@ -1794,6 +1843,87 @@ function calcLoans(){
   $('sl-result').innerHTML=html;
 }
 
+
+// ── TRUE COST OF A FIXED COST ─────────────────────────────────────
+var TC_PRESETS={
+  house:{amt:4000,yrs:31,ret:true,pct:37,d:'A $1.5M house instead of $1M in NJ — mortgage (6.75%), 2.23% property tax, insurance and upkeep on the extra $500k ≈ $4,000/mo.'},
+  lease:{amt:2000,yrs:31,ret:true,pct:100,d:'A $2,000/month luxury lease, renewed every 3 years, instead of driving a paid-off car. People who lease keep leasing.'},
+  school:{amt:6500,yrs:14,ret:false,pct:0,d:'Two children in private school at ~$39k each — for roughly 14 years of overlapping K–12.'},
+  nanny:{amt:3000,yrs:5,ret:false,pct:0,d:'A full-time nanny (~$9k/mo) instead of daycare for two (~$6k/mo) until kindergarten.'},
+  club:{amt:5000,yrs:31,ret:true,pct:100,d:'Country club dues plus a modest shore house (carry, taxes, upkeep). Easy to start, very hard to stop.'}
+};
+function tcPreset(k){
+  var p=TC_PRESETS[k];
+  $('tc-amt').value=p.amt;$('tc-yrs').value=p.yrs;$('tc-ret').checked=p.ret;$('tc-retpct').value=p.pct;
+  $('tc-desc').textContent=p.d;
+  document.querySelectorAll('#tc-presets .ptab').forEach(function(b){b.classList.toggle('on',b.getAttribute('onclick').indexOf("'"+k+"'")>0);});
+  calcTrue();
+}
+function calcTrue(){
+  var c=getCosts();
+  var amt=+$('tc-amt').value,yrsV=+$('tc-yrs').value,perm=yrsV>30;
+  var ret=$('tc-ret').checked,retPct=+$('tc-retpct').value/100;
+  $('tc-amt-v').textContent=fkPrecise(amt);
+  $('tc-yrs-v').textContent=perm?'Permanent':yrsV+' yr'+(yrsV!==1?'s':'');
+  $('tc-retpct-v').textContent=Math.round(retPct*100)+'%';
+  $('tc-retpct').closest('.sr').style.display=ret?'flex':'none';
+  var annual=amt*12;
+
+  // Marginal tax rate on the next dollar of salary
+  var tp=c.taxParams,t0=taxCalc(tp).total;
+  var tp2={};for(var k in tp)tp2[k]=tp[k];tp2.sal=tp.sal+10000;
+  var marg=(taxCalc(tp2).total-t0)/10000;
+  var grossNeeded=annual/(1-marg);
+  var pctTake=c.takeHome>0?annual/c.takeHome:0;
+
+  // Simulation: with vs without the cost
+  var rr=0.05,sa=startAge(),nw0=startNW();
+  var base=effInvest(c);
+  var fiBase=(+$('fi-spend').value||130000)*25;
+  var fiWith=fiBase+(ret?annual*retPct*25:0);
+  var coastT=34000*25;
+  var dur=perm?99:yrsV;
+  function run(withCost,target){
+    var nw=nw0,coast=null,fi=null,nw20=null;
+    for(var i=0;i<60;i++){
+      var sav=base-(withCost&&i<dur?annual:0);
+      nw=nw*(1+rr)+sav;
+      var a=sa+i+1;
+      if(!coast&&nw>=coastT)coast=a;
+      if(!fi&&nw>=target)fi=a;
+      if(i===19)nw20=nw;
+    }
+    return{coast:coast,fi:fi,nw20:nw20};
+  }
+  var A0=run(false,fiBase),A1=run(true,fiWith);
+  var lost20=A0.nw20-A1.nw20;
+  var paid=annual*Math.min(perm?20:yrsV,20);
+  var fiDelay=A0.fi&&A1.fi?A1.fi-A0.fi:(A0.fi&&!A1.fi?'60+':null);
+  var coastDelay=A0.coast&&A1.coast?A1.coast-A0.coast:null;
+
+  $('tc-metrics').innerHTML=[
+    {l:'Salary needed to pay it',v:fk(grossNeeded)+'/yr',s:'at your '+Math.round(marg*100)+'% marginal tax rate',c:'bad'},
+    {l:'Share of take-home',v:Math.round(pctTake*100)+'%',s:fk(amt)+' of '+fk(c.takeHome/12)+'/mo — feels like '+Math.round(annual/c.gross*100)+'% of gross',c:'warn'},
+    {l:'Lost wealth after 20 yrs',v:fk(lost20),s:'paid '+fk(paid)+' — plus what it would have grown to',c:'bad'},
+    {l:'FI number goes up',v:ret?'+'+fk(annual*retPct*25):'$0',s:ret?fk(annual*retPct)+'/yr still owed in retirement × 25':'ends before retirement',c:ret?'bad':''},
+    {l:'Call optional',v:coastDelay===null?'—':(coastDelay>0?'+'+coastDelay+' yr'+(coastDelay!==1?'s':''):'no change'),s:'age '+(A0.coast||'—')+' → '+(A1.coast||'never'),c:coastDelay>0?'bad':''},
+    {l:'Full FI',v:fiDelay===null?'—':(fiDelay==='60+'?'never':(fiDelay>0?'+'+fiDelay+' yrs':'no change')),s:'age '+(A0.fi||'—')+' → '+(A1.fi||'never'),c:fiDelay?'bad':''},
+  ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
+
+  $('tc-msg').innerHTML='<div class="box box-a"><div class="box-title" style="color:var(--am)">'+fkPrecise(amt)+' a month costs you '+fk(grossNeeded)+' a year of salary'+(perm?' — and never asks permission again':'')+'</div><div class="box-body">'+
+    'At '+fk(c.gross)+' gross, '+fk(annual)+'/yr looks like '+Math.round(annual/c.gross*100)+'% of income. But it comes out of take-home after a '+Math.round(marg*100)+'% marginal tax bite, so it is <strong>'+Math.round(pctTake*100)+'% of what actually reaches your account</strong>. '+
+    'Over 20 years the money paid plus the growth it gives up is <strong>'+fk(lost20)+'</strong>'+(ret?', and because it continues into retirement it raises the portfolio you need by another <strong>'+fk(annual*retPct*25)+'</strong>':'')+'. '+
+    'Income can fall — reimbursement cuts, a job change, less call, disability. Fixed costs can\'t. Decide them with the real numbers before they lock in.</div></div>';
+
+  $('tc-tbl').innerHTML='<tr><th></th><th>Without it</th><th>With it</th></tr>'+
+    '<tr><td>Saved per year</td><td>'+fk(base)+'</td><td>'+fk(base-annual)+(base-annual<0?' (deficit)':'')+'</td></tr>'+
+    '<tr><td>Net worth in 20 years</td><td>'+fk(A0.nw20)+'</td><td>'+fk(A1.nw20)+'</td></tr>'+
+    '<tr><td>FI number</td><td>'+fk(fiBase)+'</td><td>'+fk(fiWith)+'</td></tr>'+
+    '<tr class="hl-b"><td>Call optional at</td><td>'+(A0.coast||'—')+'</td><td>'+(A1.coast||'never')+'</td></tr>'+
+    '<tr class="hl"><td>Full FI at</td><td>'+(A0.fi||'—')+'</td><td>'+(A1.fi||'never')+'</td></tr>'+
+    '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">Starting from age '+sa+', net worth '+fk(nw0)+', saving '+fk(base)+'/yr ('+effSR(c)+'% — '+(c.actual?'your actual rate':'estimate from Reality Check')+'). Retirement spending from the FI Calculator tab ('+fk(fiBase/25)+'/yr). 5% real return; amounts in today\'s dollars.</td></tr>';
+}
+
 // ── RENT VS BUY ────────────────────────────────────────────────────
 var STATE_TAX={AL:0.41,AK:1.04,AZ:0.62,AR:0.62,CA:0.71,CO:0.51,CT:1.79,DE:0.57,FL:0.89,
   GA:0.92,HI:0.29,ID:0.69,IL:2.08,IN:0.87,IA:1.57,KS:1.41,KY:0.83,LA:0.56,ME:1.09,
@@ -1933,6 +2063,38 @@ function calcRentBuy(){
     '<tr><td>Maintenance (1% rule)</td><td>'+fk(maint*12)+'</td><td style="color:var(--rd)">Gone</td></tr>'+
     '<tr class="hl2"><td><strong>Total non-recoverable</strong></td><td><strong>'+fk(yr1NonRec)+'</strong></td><td style="color:var(--rd)"><strong>Gone</strong></td></tr>'+
     '<tr><td>Mortgage principal</td><td>'+fk(yr1Prin)+'</td><td style="color:var(--g)">Equity</td></tr></table>';
+
+  // ── "Renting is throwing money away" — money gone either way, year 1 ──
+  var oppCost=Math.round(downAmt*invReturn);
+  var closeBuy=Math.round(price*0.03);
+  var txnAnnual=Math.round((closeBuy+price*Math.pow(1+apprRate,years)*0.09)/years);
+  var apprYr1=Math.round(price*apprRate);
+  var ownerGone=yr1Int+propTax*12+insur*12+maint*12+oppCost+txnAnnual;
+  var ownerNet=ownerGone-apprYr1;
+  var renterGone=rent*12;
+  var beRent=Math.round((ownerNet)/12);
+  var mythWin=ownerNet>renterGone;
+  $('rvb-myth').innerHTML='<div class="card"><div class="ctitle">"Renting is throwing money away" — so is owning</div>'+
+    '<div style="font-size:11px;color:var(--mg);margin-bottom:8px;line-height:1.5">Both renters and owners pay money they never get back. Rent is the renter\'s. The owner\'s is interest, property tax, insurance, upkeep, buying and selling costs, and the return the down payment would have earned invested. Only principal and appreciation come back. Year 1, '+fk(price)+' home vs '+fk(rent)+'/mo rent, staying '+years+' yr'+(years!==1?'s':'')+':</div>'+
+    '<div class="g2">'+
+    '<table class="tbl"><tr><th>Renter — gone</th><th>Annual</th></tr>'+
+    '<tr><td>Rent</td><td>'+fk(renterGone)+'</td></tr>'+
+    '<tr class="hl2"><td><strong>Total gone</strong></td><td><strong>'+fk(renterGone)+'</strong></td></tr>'+
+    '<tr><td colspan="2" style="font-size:10px;color:var(--mg)">Down payment ('+fk(downAmt)+') stays invested and keeps earning.</td></tr></table>'+
+    '<table class="tbl"><tr><th>Owner — gone</th><th>Annual</th></tr>'+
+    '<tr><td>Mortgage interest</td><td>'+fk(yr1Int)+'</td></tr>'+
+    '<tr><td>Property tax</td><td>'+fk(propTax*12)+'</td></tr>'+
+    '<tr><td>Insurance + upkeep</td><td>'+fk(insur*12+maint*12)+'</td></tr>'+
+    '<tr><td>Return given up on '+fk(downAmt)+' down payment</td><td>'+fk(oppCost)+'</td></tr>'+
+    '<tr><td>Buying + selling costs, spread over '+years+' yr'+(years!==1?'s':'')+'</td><td>'+fk(txnAnnual)+'</td></tr>'+
+    '<tr><td style="color:var(--g)">Less: appreciation ('+(apprRate*100).toFixed(1)+'%)</td><td style="color:var(--g)">−'+fk(apprYr1)+'</td></tr>'+
+    '<tr class="hl2"><td><strong>Net gone</strong></td><td><strong>'+fk(ownerNet)+'</strong></td></tr></table>'+
+    '</div>'+
+    '<div class="box '+(mythWin?'box-a':'box-b')+'" style="margin-bottom:0"><div class="box-body">'+
+    (mythWin?'<strong>The owner loses '+fk(ownerNet-renterGone)+' more per year than the renter.</strong> Principal paydown ('+fk(yr1Prin)+') isn\'t on either list because it isn\'t a cost — it is savings, the same as the renter investing the difference. ':
+             '<strong>Here owning loses '+fk(renterGone-ownerNet)+' less per year than renting.</strong> At this price, rent, and time horizon, buying is the better deal. ')+
+    'Break-even: renting wins whenever comparable rent is below about <strong>'+fkPrecise(beRent)+'/mo</strong>. Equity is not free money — it is your own down payment and principal coming back.'+
+    '</div></div></div>';
 
   var txnHtml='';
   if(years<5){
