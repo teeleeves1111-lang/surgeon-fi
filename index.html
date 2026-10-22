@@ -199,29 +199,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   <p id="hdr-sub">Model your trajectory before your first contract. The decisions you make in years 1–3 determine when call becomes optional.</p>
   <div class="hdr-row">
     <select id="spec" onchange="specChanged()">
-      <option value="gen_surg">General Surgery — $461k</option>
-      <option value="trauma">Trauma / Surg Critical Care — $461k</option>
-      <option value="vascular" selected>Vascular Surgery — $556k</option>
-      <option value="ct">Cardiothoracic Surgery — $721k</option>
-      <option value="surg_onc">Surgical Oncology — $500k</option>
-      <option value="endocrine">Endocrine Surgery — $420k</option>
-      <option value="colorectal">Colorectal Surgery — $480k</option>
-      <option value="mis">MIS / Bariatric — $440k</option>
+      <option value="gen_surg">General Surgery — $501k</option>
+      <option value="trauma">Trauma / Surg Critical Care — $480k</option>
+      <option value="vascular" selected>Vascular Surgery — $601k</option>
+      <option value="ct">Cardiothoracic Surgery — $750k</option>
+      <option value="surg_onc">Surgical Oncology — $520k</option>
+      <option value="endocrine">Endocrine Surgery — $440k</option>
+      <option value="colorectal">Colorectal Surgery — $493k</option>
+      <option value="mis">MIS / Bariatric — $460k</option>
     </select>
     <div style="display:flex;flex-direction:column;gap:4px">
       <div style="display:flex;align-items:center;gap:6px">
-        <div class="sal" id="sal">$556k</div>
-        <div class="sal-r" id="sal-r">Doximity avg</div>
+        <div class="sal" id="sal">$601k</div>
+        <div class="sal-r" id="sal-r">Doximity 2026 avg</div>
       </div>
       <div style="display:flex;align-items:center;gap:5px">
         <input type="checkbox" id="sal-override-on" onchange="toggleSalOverride()" style="accent-color:#7FFFD4;width:13px;height:13px;flex-shrink:0">
         <label for="sal-override-on" style="font-size:10px;color:rgba(255,255,255,0.75);white-space:nowrap">Enter my actual salary</label>
-        <input type="number" id="sal-override" min="100000" max="3000000" step="5000" value="556000"
+        <input type="number" id="sal-override" min="100000" max="3000000" step="5000" value="601000"
           style="display:none;width:90px;font-size:12px;padding:3px 6px;border-radius:5px;border:none;font-family:var(--font)"
           oninput="go()">
       </div>
     </div>
   </div>
+  <p style="margin-top:8px;font-size:10px;opacity:.75">Have an offer? Enter it — in NJ, productivity bonuses and private practice can run well above the national average (vascular postings range from $400–600k base at hospital systems to $1M+ in outpatient private practice).</p>
 </div>
 
 <!-- TABS -->
@@ -253,10 +254,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 
       <!-- Attending only -->
       <div id="att-only" style="display:none">
-        <div class="sr" id="att-sr-row"><label>Current savings rate</label>
-          <input type="range" min="3" max="50" value="14" id="att-sr" oninput="go()">
-          <span class="sv" id="att-sr-v">14%</span></div>
-        <div class="hint" id="att-sr-note" style="display:none">Savings rate is now calculated from your actual numbers below.</div>
+        <div class="box box-b" style="margin:0 0 9px"><div class="box-body"><strong>Don't guess your savings rate.</strong> Most attendings don't know it, and most overestimate it. Turn on <strong>Find my real savings rate</strong> (next to the waterfall) — it builds the number from things on your pay stub and statements.</div></div>
       </div>
 
       <div class="sr"><label>Current net worth</label>
@@ -370,27 +368,40 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
       <!-- ACTUAL NUMBERS -->
       <div class="card" id="act-card">
         <div class="trow" style="margin-bottom:4px">
-          <label style="font-size:13px;font-weight:600;color:var(--dk)">Use my actual numbers</label>
+          <label style="font-size:13px;font-weight:600;color:var(--dk)">Find my real savings rate</label>
           <label class="tog"><input type="checkbox" id="act-on" onchange="go()"><span class="tsl"></span></label></div>
-        <div class="hint" style="margin:0">The estimates are realistic defaults. If you know your real monthly spending, enter it here — the savings rate and every projection will use your numbers instead.</div>
+        <div class="hint" style="margin:0">Most surgeons don't know their savings rate. You don't need a budget to find it — just what actually lands in savings each month. Everything else is what you spend.</div>
         <div id="act-opts" style="display:none;margin-top:10px">
-          <div class="nr"><label>Total monthly spending<small>Everything except taxes and payroll retirement deductions. Fill this in OR the categories below.</small></label>
-            <div class="nin"><span>$</span><input type="number" id="act-total" min="0" step="100" placeholder="" oninput="go()"></div></div>
+          <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">Step 1 — What goes into savings</div>
+          <div class="nr"><label>Payroll retirement<small>From "Retirement plan at work" on the left — check your pay stub</small></label>
+            <div class="nin"><span id="act-def" style="font-weight:600;color:var(--dk)">$0/yr</span></div></div>
+          <div class="nr"><label>Backdoor Roth IRAs<small>$7,500 each, done once a year</small></label>
+            <div class="nin"><select id="act-roth" onchange="go()" style="font-size:12px;padding:6px;border-radius:7px;border:1px solid var(--bdr);font-family:var(--font)">
+              <option value="0">None</option><option value="7500">One — $7,500</option><option value="15000" selected>Both spouses — $15,000</option></select></div></div>
+          <div class="nr"><label>Brokerage transfers<small>Automatic monthly amount into your taxable account</small></label>
+            <div class="nin"><span>$</span><input type="number" id="act-brk" min="0" step="100" placeholder="0" oninput="go()"></div></div>
+          <div class="nr"><label>Extra loan principal<small>Above the required payment, per month</small></label>
+            <div class="nin"><span>$</span><input type="number" id="act-prepay" min="0" step="100" placeholder="0" oninput="go()"></div></div>
+          <div class="nr"><label>Other savings<small>HSA, cash you're building up — per month</small></label>
+            <div class="nin"><span>$</span><input type="number" id="act-osav" min="0" step="100" placeholder="0" oninput="go()"></div></div>
+
+          <div class="subhd">Step 2 (optional) — What you think you spend</div>
+          <div class="hint">Skip this and the app will tell you what your spending must be. Fill it in to check whether your numbers add up.</div>
+          <div class="nr"><label>Total monthly spending<small>Everything except taxes, payroll deductions, and the savings above. Fill this in OR the categories.</small></label>
+            <div class="nin"><span>$</span><input type="number" id="act-total" min="0" step="100" oninput="go()"></div></div>
           <div id="act-cats">
             <div class="nr"><label>Housing<small>Mortgage or rent, property tax, insurance, HOA, upkeep</small></label>
               <div class="nin"><span>$</span><input type="number" id="act-housing" min="0" step="100" oninput="go()"></div></div>
             <div class="nr"><label>Childcare &amp; school tuition</label>
               <div class="nin"><span>$</span><input type="number" id="act-kids" min="0" step="100" oninput="go()"></div></div>
-            <div class="nr"><label>Student loan payments</label>
+            <div class="nr"><label>Student loan payments<small>Required payment only</small></label>
               <div class="nin"><span>$</span><input type="number" id="act-loans" min="0" step="50" oninput="go()"></div></div>
             <div class="nr"><label>Cars<small>Payments/leases, insurance, gas</small></label>
               <div class="nin"><span>$</span><input type="number" id="act-cars" min="0" step="50" oninput="go()"></div></div>
             <div class="nr"><label>Everything else<small>Food, utilities, health premiums, insurance, kids' activities, travel, dining, gifts</small></label>
               <div class="nin"><span>$</span><input type="number" id="act-other" min="0" step="100" oninput="go()"></div></div>
           </div>
-          <div class="nr" style="margin-top:10px;padding-top:9px;border-top:1px solid var(--bdr)"><label>What I actually invest each month<small>Roth IRAs + brokerage + extra loan prepayment. Payroll 403(b)/401(k)/457 are counted automatically.</small></label>
-            <div class="nin"><span>$</span><input type="number" id="act-inv" min="0" step="100" oninput="go()"></div></div>
-          <div class="hint" style="margin-top:6px">Blank boxes keep the estimate (shown in grey). Tip: annual bills — property tax, travel, camps, insurance, repairs — divided by 12 belong in these numbers.</div>
+          <div class="hint" style="margin-top:6px">Grey numbers are the app's estimates for a household like yours. Annual bills — property tax, travel, camps, insurance, repairs — divided by 12 belong in these numbers.</div>
         </div>
       </div>
     </div>
@@ -703,15 +714,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 
 </div><!-- /shell -->
 <script>
+// Doximity Physician Compensation Report 2026 averages where reported (dox:true);
+// others are estimates. hi = upper end incl. NJ private practice / productivity bonuses.
 var SPECS={
-  gen_surg:{n:"General Surgery",sal:461000,lo:300000,hi:580000},
-  trauma:{n:"Trauma / Surg Crit Care",sal:461000,lo:380000,hi:550000},
-  vascular:{n:"Vascular Surgery",sal:556000,lo:420000,hi:700000},
-  ct:{n:"Cardiothoracic Surgery",sal:721000,lo:550000,hi:950000},
-  surg_onc:{n:"Surgical Oncology",sal:500000,lo:380000,hi:640000},
-  endocrine:{n:"Endocrine Surgery",sal:420000,lo:320000,hi:560000},
-  colorectal:{n:"Colorectal Surgery",sal:480000,lo:360000,hi:620000},
-  mis:{n:"MIS / Bariatric",sal:440000,lo:320000,hi:580000}
+  gen_surg:{n:"General Surgery",sal:501000,lo:330000,hi:750000,dox:true},
+  trauma:{n:"Trauma / Surg Crit Care",sal:480000,lo:380000,hi:650000},
+  vascular:{n:"Vascular Surgery",sal:601000,lo:420000,hi:1000000,dox:true},
+  ct:{n:"Cardiothoracic Surgery",sal:750000,lo:550000,hi:1100000,dox:true},
+  surg_onc:{n:"Surgical Oncology",sal:520000,lo:380000,hi:700000},
+  endocrine:{n:"Endocrine Surgery",sal:440000,lo:320000,hi:600000},
+  colorectal:{n:"Colorectal Surgery",sal:493000,lo:360000,hi:750000,dox:true},
+  mis:{n:"MIS / Bariatric",sal:460000,lo:320000,hi:700000}
 };
 
 // ── 2026 CONSTANTS ───────────────────────────────────────────────
@@ -751,7 +764,7 @@ function sp(){
   var base=SPECS[$('spec').value];
   var overrideOn=$('sal-override-on')&&$('sal-override-on').checked;
   var overrideVal=overrideOn?parseInt($('sal-override').value)||base.sal:base.sal;
-  return{n:base.n, sal:overrideVal, lo:base.lo, hi:base.hi,
+  return{n:base.n, sal:overrideVal, lo:base.lo, hi:base.hi, dox:base.dox,
     overridden:overrideOn&&overrideVal!==base.sal};
 }
 function startAge(){return MODE==='res'?(+$('age').value + +$('yrs-left').value):+$('age').value;}
@@ -931,7 +944,7 @@ function getCosts(){
   if(actual){
     A.total=numOrNull('act-total');
     A.housing=numOrNull('act-housing');A.kids=numOrNull('act-kids');A.loans=numOrNull('act-loans');
-    A.cars=numOrNull('act-cars');A.other=numOrNull('act-other');A.inv=numOrNull('act-inv');
+    A.cars=numOrNull('act-cars');A.other=numOrNull('act-other');
   }
   var housingCost=A.housing!==null?A.housing*12:(housingEst+rentEst);
   var kidsCost=A.kids!==null?A.kids*12:(childcareEst+schoolEst);
@@ -954,9 +967,19 @@ function getCosts(){
   var left=gross-t.total-totalSpend;        // includes payroll deferrals (they're savings)
   var srPct=gross>0?Math.round(Math.max(0,left)/gross*100):0;
   var cashLeft=left-deferrals;              // after-tax cash left after spending and payroll deferrals
-  var invest=A.inv!==null?deferrals+A.inv*12:Math.max(0,left);
+  // Actual savings — built from what lands in accounts
+  var rothAmt=0,brk=0,prepay=0,osav=0,nonPayInv=0;
+  if(actual){
+    rothAmt=+$('act-roth').value;
+    brk=(numOrNull('act-brk')||0)*12;prepay=(numOrNull('act-prepay')||0)*12;osav=(numOrNull('act-osav')||0)*12;
+    nonPayInv=rothAmt+brk+prepay+osav;
+  }
+  var takeHome=gross-t.total-deferrals;
+  var invest=actual?deferrals+nonPayInv:Math.max(0,left);
   var investSR=gross>0?Math.round(invest/gross*100):0;
-  var unassigned=A.inv!==null?cashLeft-A.inv*12:null;
+  var spendEntered=actual&&(A.total!==null||A.housing!==null||A.kids!==null||A.loans!==null||A.cars!==null||A.other!==null);
+  var impliedSpend=takeHome-nonPayInv-save529Amt;
+  var unassigned=spendEntered?takeHome-nonPayInv-totalSpend:null;
 
   return{s:s,gross:gross,pinc:pinc,hh:hh,actual:actual,A:A,tax:t,taxes:t.total,
     deferrals:deferrals,def401:def401,def457:def457,planType:planType,dcfsa:dcfsa,
@@ -965,18 +988,17 @@ function getCosts(){
     save529On:save529On,save529Amt:save529Amt,
     livingEst:livingEst,discEst:discEst,lifestyleEst:lifestyleEst,otherCost:otherCost,
     cars:cars,carsEst:carsEst,loanPay:loanPay,loanEst:loanEst,loansOn:loansOn,lb:lb,pslf:pslf,pslfYrs:pslfYrs,pslfYrsLeft:pslfYrsLeft,loansRefi:loansRefi,
-    totalSpend:totalSpend,left:left,srPct:srPct,cashLeft:cashLeft,invest:invest,investSR:investSR,unassigned:unassigned};
+    totalSpend:totalSpend,left:left,srPct:srPct,cashLeft:cashLeft,invest:invest,investSR:investSR,unassigned:unassigned,
+    takeHome:takeHome,nonPayInv:nonPayInv,rothAmt:rothAmt,brk:brk,prepay:prepay,osav:osav,spendEntered:spendEntered,impliedSpend:impliedSpend};
 }
 
 // Effective savings rate used for projections (% of gross)
 function effSR(c){
   if(c.actual)return c.investSR;
-  if(MODE==='att')return +$('att-sr').value;
   return c.srPct;
 }
 function effInvest(c){
   if(c.actual)return c.invest;
-  if(MODE==='att')return Math.round(c.gross*(+$('att-sr').value)/100);
   return c.left;
 }
 
@@ -1000,11 +1022,10 @@ function toggleSalOverride(){
 function go(){
   var s=sp();
   $('sal').textContent=fk(s.sal);
-  $('sal-r').textContent=s.overridden?'Custom salary entered':'Range: '+fk(s.lo)+'–'+fk(s.hi);
+  $('sal-r').innerHTML=s.overridden?'Custom salary entered':(s.dox?'Doximity 2026 avg':'Estimated avg')+'<br>Range: '+fk(s.lo)+'–'+fk(s.hi);
 
   $('age-v').textContent=$('age').value;
   if(MODE==='res') $('yrs-left-v').textContent=$('yrs-left').value+' yrs';
-  $('att-sr-v').textContent=$('att-sr').value+'%';
   $('nw-v').textContent=fk(+$('nw').value);
   $('pinc-row').style.display=hhType()==='couple'?'flex':'none';
   $('pinc-v').textContent=+$('pinc').value>0?fk(+$('pinc').value):'None';
@@ -1042,8 +1063,6 @@ function go(){
   var totalFilled=actOn&&$('act-total').value!=='';
   ['act-housing','act-kids','act-loans','act-cars','act-other'].forEach(function(id){$(id).disabled=totalFilled;});
   $('act-cats').style.opacity=totalFilled?'0.5':'1';
-  $('att-sr-row').style.display=actOn?'none':'flex';
-  $('att-sr-note').style.display=actOn?'block':'none';
 
   var c=getCosts();
   // Placeholders show the current estimate (monthly)
@@ -1054,7 +1073,7 @@ function go(){
   $('act-other').placeholder=Math.round((c.livingEst+c.discEst+c.lifestyleEst)/12).toLocaleString();
   var estTotalMo=Math.round((c.housingEst+c.rentEst+c.childcareEst+c.schoolEst+c.loanEst+c.carsEst+c.livingEst+c.discEst+c.lifestyleEst)/12);
   $('act-total').placeholder=estTotalMo.toLocaleString();
-  $('act-inv').placeholder='—';
+  $('act-def').textContent=fk(c.deferrals)+'/yr';
 
   calcWaterfall(c);
   calcPaths();
@@ -1075,7 +1094,29 @@ function calcWaterfall(c){
   var dpAlert=c.houseOn&&!c.houseOwned&&c.buyYr===0&&downNeeded>0&&downNeeded>nwNow;
   var pct=function(a){return Math.round(a/c.gross*100);};
 
-  var items=[{l:'Gross income',a:c.gross,col:'#1D6B52',inc:true}];
+  var items;
+  if(c.actual){
+    var dlabel=c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)');
+    items=[{l:'Gross income',a:c.gross,col:'#1D6B52',inc:true},
+      {l:'Federal + NJ + Social Security + Medicare',a:c.taxes,col:'#C0392B',p:pct(c.taxes),
+        note:'fed '+fk(c.tax.fed)+' · NJ '+fk(c.tax.nj)+' · FICA '+fk(c.tax.fica)+(c.tax.itemizing?' · itemizing':'')}];
+    if(c.deferrals>0) items.push({l:'Payroll '+dlabel+tagA,a:c.deferrals,col:'#1D6B52',p:pct(c.deferrals),sv:true});
+    if(c.rothAmt>0) items.push({l:'Backdoor Roth'+tagA,a:c.rothAmt,col:'#1D6B52',p:pct(c.rothAmt),sv:true});
+    if(c.brk>0) items.push({l:'Brokerage'+tagA,a:c.brk,col:'#1D6B52',p:pct(c.brk),sv:true});
+    if(c.prepay>0) items.push({l:'Extra loan principal'+tagA,a:c.prepay,col:'#1D6B52',p:pct(c.prepay),sv:true});
+    if(c.osav>0) items.push({l:'Other savings'+tagA,a:c.osav,col:'#1D6B52',p:pct(c.osav),sv:true});
+    if(c.save529On) items.push({l:'529 savings',a:c.save529Amt,col:'#8E44AD',p:pct(c.save529Amt)});
+    if(c.spendEntered){
+      var se=c.totalSpend-c.save529Amt;
+      items.push({l:'Spending'+tagA,a:se,col:'#E67E22',p:pct(se),note:A.total===null?'grey categories use estimates':null});
+      if(c.unassigned>6000) items.push({l:'Not accounted for',a:c.unassigned,col:'#B8B8B8',p:pct(c.unassigned),bad:true});
+      else if(c.unassigned<-6000) items.push({l:'Overspent / double-counted',a:-c.unassigned,col:'#C0392B',p:pct(-c.unassigned),bad:true});
+    } else {
+      items.push({l:'Spending (implied)',a:Math.max(0,c.impliedSpend),col:'#E67E22',p:pct(Math.max(0,c.impliedSpend)),note:'everything not saved — '+fk(c.impliedSpend/12)+'/mo'});
+    }
+    items.push({l:'Total saved',a:c.invest,col:c.investSR>=20?'#1D6B52':c.investSR>=12?'#E8A020':'#C0392B',res:true,p:c.investSR});
+  } else {
+    items=[{l:'Gross income',a:c.gross,col:'#1D6B52',inc:true}];
   items.push({l:'Federal + NJ + Social Security + Medicare',a:c.taxes,col:'#C0392B',p:pct(c.taxes),
     note:'fed '+fk(c.tax.fed)+' · NJ '+fk(c.tax.nj)+' · FICA '+fk(c.tax.fica)+(c.tax.itemizing?' · itemizing':'')});
   if(useTotal){
@@ -1095,10 +1136,11 @@ function calcWaterfall(c){
       note:A.other!==null?null:'household of '+hhSize()+' · food, utilities, health premiums, travel'+(c.lifestyleEst>0?' · incl. '+fk(c.lifestyleEst)+' bigger-home costs':'')});
   }
   if(c.save529On) items.push({l:'529 savings',a:c.save529Amt,col:'#8E44AD',p:pct(c.save529Amt)});
-  if(c.left>=0) items.push({l:c.actual&&A.inv!==null?'Left after taxes & spending':'Available to invest',a:c.left,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:c.srPct,
+  if(c.left>=0) items.push({l:'Available to invest',a:c.left,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:c.srPct,
     note:c.deferrals>0?'incl. '+fk(c.deferrals)+' payroll '+(c.def457>0?'403(b)+457(b)':(c.planType==='401k'?'401(k)':'403(b)')):null});
   else items.push({l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true});
 
+  }
   $('waterfall').innerHTML=items.map(function(it){
     var w=Math.max(2,Math.round(Math.abs(it.a)/c.gross*100));
     return '<div class="wfr'+(it.res||it.bad?' tot':'')+'">'+
@@ -1108,29 +1150,44 @@ function calcWaterfall(c){
       '<div class="wfp">'+(it.p&&!it.inc?it.p+'%':'')+'</div></div>';
   }).join('');
 
-  var showSR=c.actual&&A.inv!==null?c.investSR:c.srPct;
+  var showSR=c.actual?c.investSR:c.srPct;
   var cls=showSR>=20?'good':showSR>=12?'warn':'bad';
-  $('wf-metrics').innerHTML=[
-    {l:c.actual&&A.inv!==null?'Actual savings rate':'Savings rate',v:showSR+'%',
-      s:c.actual&&A.inv!==null?'what you really invest':(dpAlert?'on paper — down payment not yet saved':c.buyYr>0?'renting now — buying yr '+c.buyYr:'of gross, if all leftover is invested'),c:dpAlert?'warn':cls},
-    {l:'Investable / yr',v:fk(Math.max(0,c.left)),s:c.left<=0?'spending > income':'after all costs',c:c.left>0?'good':'bad'},
-    {l:'Take-home / mo',v:fk((c.gross-c.taxes-c.deferrals)/12),s:'after tax & payroll deferrals',c:''},
+  var mets=c.actual?[
+    {l:'Your savings rate',v:showSR+'%',s:fk(c.invest)+'/yr saved',c:cls},
+    {l:c.spendEntered?'Spending / mo':'Implied spending / mo',v:fk((c.spendEntered?c.totalSpend-c.save529Amt:c.impliedSpend)/12),s:c.spendEntered?'what you entered':'take-home minus savings',c:''},
+    {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
     {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
-  ].map(function(m){
+  ]:[
+    {l:'Savings rate',v:showSR+'%',s:dpAlert?'on paper — down payment not yet saved':c.buyYr>0?'renting now — buying yr '+c.buyYr:'estimate, if all leftover is invested',c:dpAlert?'warn':cls},
+    {l:'Investable / yr',v:fk(Math.max(0,c.left)),s:c.left<=0?'spending > income':'after all costs',c:c.left>0?'good':'bad'},
+    {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
+    {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
+  ];
+  $('wf-metrics').innerHTML=mets.map(function(m){
     return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';
   }).join('');
 
-  // Reconciliation (actual mode + actual investing entered)
+  // Savings-rate result / reconciliation
   var recon='';
-  if(c.actual&&A.inv!==null){
+  var estSpendMo=Math.round((c.housingEst+c.rentEst+c.childcareEst+c.schoolEst+c.loanEst+c.carsEst+c.livingEst+c.discEst+c.lifestyleEst)/12);
+  if(c.actual&&!c.spendEntered){
+    var imp=Math.round(c.impliedSpend/12);
+    recon='<div class="box box-b"><div class="box-title" style="color:var(--b)">Your savings rate is '+c.investSR+'% — which means you spend about '+fkPrecise(imp)+'/month</div><div class="box-body">'+
+      'Take-home pay is '+fkPrecise(c.takeHome/12)+'/mo. Whatever doesn\'t go into the accounts in Step 1 gets spent — that\'s about <strong>'+fk(c.impliedSpend)+' a year</strong>. '+
+      'For comparison, the app\'s estimate for a household like yours is '+fkPrecise(estSpendMo)+'/mo. '+
+      (imp>estSpendMo*1.15?'If '+fkPrecise(imp)+' sounds too high, the difference is usually annual costs nobody counts monthly (property tax bills, travel, camps, insurance, repairs) or cash piling up in checking. ':'')+
+      'Most people guess their spending low and their savings rate high. This number doesn\'t depend on guessing.</div></div>';
+  } else if(c.actual){
     var u=c.unassigned,um=Math.round(u/12);
     if(um>500){
       recon='<div class="box box-a"><div class="box-title" style="color:var(--am)">≈'+fkPrecise(um)+'/mo not accounted for</div><div class="box-body">'+
-        'Take-home pay minus your spending and investing leaves about <strong>'+fk(u)+' a year</strong> unexplained. It almost always turns out to be one of: annual costs missing from the monthly figure (property tax bills, travel, camps, insurance premiums, repairs, holidays), a bonus or RVU payment that isn\'t guaranteed, or cash quietly piling up in checking. One evening adding up 12 months of bank and card outflows settles it. Whatever it is, automating the brokerage transfer first means this money gets invested before it gets spent.</div></div>';
+        'Take-home pay minus the spending you entered and your savings leaves about <strong>'+fk(u)+' a year</strong> unexplained. That money is being spent somewhere — your real spending is closer to <strong>'+fkPrecise(c.impliedSpend/12)+'/mo</strong>. '+
+        'The usual culprits: annual costs left out of a monthly figure (property tax bills, travel, camps, insurance premiums, repairs, holidays), or a monthly number that doesn\'t include the mortgage or childcare. Sometimes it\'s cash quietly piling up in checking — check the balance. '+
+        'Either way, your savings rate is <strong>'+c.investSR+'%</strong>. Automating a bigger brokerage transfer is the only reliable way to capture the gap.</div></div>';
     } else if(um<-500){
-      recon='<div class="box box-r"><div class="box-title" style="color:var(--rd)">Spending + investing exceed take-home by ≈'+fkPrecise(-um)+'/mo</div><div class="box-body">Check the numbers — either a category is double-counted, income is higher than entered (partner, bonus), or savings are being drawn down.</div></div>';
+      recon='<div class="box box-r"><div class="box-title" style="color:var(--rd)">Spending + savings exceed take-home by ≈'+fkPrecise(-um)+'/mo</div><div class="box-body">Something is double-counted, income is higher than entered (partner, bonus), or savings are being drawn down to cover spending.</div></div>';
     } else {
-      recon='<div class="box box-g"><div class="box-title" style="color:var(--g)">✓ Your numbers reconcile</div><div class="box-body">Take-home pay, spending, and investing line up within $500/month. Actual savings rate: <strong>'+c.investSR+'%</strong> of gross ('+fk(c.invest)+'/yr including payroll retirement deferrals).</div></div>';
+      recon='<div class="box box-g"><div class="box-title" style="color:var(--g)">✓ Your numbers add up — savings rate '+c.investSR+'%</div><div class="box-body">Take-home pay, spending, and savings line up within $500/month. You save '+fk(c.invest)+' a year, including payroll retirement contributions.</div></div>';
     }
   }
   $('recon-msg').innerHTML=recon;
@@ -1158,7 +1215,7 @@ function calcWaterfall(c){
   if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|Call is not optional until '+coastAge+'. '+callYrsLine+' Biggest levers here: '+levers.slice(0,3).join(', ')+'. '+(MODE==='att'?'The sensitivity panel below shows which single change moves the needle most.':'It improves as loans pay off and childcare ends — but only if that money is redirected, not absorbed.');
   else if(displaySR<20) msg='box-a|Below the 20% WCI target ('+displaySR+'%)|Call becomes optional at '+coastAge+(extraVsIdeal?' — <strong>'+extraVsIdeal+' years later</strong> than the 25% path.':'.')+' Biggest levers: '+levers.slice(0,3).join(', ')+'.';
   else msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ($24,500), 457(b) if offered ($24,500), and backdoor Roth for both spouses ($15,000) first. Add HSA ($8,750 family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
-  if(!c.actual) msg+=' <em>These are estimates — toggle "Use my actual numbers" to see your real rate.</em>';
+  if(!c.actual) msg+=' <em>This is an estimate — turn on "Find my real savings rate" to see yours.</em>';
 
   // Down payment feasibility
   var dpWarning='';
@@ -1439,7 +1496,7 @@ function calcAction(){
     {u:false,i:'✅',t:'Confirm 403(b)/401(k) is maxed at $24,500',d:'Verify with HR — many attendings set a percentage and miss the max.',w:'Verify now'},
     {u:false,i:'➕',t:'Is the 457(b) being used?',d:'Hospital-employed: another $24,500 pre-tax. Read the distribution options before enrolling.',w:'Open enrollment'},
     {u:false,i:'✅',t:'Backdoor Roth executed this year',d:'$15,000 (both spouses, $7,500 each) → converted. Prior-year contributions allowed until the tax filing deadline.',w:'January each year'},
-    {u:false,i:'📊',t:'Know your actual savings rate',d:'Turn on "Use my actual numbers" on the Reality Check tab. Most attendings overestimate by 5–8 points.',w:'Calculate this week'},
+    {u:false,i:'📊',t:'Know your actual savings rate',d:'Turn on "Find my real savings rate" on the Reality Check tab — it builds the number from your pay stub and account transfers. Most attendings overestimate theirs.',w:'Calculate this week'},
     {u:false,i:'🎯',t:'Know your call optionality number',d:'Use the FI Calculator tab. Track this quarterly — watching it approach is motivating.',w:'Calculate now'},
     {u:false,i:'👶',t:'Plan the day childcare ends',d:'Set the brokerage transfer increase now so it starts the month daycare stops.',w:'Before it happens'},
     {u:false,i:'📋',t:'Student loan strategy — is it still optimal?',d:'PSLF: employer certification filed? Private: is current rate still competitive?',w:'Review annually'},
