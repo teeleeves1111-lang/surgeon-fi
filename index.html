@@ -329,8 +329,8 @@ details.pb-more[open]>summary{margin-bottom:9px;}
         <div class="trow" style="margin-bottom:2px"><label>Already own it (down payment already paid)</label>
           <label class="tog"><input type="checkbox" id="house-owned" onchange="go()"><span class="tsl"></span></label></div>
         <div id="buy-yr-row" class="sr"><label>Years before buying</label>
-          <input type="range" min="0" max="5" value="0" id="buy-yr" oninput="go()">
-          <span class="sv" id="buy-yr-v">Now</span></div>
+          <input type="range" min="0" max="5" value="2" id="buy-yr" oninput="go()">
+          <span class="sv" id="buy-yr-v">Yr 2</span></div>
         <div class="hint" id="house-hint">Uses property tax and mortgage rate from the Rent vs Buy tab (NJ 2.23%, 6.75%).</div>
       </div>
       <div id="rent-opts" class="sub-opts" style="display:none">
@@ -607,7 +607,7 @@ details.pb-more[open]>summary{margin-bottom:9px;}
 <div id="tab-paths" class="panel">
   <div class="fu res" id="fu">
     <h2>When can you walk away from call?</h2>
-    <p>Call optionality — enough invested to cover a reduced "gap" spending level. After this, call is a choice, not a necessity.</p>
+    <p>Call optional = enough saved that you could stop saving, take a job without call that covers your bills, and still retire on time. Before that, call is a necessity; after it, a choice.</p>
     <div class="fu-grid" id="fu-grid"></div>
   </div>
 
@@ -631,10 +631,10 @@ details.pb-more[open]>summary{margin-bottom:9px;}
     </div>
     <div class="card">
       <div class="ctitle">All paths compared</div>
-      <table class="tbl" id="compare-tbl"></table>
+      <div style="overflow-x:auto"><table class="tbl" id="compare-tbl"></table></div>
       <div style="margin-top:10px">
         <div class="ctitle">Monthly spending behind each path</div>
-        <table class="tbl" id="spend-tbl"></table>
+        <div style="overflow-x:auto"><table class="tbl" id="spend-tbl"></table></div>
       </div>
     </div>
   </div>
@@ -1469,7 +1469,7 @@ function calcWaterfall(c){
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
     {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
   ]:[
-    {l:'Savings rate',v:showSR+'%',s:dpAlert?'on paper — down payment not yet saved':c.buyYr>0?'renting now — buying yr '+c.buyYr:'estimate, if all leftover is invested',c:dpAlert?'warn':cls},
+    {l:'Room to save',v:showSR+'%',s:'only if every leftover dollar is invested'+(c.buyYr>0?' · renting now':''),c:dpAlert?'warn':cls},
     {l:'Investable / yr',v:fk(Math.max(0,c.left)),s:c.left<=0?'spending > income':'after all costs',c:c.left>0?'good':'bad'},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
     {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
@@ -1525,8 +1525,16 @@ function calcWaterfall(c){
   var msg='';
   if(displaySR<10) msg='box-r|Reality check: '+displaySR+'% savings rate|Call is not optional until '+coastAge+'. '+callYrsLine+' Biggest levers here: '+levers.slice(0,3).join(', ')+'. '+(MODE==='att'?'The sensitivity panel below shows which single change moves the needle most.':'It improves as loans pay off and childcare ends — but only if that money is redirected, not absorbed.');
   else if(displaySR<20) msg='box-a|Below the 20% WCI target ('+displaySR+'%)|Call becomes optional at '+coastAge+(extraVsIdeal?' — <strong>'+extraVsIdeal+' years later</strong> than the 25% path.':'.')+' Biggest levers: '+levers.slice(0,3).join(', ')+'.';
-  else msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ('+$L(LIM.k401)+'), 457(b) if offered ('+$L(LIM.k401)+'), and backdoor Roth for both spouses ('+$L(2*LIM.ira)+') first. Add HSA ('+$L(LIM.hsaFam)+' family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
-  if(!c.actual) msg+=' <em>This is an estimate — turn on "Find my real savings rate" to see yours.</em>';
+  else if(c.actual) msg='box-g|On track at '+displaySR+'%|Call becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ('+$L(LIM.k401)+'), 457(b) if offered ('+$L(LIM.k401)+'), and backdoor Roth for both spouses ('+$L(2*LIM.ira)+') first. Add HSA ('+$L(LIM.hsaFam)+' family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
+  if(!c.actual){
+    // Estimate mode: show the room to save honestly, next to what happens if only the retirement accounts get funded
+    var floorSav=c.deferrals+(c.hh==='couple'?2*LIM.ira:LIM.ira);
+    var floorAge=coastAt(floorSav),floorSR=Math.round(floorSav/c.gross*100);
+    msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.left))+' a year</strong> is left over. '+
+      'If that is automated into savings, call becomes optional at '+coastAge+'. '+
+      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income), call becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
+      'The difference is whether the leftover is automated on day one. <em>Turn on "Find my real savings rate" to see what you actually save.</em>';
+  }
 
   // Down payment feasibility
   var dpWarning='';
@@ -2396,9 +2404,9 @@ function calcPlay(){
 
   var goalMet=plan.coast!==null&&plan.coast<=goal;
   $('pb-big').innerHTML=[
-    {l:'Savings rate',v:effSR(c)+'%',s:c.actual?'your actual rate today':'estimate today',c:effSR(c)>=20?'good':effSR(c)>=12?'warn':'bad'},
-    {l:'Call optional',v:plan.coast?'age '+plan.coast:'not by '+retAge(),s:'on this plan (goal '+goal+')',c:goalMet?'good':plan.coast?'warn':'bad'},
-    {l:'Full retirement',v:plan.fi?'age '+plan.fi:'past '+(sa+60),s:fk(spend)+'/yr in retirement',c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
+    {l:'Saving now',v:Math.round((taxAdv+12*brk)/c.gross*100)+'%',s:fk(taxAdv+12*brk)+'/yr incl. '+fkPrecise(brk)+'/mo brokerage',c:(taxAdv+12*brk)/c.gross>=0.2?'good':(taxAdv+12*brk)/c.gross>=0.12?'warn':'bad'},
+    {l:'Call optional',v:(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+'),s:'if nothing changes → on your plan',c:goalMet?'good':plan.coast?'warn':'bad'},
+    {l:'Full retirement',v:(flat.fi||'—')+' → '+(plan.fi||'—'),s:'if nothing changes → on your plan',c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
   // Outcome
