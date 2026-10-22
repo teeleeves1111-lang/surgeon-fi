@@ -431,13 +431,18 @@ details.how ol:empty{display:none;}
         <span class="sv" id="famsup-v">$0</span></div>
       <div class="sr" style="margin-top:8px"><label>Car costs</label>
         <select id="car-cost" onchange="go()">
-          <option value="0">Residency car — $0/mo</option>
-          <option value="4800">Modest used — $400/mo</option>
+          <option value="0">Paid-off residency car(s) — $0/mo</option>
+          <option value="4800">One modest used car — $400/mo</option>
+          <option value="9600">Two modest used cars — $800/mo</option>
           <option value="14400" selected>One financed car — $1,200/mo</option>
+          <option value="19200">One financed + one used — $1,600/mo</option>
           <option value="24000">One luxury lease — $2,000/mo</option>
-          <option value="33600">Two luxury leases — $2,800/mo</option>
+          <option value="28800">Two financed cars — $2,400/mo</option>
+          <option value="38400">One luxury lease + one financed — $3,200/mo</option>
+          <option value="48000">Two luxury leases — $4,000/mo</option>
         </select>
       </div>
+      <div class="hint">Each car's payment or lease, plus insurance, gas and upkeep.</div>
     </div>
 
     <div>
@@ -2877,7 +2882,8 @@ function restoreState(){
     if(st.mode==='att')setMode('att');
     Object.keys(st.v).forEach(function(id){
       var el=document.getElementById(id);if(!el)return;
-      if(el.type==='checkbox')el.checked=!!st.v[id];else el.value=st.v[id];
+      var v=st.v[id];if(id==='car-cost'&&v==='33600')v='48000'; // old 'two luxury leases' value
+      if(el.type==='checkbox')el.checked=!!v;else el.value=v;
     });
     if(st.v['sal-override-on'])$('sal-override').style.display='inline-block';
     if(st.dp)setDP(st.dp);
