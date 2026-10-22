@@ -504,16 +504,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
       <div class="sr"><label>Savings rate (% gross)</label>
         <input type="range" min="3" max="50" value="25" id="fi-sr" oninput="calcFI()">
         <span class="sv" id="fi-sr-v">25%</span></div>
+      <div class="trow"><label>Estimate retirement spending from how I live now</label>
+        <label class="tog"><input type="checkbox" id="fi-spend-auto" checked onchange="go();calcFI()"><span class="tsl"></span></label></div>
       <div class="sr"><label>Retirement spending / yr</label>
-        <input type="range" min="60000" max="300000" step="5000" value="130000" id="fi-spend" oninput="calcFI()">
+        <input type="range" min="60000" max="400000" step="5000" value="130000" id="fi-spend" oninput="$('fi-spend-auto').checked=false;go();calcFI()">
         <span class="sv" id="fi-spend-v">$130k</span></div>
-      <div class="sr"><label>Call optionality gap spending / yr</label>
-        <input type="range" min="20000" max="60000" step="2000" value="34000" id="fi-gap" oninput="calcFI()">
-        <span class="sv" id="fi-gap-v">$34k</span></div>
+      <div class="hint" id="fi-spend-note"></div>
+      <div class="sr"><label>Full retirement age</label>
+        <input type="range" min="55" max="70" value="65" id="fi-retage" oninput="go();calcFI()">
+        <span class="sv" id="fi-retage-v">65</span></div>
       <div class="sr"><label>Real return (inflation-adj)</label>
         <input type="range" min="4" max="8" step="0.5" value="5" id="fi-rr" oninput="calcFI()">
         <span class="sv" id="fi-rr-v">5%</span></div>
       <div class="hint" id="fi-sr-note" style="display:none"></div>
+      <div class="box box-b" style="margin:8px 0 0"><div class="box-body"><strong>What "call optional" means here:</strong> you have saved enough that you could stop saving entirely — take a lower-paying job without call that still covers your living costs — and what you already have would grow on its own to full retirement by age <span class="ret-age-txt">65</span>. Before that point, dropping call costs you your retirement. After it, call is a choice.</div></div>
     </div>
     <div class="card">
       <div class="ctitle">Results</div>
@@ -1133,6 +1137,60 @@ function go(){
   if(activePanel&&activePanel.id==='tab-true')calcTrue();
 }
 
+// ── RETIREMENT SPENDING & CALL OPTIONALITY ───────────────────────
+// Retirement spending estimated from current life minus costs that end
+// (childcare, school, student loans, mortgage principal & interest, kids' share of living),
+// plus ~15% for income tax on retirement withdrawals.
+function retSpendEst(c){
+  var hh=c.hh,mRate=+$('rvb-rate').value,pTax=+$('rvb-tax').value/100;
+  var housingCont=c.houseOn?Math.round(c.hp*pTax)+Math.round(c.hp*0.004)+Math.round(c.hp*0.01):+$('rent').value*12;
+  var living=(EST.baseLiving[hh]+EST.baseDisc[hh])*12+c.lifestyleEst;
+  var cars=c.carsEst;
+  if(c.actual){
+    var A=c.A;
+    if(A.cars!==null)cars=A.cars*12;
+    if(A.other!==null)living=Math.max(0,A.other*12-(EST.perChildLiving+EST.perChildDisc)*12*c.nk);
+    if(A.total!==null){
+      // total entered: remove the parts that end
+      var ending=c.childcareEst+c.schoolEst+c.loanEst+(c.owningNow?mtgPmt12(c.hp*0.8,mRate):0)+(EST.perChildLiving+EST.perChildDisc)*12*c.nk;
+      var cont=Math.max(0,A.total*12-ending);
+      return {spend:Math.round(cont*1.15/5000)*5000,base:cont};
+    }
+    if(A.housing!==null&&c.owningNow)housingCont=Math.max(0,A.housing*12-mtgPmt12(c.hp*0.8,mRate));
+    else if(A.housing!==null)housingCont=A.housing*12;
+  }
+  var base=housingCont+living+cars;
+  return {spend:Math.max(60000,Math.round(base*1.15/5000)*5000),base:base,housing:housingCont,living:living,cars:cars};
+}
+function retSpend(c){
+  if($('fi-spend-auto').checked){
+    var e=retSpendEst(c);
+    $('fi-spend').value=Math.min(400000,e.spend);
+    return e.spend;
+  }
+  return +$('fi-spend').value;
+}
+function retAge(){return +$('fi-retage').value||65;}
+// Portfolio needed at a given age so that, with no further saving, it grows to the FI number by retirement age
+function callTarget(age,fiNum,rr){return fiNum/Math.pow(1+rr,Math.max(0,retAge()-age));}
+// Project net worth; sav(i) = savings in year i. Returns milestone ages (age after n years = sa+n).
+function project(sa,nw0,sav,fiNum,rr,yrs){
+  var nw=nw0,m={coast:null,fi:null,zero:null,million:null,series:[nw0]};
+  for(var i=0;i<(yrs||60);i++){
+    nw=nw*(1+rr)+(typeof sav==='function'?sav(i):sav);
+    var a=sa+i+1;
+    m.series.push(nw);
+    if(m.zero===null&&nw>=0)m.zero=a;
+    if(m.million===null&&nw>=1e6)m.million=a;
+    if(m.coast===null&&nw>=callTarget(a,fiNum,rr))m.coast=a;
+    if(m.fi===null&&nw>=fiNum)m.fi=a;
+  }
+  if(nw0>=0)m.zero=sa;
+  if(nw0>=callTarget(sa,fiNum,rr))m.coast=sa;
+  if(nw0>=fiNum)m.fi=sa;
+  return m;
+}
+
 // ── WATERFALL ─────────────────────────────────────────────────────
 function calcWaterfall(c){
   c=c||getCosts();
@@ -1245,13 +1303,13 @@ function calcWaterfall(c){
 
   // Call optionality estimate
   var rr=0.05,sa=startAge(),nwv=startNW();
-  var GAP_SPEND=34000,wfCT=GAP_SPEND*25;
-  function coastAt(sav){var nw2=nwv;for(var i=0;i<50;i++){nw2=nw2*(1+rr)+sav;if(nw2>=wfCT)return sa+i+1;}return null;}
+  var wfFI=retSpend(c)*25;
+  function coastAt(sav){var m=project(sa,nwv,sav,wfFI,rr,60);return m.coast!==null&&m.coast<retAge()?m.coast:null;}
   var sav=effInvest(c);
   var coastEst=coastAt(sav);
   var coast25=coastAt(c.gross*0.25),coast12=coastAt(c.gross*0.12);
-  var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>past age 70</strong>';
-  var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(70-coast25):null);
+  var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>age '+retAge()+' or later</strong>';
+  var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(retAge()-coast25):null);
   var callYrsLine=extraVsIdeal?'That is <strong>'+extraVsIdeal+' extra years</strong> of mandatory call vs the 25% path.':
     (coastEst&&coast25&&coastEst<=coast25)?'On pace with the ideal 25% path.':'';
 
@@ -1327,8 +1385,7 @@ function calcWaterfall(c){
 function calcPaths(){
   var s=sp(),rr=0.05,yrs=38;
   var sa=startAge(),nwStart=startNW();
-  var retSpend=+$('fi-spend').value||130000;
-  var fi=retSpend*25;
+  var fi=retSpend(getCosts())*25;
   var c=getCosts();
   var myInv=effInvest(c);
   var mySR=effSR(c);
@@ -1349,23 +1406,12 @@ function calcPaths(){
 
   var labels=[],datasets=[],msAll=[];
   paths.forEach(function(path,pi){
-    var ms={zero:null,million:null,coast:null,fi:null};
-    var coastTarget=34000*25;
     function yrSav(yr){
       if(!path.isMe) return Math.round(c.gross*path.sr);
       return (c.houseOn&&c.buyYr>0&&yr>=c.buyYr)?postBuyInv:myInv;
     }
-    var nwPre=nwStart;
-    for(var j=0;j<60;j++){
-      if(path.isMe&&downPayment&&j===c.buyYr) nwPre-=downPayment;
-      nwPre=Math.round(nwPre*(1+rr)+yrSav(j));
-      var agePost=sa+j+1;
-      if(!ms.zero&&nwPre>=0) ms.zero=agePost;
-      if(!ms.million&&nwPre>=1e6) ms.million=agePost;
-      if(!ms.coast&&nwPre>=coastTarget) ms.coast=agePost;
-      if(!ms.fi&&nwPre>=fi) ms.fi=agePost;
-      if(ms.zero&&ms.million&&ms.coast&&ms.fi) break;
-    }
+    var ms=project(sa,nwStart,function(j){return yrSav(j)-(path.isMe&&downPayment&&j===c.buyYr?downPayment*(1+rr):0);},fi,rr,60);
+    if(ms.coast!==null&&ms.coast>=retAge())ms.coast=null;
     var data=[],nwChart=nwStart;
     for(var i=0;i<=yrs;i++){
       if(pi===0) labels.push(sa+i);
@@ -1385,7 +1431,7 @@ function calcPaths(){
   $('fu').className='fu '+(MODE==='res'?'res':'att');
   $('fu-grid').innerHTML=
     '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(mems.coast||'—')+'</div>'+
-      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">📞 Call optionality<br>Covers reduced/gap spending<br><span style="opacity:0.7">At your '+(c.actual?'actual':'current')+' savings rate</span></div></div>'+
+      '<div class="fu-lbl" style="font-size:9px;margin-top:3px">📞 Call optional<br>Could stop saving &amp; drop call<br><span style="opacity:0.7">At your '+(c.actual?'actual':'current')+' savings rate</span></div></div>'+
     '<div class="fu-cell"><div class="fu-num" style="color:#FFD580">'+(mems.coast&&mems.fi?mems.coast+'–'+mems.fi:'—')+'</div>'+
       '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🌤️ Transition window<br>Call optionality to Full FI<br><span style="opacity:0.7">At 25% ideal: '+(idealms.coast||'—')+'–'+(idealms.fi||'—')+'</span></div></div>'+
     '<div class="fu-cell"><div class="fu-num" style="color:#7FFFD4">'+(mems.fi||'—')+'</div>'+
@@ -1396,7 +1442,7 @@ function calcPaths(){
     {l:'Today',dot:MODE==='att'?'y':''},
     {l:msSel.zero?'Age '+msSel.zero:'—',sub:'Zero NW',dot:msSel.zero?'r':''},
     {l:msSel.million?'Age '+msSel.million:'—',sub:'$1M milestone',dot:msSel.million?'r':''},
-    {l:msSel.coast?'Age '+msSel.coast:'—',sub:'Call optionality',sub2:'$850k target',dot:msSel.coast?'k':''},
+    {l:msSel.coast?'Age '+msSel.coast:'—',sub:'Call optional',sub2:msSel.coast?fk(callTarget(msSel.coast,fi,rr))+' saved':'',dot:msSel.coast?'k':''},
     {l:msSel.fi?'Age '+msSel.fi:'—',sub:'Full FI',sub2:fk(fi)+' target',dot:msSel.fi?'k':''},
   ].map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
@@ -1429,7 +1475,7 @@ function calcPaths(){
   var meSavGap=Math.round(c.gross*.25)-myInv;
   $('compare-tbl').innerHTML=
     '<tr><th>Milestone</th><th>Ideal 25%</th><th>Typical 12%</th><th>Creep 5%</th><th>My path '+mySR+'%</th></tr>'+
-    [['📞 Call optionality — $850k',function(m){return m.coast||'—';},'hl-b'],
+    [['📞 Call optional',function(m){return m.coast||'—';},'hl-b'],
      ['🎯 Full FI — '+fk(fi),function(m){return m.fi||'—';},'hl'],
      ['Extra years vs Ideal 25%',function(m,i){
        if(i===0) return 'Baseline';
@@ -1445,7 +1491,7 @@ function calcPaths(){
     '<tr><td colspan="5" style="font-size:9px;color:var(--g);padding-top:5px">'+
     '✓ Your savings meets or exceeds the 25% Ideal benchmark.</td></tr>')+
     '<tr><td colspan="5" style="font-size:9px;color:var(--mg);padding-top:5px">'+
-    'Generic paths apply a savings rate to household gross income. Call optionality is a fixed $850k target (25× $34k gap spending) — it does not depend on age. Biggest lever to reach it sooner: your savings rate.</td></tr>';
+    'Generic paths apply a savings rate to household gross income. Call optional = enough saved that, with no more saving, it grows to the full FI number ('+fk(fi)+') by age '+retAge()+'. Biggest levers: your savings rate and how much you will spend in retirement.</td></tr>';
 
   var g=c.gross;
   var idSav=Math.round(g*.25/12),typSav=Math.round(g*.12/12),crpSav=Math.round(g*.05/12);
@@ -1617,30 +1663,33 @@ function syncFISR(){
 function calcFI(){
   var c=getCosts();
   var sr=+$('fi-sr').value/100; $('fi-sr-v').textContent=Math.round(sr*100)+'%';
-  var spend=+$('fi-spend').value; $('fi-spend-v').textContent=fk(spend);
-  var gapSpend=+$('fi-gap').value; $('fi-gap-v').textContent=fk(gapSpend);
+  var spend=retSpend(c); $('fi-spend-v').textContent=fk(spend);
+  $('fi-retage-v').textContent=retAge();
+  document.querySelectorAll('.ret-age-txt').forEach(function(e){e.textContent=retAge();});
+  var est=retSpendEst(c);
+  $('fi-spend-note').innerHTML=$('fi-spend-auto').checked?
+    'Estimated from your current life: '+fk(est.base)+'/yr of costs that continue'+(est.housing!==undefined?' (housing taxes/insurance/upkeep '+fk(est.housing)+', living '+fk(est.living)+', cars '+fk(est.cars)+')':'')+' + 15% for taxes on withdrawals. Childcare, school, loans, the mortgage payment and kids\' costs are left out because they end.':
+    'Set manually. Turn the toggle back on to estimate it from Reality Check.';
   var rr=+$('fi-rr').value/100; $('fi-rr-v').textContent=(rr*100).toFixed(1)+'%';
   var sa=startAge(),nwStart=startNW();
   var savings=Math.round(c.gross*sr);
   var fi=spend*25;
-  var coastFI=Math.round(gapSpend*25);
+  var pj=project(sa,nwStart,savings,fi,rr,45);
   var labels=[],nws=[],coastL=[],fiL=[];
-  var nw=nwStart,coastYr=null,fiYr=null;
   for(var i=0;i<=45;i++){
     var a=sa+i;
-    labels.push(a);nws.push(Math.round(nw/1000));
-    coastL.push(Math.round(coastFI/1000));fiL.push(Math.round(fi/1000));
-    if(!coastYr&&nw>=coastFI)coastYr=a;
-    if(!fiYr&&nw>=fi)fiYr=a;
-    nw=Math.round(nw*(1+rr)+savings);
+    labels.push(a);nws.push(Math.round(pj.series[i]/1000));
+    coastL.push(a<=retAge()?Math.round(callTarget(a,fi,rr)/1000):null);fiL.push(Math.round(fi/1000));
   }
+  var coastYr=pj.coast!==null&&pj.coast<retAge()?pj.coast:null,fiYr=pj.fi;
   var endAge=sa+45;
+  var coastFI=coastYr?callTarget(coastYr,fi,rr):callTarget(Math.min(50,retAge()),fi,rr);
   var acc=MODE==='att'?'var(--b)':'var(--g)';
   $('fi-metrics').innerHTML=[
-    {l:'Call optionality target',v:fk(coastFI),s:'25× gap spending (not age-discounted)',c:''},
-    {l:'Call optionality age',v:coastYr?'age '+coastYr:'past '+endAge,s:'financial pressure ends',c:coastYr&&coastYr<52?'good':coastYr&&coastYr<58?'warn':'bad'},
+    {l:'Call optional at',v:coastYr?'age '+coastYr:'not before '+retAge(),s:'could stop saving and still retire at '+retAge(),c:coastYr&&coastYr<=50?'good':coastYr&&coastYr<=55?'warn':'bad'},
+    {l:'Needed then',v:fk(coastFI),s:coastYr?'saved by age '+coastYr+' — grows to '+fk(fi)+' by '+retAge():'what you would need at age '+Math.min(50,retAge()),c:''},
     {l:'Full FI target',v:fk(fi),s:'25× retirement spending',c:''},
-    {l:'Full FI age',v:fiYr?'age '+fiYr:'past '+endAge,s:'work completely optional',c:fiYr&&fiYr<62?'good':fiYr&&fiYr<68?'warn':'bad'},
+    {l:'Full FI age',v:fiYr?'age '+fiYr:'past '+endAge,s:'work completely optional',c:fiYr&&fiYr<=60?'good':fiYr&&fiYr<=65?'warn':'bad'},
     {l:'Annual savings',v:fk(savings),s:Math.round(sr*100)+'% of '+fk(c.gross)+' gross',c:sr>=.2?'good':sr>=.12?'warn':'bad'},
     {l:'Safe withdrawal',v:fk(fi*.04),s:'4% of portfolio at FI',c:''},
   ].map(function(m){
@@ -1651,7 +1700,7 @@ function calcFI(){
     if(fiChrt) fiChrt.destroy();
     fiChrt=new Chart($('fi-chart'),{type:'line',data:{labels:labels,datasets:[
       {label:'Your portfolio',data:nws,borderColor:acc,backgroundColor:MODE==='att'?'rgba(35,85,160,0.08)':'rgba(29,158,117,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
-      {label:'Call optionality',data:coastL,borderColor:'#E8A020',borderDash:[6,3],pointRadius:0,borderWidth:1.5,fill:false},
+      {label:'Needed for call to be optional',data:coastL,borderColor:'#E8A020',borderDash:[6,3],pointRadius:0,borderWidth:1.5,fill:false},
       {label:'Full FI',data:fiL,borderColor:'#C0392B',borderDash:[3,3],pointRadius:0,borderWidth:1.5,fill:false},
     ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
@@ -1662,39 +1711,33 @@ function calcFI(){
   var bxCls=MODE==='att'?'box-b':'box-g';
   var ttlCol=MODE==='att'?'var(--b)':'var(--g)';
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
-    (fiYr?'FI at '+fiYr+' — call optional at '+(coastYr||'?'):'Extend your timeline')+
+    (fiYr?(coastYr?'Call optional at '+coastYr:'Call not optional before '+retAge())+' · full FI at '+fiYr:'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(c.gross)+', you reach call optionality at age <strong>'+(coastYr||'past '+endAge)+'</strong> and full FI at <strong>'+fiYr+'</strong>. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
-    (coastYr?'Call optionality reached at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
-    'At this savings rate, call optionality and full FI are both beyond the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
+    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(c.gross)+', call becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement. WCI guideline: 20% gross → comfortable retirement by end of career. 25–30% → retire meaningfully earlier.':
+    (coastYr?'Call becomes optional at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
+    'At this savings rate, neither call optionality nor full FI arrives in the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
     '</div></div>';
 
-  var tblFI=3750000,tblSA=34,tblNW=-150000,tblCT=34000*25;
+  var tblFI=spend*25,tblSA=34,tblNW=-150000;
   function calcTL(grossPct){
-    var an=Math.round(c.gross*grossPct/100);
-    var nw2=tblNW,cy=null,fy=null;
-    for(var j=0;j<50;j++){
-      nw2=Math.round(nw2*1.05+an);
-      if(!cy&&nw2>=tblCT) cy=tblSA+j+1;
-      if(!fy&&nw2>=tblFI) fy=tblSA+j+1;
-      if(cy&&fy) break;
-    }
-    return{coast:cy,fi:fy};
+    var m=project(tblSA,tblNW,Math.round(c.gross*grossPct/100),tblFI,0.05,50);
+    return{coast:m.coast!==null&&m.coast<retAge()?m.coast:null,fi:m.fi};
   }
-  function coastColor(age){if(!age)return 'var(--rd)';return age<50?'var(--g)':age<58?'var(--am)':'var(--rd)';}
+  function coastColor(age){if(!age)return 'var(--rd)';return age<=50?'var(--g)':age<=55?'var(--am)':'var(--rd)';}
   function ageDisp(age){return age?'age '+age:'past 84';}
+  function coastDisp(age){return age?'age '+age:'not before '+retAge();}
   var curSRpct=Math.round(sr*100);
   $('sr-tbl').innerHTML='<tr><th>Gross savings rate</th><th>Call optionality age*</th><th>Full FI age*</th><th>WCI benchmark</th></tr>'+
     [5,10,15,20,25,30,35,40,50].map(function(r){
       var t=calcTL(r),hi=Math.abs(r-curSRpct)<3;
       return '<tr'+(hi?' class="hl"':'')+'><td>'+(hi?'→ ':'')+r+'%'+(hi?' (you)':'')+'</td>'+
-        '<td style="color:'+coastColor(t.coast)+';font-weight:'+(t.coast&&t.coast<55?'600':'400')+'">'+ageDisp(t.coast)+'</td>'+
+        '<td style="color:'+coastColor(t.coast)+';font-weight:'+(t.coast&&t.coast<55?'600':'400')+'">'+coastDisp(t.coast)+'</td>'+
         '<td>'+ageDisp(t.fi)+'</td>'+
         '<td style="font-size:10px;color:'+(r>=30?'var(--g)':r>=20?'var(--am)':'var(--mg)')+'">'+
           (r>=30?'WCI: retire early':r>=20?'WCI: end of career':r>=15?'Borderline':'Below target')+'</td></tr>';
     }).join('')+
     '<tr><td colspan="4" style="font-size:9px;color:var(--mg);padding-top:5px">'+
-    '* Fixed assumptions: '+fk(c.gross)+' household gross, start age 34, NW −$150k, 5% real return, $3.75M FI number ($150k/yr spending), $850k call optionality target ($34k/yr gap spending, not age-discounted). '+
+    '* Assumptions: '+fk(c.gross)+' household gross, start age 34, NW −$150k, 5% real return, '+fk(spend)+'/yr retirement spending → '+fk(tblFI)+' FI number, full retirement at '+retAge()+'. Call optional = enough saved to stop saving and still reach that number by '+retAge()+'. '+
     'Social Security at 70 (~$30–50k/yr for a surgeon) not included — reduces portfolio needed in late retirement.</td></tr>';
 
   if(MODE==='att'){
@@ -1879,21 +1922,12 @@ function calcTrue(){
   // Simulation: with vs without the cost
   var rr=0.05,sa=startAge(),nw0=startNW();
   var base=effInvest(c);
-  var fiBase=(+$('fi-spend').value||130000)*25;
+  var fiBase=retSpend(c)*25;
   var fiWith=fiBase+(ret?annual*retPct*25:0);
-  var coastT=34000*25;
   var dur=perm?99:yrsV;
   function run(withCost,target){
-    var nw=nw0,coast=null,fi=null,nw20=null;
-    for(var i=0;i<60;i++){
-      var sav=base-(withCost&&i<dur?annual:0);
-      nw=nw*(1+rr)+sav;
-      var a=sa+i+1;
-      if(!coast&&nw>=coastT)coast=a;
-      if(!fi&&nw>=target)fi=a;
-      if(i===19)nw20=nw;
-    }
-    return{coast:coast,fi:fi,nw20:nw20};
+    var m=project(sa,nw0,function(i){return base-(withCost&&i<dur?annual:0);},target,rr,60);
+    return{coast:m.coast!==null&&m.coast<retAge()?m.coast:null,fi:m.fi,nw20:m.series[20]};
   }
   var A0=run(false,fiBase),A1=run(true,fiWith);
   var lost20=A0.nw20-A1.nw20;
@@ -1906,7 +1940,7 @@ function calcTrue(){
     {l:'Share of take-home',v:Math.round(pctTake*100)+'%',s:fk(amt)+' of '+fk(c.takeHome/12)+'/mo — feels like '+Math.round(annual/c.gross*100)+'% of gross',c:'warn'},
     {l:'Lost wealth after 20 yrs',v:fk(lost20),s:'paid '+fk(paid)+' — plus what it would have grown to',c:'bad'},
     {l:'FI number goes up',v:ret?'+'+fk(annual*retPct*25):'$0',s:ret?fk(annual*retPct)+'/yr still owed in retirement × 25':'ends before retirement',c:ret?'bad':''},
-    {l:'Call optional',v:coastDelay===null?'—':(coastDelay>0?'+'+coastDelay+' yr'+(coastDelay!==1?'s':''):'no change'),s:'age '+(A0.coast||'—')+' → '+(A1.coast||'never'),c:coastDelay>0?'bad':''},
+    {l:'Call optional',v:coastDelay===null?'—':(coastDelay>0?'+'+coastDelay+' yr'+(coastDelay!==1?'s':''):'no change'),s:'age '+(A0.coast||retAge()+'+')+' → '+(A1.coast||'not before '+retAge()),c:coastDelay>0?'bad':''},
     {l:'Full FI',v:fiDelay===null?'—':(fiDelay==='60+'?'never':(fiDelay>0?'+'+fiDelay+' yrs':'no change')),s:'age '+(A0.fi||'—')+' → '+(A1.fi||'never'),c:fiDelay?'bad':''},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
@@ -1919,7 +1953,7 @@ function calcTrue(){
     '<tr><td>Saved per year</td><td>'+fk(base)+'</td><td>'+fk(base-annual)+(base-annual<0?' (deficit)':'')+'</td></tr>'+
     '<tr><td>Net worth in 20 years</td><td>'+fk(A0.nw20)+'</td><td>'+fk(A1.nw20)+'</td></tr>'+
     '<tr><td>FI number</td><td>'+fk(fiBase)+'</td><td>'+fk(fiWith)+'</td></tr>'+
-    '<tr class="hl-b"><td>Call optional at</td><td>'+(A0.coast||'—')+'</td><td>'+(A1.coast||'never')+'</td></tr>'+
+    '<tr class="hl-b"><td>Call optional at</td><td>'+(A0.coast||'not before '+retAge())+'</td><td>'+(A1.coast||'not before '+retAge())+'</td></tr>'+
     '<tr class="hl"><td>Full FI at</td><td>'+(A0.fi||'—')+'</td><td>'+(A1.fi||'never')+'</td></tr>'+
     '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">Starting from age '+sa+', net worth '+fk(nw0)+', saving '+fk(base)+'/yr ('+effSR(c)+'% — '+(c.actual?'your actual rate':'estimate from Reality Check')+'). Retirement spending from the FI Calculator tab ('+fk(fiBase/25)+'/yr). 5% real return; amounts in today\'s dollars.</td></tr>';
 }
