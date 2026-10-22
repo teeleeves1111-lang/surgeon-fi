@@ -507,6 +507,9 @@ details.how li{margin-bottom:3px;}
   <div class="box box-g" style="margin-top:0"><div class="box-body" style="font-size:12px"><strong>The one idea that matters most:</strong> a surgeon who saves 25% of $400k will retire earlier and wealthier than one who saves 10% of $600k. Income is not the variable. The gap between income and spending is — and you control the gap.</div></div>
   <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
   <div class="card pb-top"><div class="ctitle" style="color:var(--accent)">Your top three moves</div><div id="pb-top3"></div></div>
+  <div class="card"><div class="ctitle">First things first — before you invest a dollar</div>
+    <div class="hint">The week you finish training. None of it is exciting; all of it protects your ability to earn and your family.</div>
+    <div id="pb-basics"></div></div>
 
   <div class="g2">
     <div class="card no-print">
@@ -2542,6 +2545,30 @@ function calcPlay(){
   insItems[0]+='<details class="how"><summary>How to do it</summary><ol><li>Get quotes through an independent broker who sells several companies and works with physicians — don\'t rely on your employer\'s group policy alone, which ends when you leave.</li><li>Ask for: true own-occupation (specialty-specific) definition, residual/partial disability, cost-of-living adjustment, and a future-increase option so you can raise coverage later without new medical exams.</li><li>'+(MODE==='res'?'Buy before you finish training, while resident discounts apply and your health history is clean.':'Raise coverage as income rises, using the future-increase option.')+'</li></ol></details>';
   $('pb-ins').innerHTML=insItems.map(function(t){return '<li>'+t+'</li>';}).join('');
 
+
+  // ── First things first ──
+  var hasDeps=couple||c.nk>0;
+  var spendYrB=c.actual&&!c.spendEntered?Math.max(0,c.impliedSpend):c.totalSpend;
+  var efB=Math.round(3*spendYrB/12/1000)*1000;
+  var basics=[
+    {t:'Disability insurance — own-occupation, owned by you',d:'About 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers issue. '+(MODE==='res'?'Buy it before you finish training.':'Raise it as income rises.'),
+     how:['Get quotes through an independent broker who sells several companies and works with physicians. Don\'t rely only on your employer\'s group policy — it ends when you leave.','Ask for: a true own-occupation (specialty-specific) definition, residual/partial disability, a cost-of-living adjustment, and a future-increase option.',MODE==='res'?'Apply in your final year of training, while resident discounts apply and your health history is clean.':'Use the future-increase option each time your income goes up.']},
+    {t:'Term life insurance'+(hasDeps?'':' — once someone depends on you'),d:hasDeps?'10–20× income for the people who depend on you — about '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you, on a 20–30 year level term.':'Not needed until a partner or child depends on your income.',
+     how:['Get quotes from an independent term-life broker or an online marketplace; level term for 20–30 years.','Insure a stay-at-home spouse too — replacing childcare and household work is expensive.','Name beneficiaries on the policy. Say no to whole life, universal life and IUL sold as investments.']},
+    {t:'Pay off credit cards — and any debt over about 8%',d:'Paying off a 20% card is a guaranteed 20% return. Nothing you can invest in beats it. From now on, pay cards in full every month.',
+     how:['List every debt with its interest rate. Pay minimums on all, then put every extra dollar on the highest rate first.','Set every card to autopay the full statement balance.','Low-rate debt (a 3–5% car loan or mortgage) can stay — it doesn\'t need to be rushed.']},
+    {t:'Emergency fund — about 3 months of spending',d:'About '+fk(efB)+' in high-yield savings, so a surprise doesn\'t land on a credit card.'+($('pb-bonus').checked?' With bonus pay, also hold enough to cover the gap until the next bonus.':''),
+     how:['Open a high-yield savings account at an online bank, or use a money-market fund at your brokerage.','Automate a transfer every payday until it\'s full, then send that transfer to the brokerage.']},
+    {t:'Umbrella liability — $2 million or more',d:'A few hundred dollars a year. Protects everything you\'re about to build from a lawsuit after a car accident or an injury at your home.',
+     how:['Ask the company that insures your car and home; they usually sell it and may require higher auto/home liability limits first.','Add coverage as your net worth grows.']},
+    {t:hasDeps?(c.nk>0?'Will, guardian and beneficiaries':'Will and beneficiaries'):'Beneficiaries (and a will once you have a family)',d:hasDeps?(c.nk>0?'A basic will naming a guardian for your kids':'A basic will')+', beneficiaries on every retirement account and policy, and a health-care proxy and power of attorney.':'Name beneficiaries on your retirement accounts and life insurance now; add a will when you marry or have kids.',
+     how:['Beneficiary designations are set in each account\'s website — they override a will, so check them.','A flat-fee estate attorney can do a basic will, guardianship, health-care proxy and power of attorney for a modest fixed price.','Review everything after a marriage, birth, divorce or move to a new state.']},
+    {t:'Day 1 as an attending: max the retirement plan',d:'Call HR before your first paycheck — you can\'t make up missed pay periods. Then everything in Step 1 below.',how:null}
+  ];
+  $('pb-basics').innerHTML=basics.map(function(b,i){
+    return '<div class="pb-step"><div style="font-size:15px;line-height:1">☐</div><div class="pb-body"><div class="pb-t">'+b.t+'</div><div class="pb-d">'+b.d+'</div>'+
+      (b.how?'<details class="how"><summary>How to do it</summary><ol>'+b.how.map(function(h){return '<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</div></div>';
+  }).join('');
   // ── Top three moves ──
   var moves=[];
   var yrsGain=function(alt){var x=pbSim(c,Object.assign({},opts,alt));var a=plan.coast||retAge()+5,b2=x.coast||retAge()+5;return a-b2;};
