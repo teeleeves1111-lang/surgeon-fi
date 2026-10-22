@@ -364,7 +364,7 @@ details.how li{margin-bottom:3px;}
         <div class="hint" id="house-hint">Uses property tax and mortgage rate from the Rent vs Buy tab (NJ 2.23%, 6.75%).</div>
       </div>
       <div id="rent-opts" class="sub-opts" style="display:none">
-        <div class="sr"><label>Rent / month (no home purchase planned)</label>
+        <div class="sr"><label id="rent-lbl">Rent / month</label>
           <input type="range" min="2000" max="12000" step="250" value="5500" id="rent" oninput="go()">
           <span class="sv" id="rent-v">$5,500</span></div>
       </div>
@@ -1245,7 +1245,7 @@ function getCosts(){
   var loanAmt=hp*0.80;
   var ownHousing=houseOn?mtgPmt12(loanAmt,mRate)+Math.round(hp*pTax)+Math.round(hp*.004)+Math.round(hp*.01):0;
   var housingEst=houseOn&&buyYr===0?ownHousing:0;
-  var rentEst=houseOn&&buyYr>0?Math.round(hp*0.04):(!houseOn?+$('rent').value*12:0);
+  var rentEst=(houseOn&&buyYr>0)||!houseOn?+$('rent').value*12:0;
   var owningNow=houseOn&&buyYr===0;
 
   // Living — scales with household size
@@ -1285,7 +1285,8 @@ function getCosts(){
   var kidsCost=A.kids!==null?A.kids*12:(childcareEst+schoolEst);
   var loanPay=A.loans!==null?A.loans*12:loanEst;
   var cars=A.cars!==null?A.cars*12:carsEst;
-  var otherCost=A.other!==null?A.other*12:(livingEst+discEst+lifestyleEst+famCost);
+  var insEst=Math.round(Math.min(s.sal,600000)*0.015/100)*100+((hh==='couple'||nk>0)?2500:0)+500;
+  var otherCost=A.other!==null?A.other*12:(livingEst+discEst+lifestyleEst+famCost+insEst);
   var totalSpend=A.total!==null?A.total*12+save529Amt:
     housingCost+kidsCost+loanPay+cars+otherCost+save529Amt;
 
@@ -1325,7 +1326,7 @@ function getCosts(){
     livingEst:livingEst,discEst:discEst,lifestyleEst:lifestyleEst,otherCost:otherCost,
     cars:cars,carsEst:carsEst,loanPay:loanPay,loanEst:loanEst,loansOn:loansOn,lb:lb,pslf:pslf,pslfYrs:pslfYrs,pslfYrsLeft:pslfYrsLeft,loansRefi:loansRefi,
     totalSpend:totalSpend,left:left,srPct:srPct,cashLeft:cashLeft,invest:invest,investSR:investSR,unassigned:unassigned,
-    taxParams:taxParams,takeHome:takeHome,emp:emp,defP:defP,famCost:famCost,nonPayInv:nonPayInv,rothAmt:rothAmt,brk:brk,prepay:prepay,osav:osav,spendEntered:spendEntered,impliedSpend:impliedSpend};
+    taxParams:taxParams,takeHome:takeHome,emp:emp,defP:defP,famCost:famCost,insEst:insEst,nonPayInv:nonPayInv,rothAmt:rothAmt,brk:brk,prepay:prepay,osav:osav,spendEntered:spendEntered,impliedSpend:impliedSpend};
 }
 
 // Effective savings rate used for projections (% of gross)
@@ -1378,7 +1379,9 @@ function go(){
   $('buy-yr-row').style.display=$('house-owned').checked?'none':'flex';
   if($('house').checked){var byv=+$('buy-yr').value;$('buy-yr-v').textContent=byv===0?'Now':'Yr '+byv;}
   $('house-hint').textContent='Uses property tax ('+(+$('rvb-tax').value).toFixed(2)+'%) and mortgage rate ('+(+$('rvb-rate').value).toFixed(2)+'%) from the Rent vs Buy tab, 20% down, 0.4% insurance, 1% upkeep.';
-  $('rent-opts').style.display=!$('house').checked?'block':'none';
+  var rentingNow=!$('house').checked||(!$('house-owned').checked&&+$('buy-yr').value>0);
+  $('rent-opts').style.display=rentingNow?'block':'none';
+  $('rent-lbl').textContent=$('house').checked?'Rent / month until you buy':'Rent / month';
   $('rent-v').textContent=fkPrecise(+$('rent').value);
   $('pslf-yrs-opt').style.display=$('pslf').checked?'flex':'none';
   $('pslf-yrs-v').textContent=$('pslf-yrs').value;
@@ -1414,8 +1417,8 @@ function go(){
   $('act-kids').placeholder=Math.round((c.childcareEst+c.schoolEst)/12).toLocaleString();
   $('act-loans').placeholder=Math.round(c.loanEst/12).toLocaleString();
   $('act-cars').placeholder=Math.round(c.carsEst/12).toLocaleString();
-  $('act-other').placeholder=Math.round((c.livingEst+c.discEst+c.lifestyleEst)/12).toLocaleString();
-  var estTotalMo=Math.round((c.housingEst+c.rentEst+c.childcareEst+c.schoolEst+c.loanEst+c.carsEst+c.livingEst+c.discEst+c.lifestyleEst)/12);
+  $('act-other').placeholder=Math.round((c.livingEst+c.discEst+c.lifestyleEst+c.famCost+c.insEst)/12).toLocaleString();
+  var estTotalMo=Math.round((c.housingEst+c.rentEst+c.childcareEst+c.schoolEst+c.loanEst+c.carsEst+c.livingEst+c.discEst+c.lifestyleEst+c.famCost+c.insEst)/12);
   $('act-total').placeholder=estTotalMo.toLocaleString();
   $('act-def').textContent=fk(c.deferrals)+'/yr';
 
@@ -1534,14 +1537,17 @@ function calcWaterfall(c){
     if(c.kidsCost>0) items.push({l:(A.kids!==null?'Childcare & school':'Childcare'+(c.schoolEst>0?' + private school':''))+(A.kids!==null?tagA:tagE),a:c.kidsCost,col:'#8E44AD',p:pct(c.kidsCost),
       note:A.kids!==null?null:(c.nDay>0?c.nDay+' in care × '+fkPrecise(+$('daymo').value)+'/mo':'')+(c.nPriv>0?(c.nDay>0?' · ':'')+c.nPriv+' in private school':'')});
     if(c.cars>0) items.push({l:'Cars'+(A.cars!==null?tagA:tagE),a:c.cars,col:'#7F8C8D',p:pct(c.cars)});
-    items.push({l:'Living + discretionary'+(A.other!==null?tagA:tagE),a:c.otherCost,col:'#95A5A6',p:pct(c.otherCost),
+    if(A.other===null) items.push({l:'Insurance premiums'+tagE,a:c.insEst,col:'#8B2020',p:pct(c.insEst),note:'own-occ disability'+((c.hh==='couple'||c.nk>0)?', term life':'')+', umbrella'});
+    items.push({l:'Living + discretionary'+(A.other!==null?tagA:tagE),a:c.otherCost-(A.other===null?c.insEst:0),col:'#95A5A6',p:pct(c.otherCost-(A.other===null?c.insEst:0)),
       note:A.other!==null?null:'household of '+hhSize()+' · food, utilities, health premiums, travel'+(c.lifestyleEst>0?' · incl. '+fk(c.lifestyleEst)+' bigger-home costs':'')});
   }
   if(c.save529On) items.push({l:'529 savings',a:c.save529Amt,col:'#8E44AD',p:pct(c.save529Amt)});
   if(c.emp>0) items.push({l:'+ Employer retirement contribution',a:c.emp,col:'#1D6B52',p:pct(c.emp),note:'on top of salary'});
-  if(c.left>=0) items.push({l:'Available to invest',a:c.left,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:c.srPct,
-    note:c.deferrals>0?'incl. '+fk(c.deferrals)+' payroll '+(c.def457>0?'403(b)+457(b)':(c.planType==='401k'?'401(k)':'403(b)')):null});
-  else items.push({l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true});
+  if(c.deferrals>0&&!c.actual) items.push({l:'Payroll retirement savings',a:c.deferrals,col:'#1D6B52',p:pct(c.deferrals),note:(c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)'))+(c.defP>0?' + partner\'s plan':'')+' — taken before take-home'});
+  if(!c.actual){
+    if(c.cashLeft>=0) items.push({l:'Cash left over each year',a:c.cashLeft,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:pct(c.cashLeft),note:'for Roths, brokerage, down payment — only if automated'});
+    else items.push({l:'Short each year',a:-c.cashLeft,col:'#C0392B',bad:true,p:pct(-c.cashLeft),note:'spending is more than take-home — it comes from credit cards, savings or bonuses'});
+  } else if(c.left<0) items.push({l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true});
 
   }
   $('waterfall').innerHTML=items.map(function(it){
@@ -1562,7 +1568,7 @@ function calcWaterfall(c){
     {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
   ]:[
     {l:'Room to save',v:showSR+'%',s:'only if every leftover dollar is invested'+(c.buyYr>0?' · renting now':''),c:dpAlert?'warn':cls},
-    {l:'Investable / yr',v:fk(Math.max(0,c.left)),s:c.left<=0?'spending > income':'after all costs',c:c.left>0?'good':'bad'},
+    {l:'Net saving / yr',v:fk(Math.max(0,c.left+c.emp)),s:c.cashLeft<0?'retirement plans minus the shortfall':'retirement plans + cash left over',c:c.cashLeft>=0?'good':'bad'},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
     {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
   ];
@@ -1572,7 +1578,7 @@ function calcWaterfall(c){
 
   // Savings-rate result / reconciliation
   var recon='';
-  var estSpendMo=Math.round((c.housingEst+c.rentEst+c.childcareEst+c.schoolEst+c.loanEst+c.carsEst+c.livingEst+c.discEst+c.lifestyleEst)/12);
+  var estSpendMo=Math.round((c.housingEst+c.rentEst+c.childcareEst+c.schoolEst+c.loanEst+c.carsEst+c.livingEst+c.discEst+c.lifestyleEst+c.famCost+c.insEst)/12);
   if(c.actual&&!c.spendEntered){
     var imp=Math.round(c.impliedSpend/12);
     recon='<div class="box box-b"><div class="box-title" style="color:var(--b)">Your savings rate is '+c.investSR+'% — which means you spend about '+fkPrecise(imp)+'/month</div><div class="box-body">'+
@@ -1620,9 +1626,14 @@ function calcWaterfall(c){
   else if(c.actual) msg='box-g|On track at '+displaySR+'%|Work becomes optional at '+coastAge+(coast12&&coastEst?' — <strong>'+(coast12-coastEst)+' years sooner</strong> than the typical 12% surgeon':'')+'. Max 403(b)/401(k) ('+$L(LIM.k401)+'), 457(b) if offered ('+$L(LIM.k401)+'), and backdoor Roth for both spouses ('+$L(2*LIM.ira)+') first. Add HSA ('+$L(LIM.hsaFam)+' family) only if on an HDHP — most hospital surgeons have a PPO, so verify.';
   if(!c.actual){
     // Estimate mode: show the room to save honestly, next to what happens if only the retirement accounts get funded
-    var floorSav=c.deferrals+(c.hh==='couple'?2*LIM.ira:LIM.ira);
+    var rothNeed=c.hh==='couple'?2*LIM.ira:LIM.ira;
+    var floorSav=c.deferrals+rothNeed+c.emp;
     var floorAge=coastAt(floorSav),floorSR=Math.round(floorSav/c.gross*100);
-    msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.left))+' a year</strong> is left over. '+
+    if(c.cashLeft<rothNeed){
+      var payAge=coastAt(c.deferrals+c.emp+Math.min(0,c.cashLeft));
+      msg='box-r|'+(c.cashLeft<0?'Spending is more than take-home: short '+fk(-c.cashLeft)+' a year':'Almost nothing left after spending')+'|Your payroll retirement plans still get funded ('+fk(c.deferrals+c.emp)+'/yr), but after the app\'s estimated spending '+(c.cashLeft<0?'you\'re <strong>'+fk(-c.cashLeft)+' a year short</strong> — that gap lands on credit cards, savings or bonuses':'only <strong>'+fk(c.cashLeft)+'</strong> is left — not even enough for the backdoor Roths')+'. At this rate work becomes optional at <strong>'+(payAge?'age '+payAge:retAge()+' or later')+'</strong>. '+
+        'Fix the gap before adding fixed costs: the biggest items above are where to look'+(c.kidsCost>0?' (childcare ends — plan for that money)':'')+(c.buyYr>0?'; and buying the house will add '+fk(Math.max(0,c.ownHousing-c.rentEst))+'/yr on top of today\'s rent':'')+'. <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
+    } else msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> of cash is left over, on top of '+fk(c.deferrals+c.emp)+' going into retirement plans through payroll. '+
       'If that is automated into savings, work becomes optional at '+coastAge+'. '+
       'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income), work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
       'The difference is whether the leftover is automated on day one. <em>Turn on "Find my real savings rate" to see what you actually save.</em>';
@@ -1634,18 +1645,19 @@ function calcWaterfall(c){
   if(c.houseOn&&!c.houseOwned&&downNeeded>0){
     if(c.buyYr>0){
       var nwAtBuy=nwNow;
-      for(var byi=0;byi<c.buyYr;byi++) nwAtBuy=Math.round(nwAtBuy*1.05+Math.max(0,c.left));
+      nwAtBuy=Math.max(0,nwNow);
+      for(var byi=0;byi<c.buyYr;byi++) nwAtBuy=Math.round(nwAtBuy*1.05+Math.max(0,c.cashLeft));
       var canAfford=nwAtBuy>=downNeeded;
       dpWarning='<div class="box '+(canAfford?'box-g':'box-a')+'">'+
         '<div class="box-title" style="color:'+(canAfford?'var(--g)':'var(--am)')+'">'+
         (canAfford?'✓ Down payment on track for year '+c.buyYr:'⚠ Down payment gap at year '+c.buyYr)+'</div>'+
         '<div class="box-body">'+fk(hp)+' home needs <strong>'+fk(downNeeded)+'</strong> at closing (20% down + 3% closing). '+
-        'Projecting at current savings, estimated net worth by attending year '+c.buyYr+': <strong>'+fk(Math.max(0,nwAtBuy))+'</strong>. '+
+        'Retirement accounts can\'t be used for a down payment, so this counts only cash saved outside them. By attending year '+c.buyYr+': <strong>'+fk(Math.max(0,nwAtBuy))+'</strong>. '+
         (canAfford?'Enough to cover the down payment. Waiting also lets you learn the area and your group before committing.':
           'Still <strong>'+fk(Math.max(0,downNeeded-Math.max(0,nwAtBuy)))+' short</strong>. Options: lower home price, wait one more year, or physician loan (0–10% down, higher rate).')+
         '</div></div>';
     } else if(dpAlert){
-      var noHouseSav=c.left+c.housingCost-Math.round(hp*0.04);
+      var noHouseSav=c.cashLeft+c.housingCost-c.rentEst;
       var dpGap=Math.max(0,downNeeded-Math.max(0,nwNow));
       var dpYrs=noHouseSav>0?Math.ceil(dpGap/noHouseSav):null;
       var dpYrsStr=dpYrs?(dpYrs<=1?'Renting and saving hard, you can accumulate the down payment in <strong>roughly 1 year</strong>. ':'Renting and saving hard, it takes roughly <strong>'+dpYrs+' years</strong> to accumulate the down payment. '):'';
@@ -2530,6 +2542,8 @@ function calcPlay(){
 
   // Flags
   var F=[];
+  var cashNeed=roth+hsa+12*brk;
+  if(!c.actual&&cashNeed>Math.max(0,c.cashLeft)+600) F.push({k:'r',t:'Your budget doesn\'t have room for this plan yet',b:'The Roths'+(hsa?', HSA':'')+(brk?' and brokerage':'')+' need '+fk(cashNeed)+' a year of cash, but after the app\'s estimated spending '+(c.cashLeft<0?'you\'re '+fk(-c.cashLeft)+' a year short':'only '+fk(c.cashLeft)+' is left')+'. Bring fixed costs down, or enter your real numbers on My Numbers ("Find my real savings rate").'});
   var th=c.takeHome/12;
   var fixedMo=(c.housingCost+c.kidsCost+c.loanPay+c.cars)/12;
   if(c.houseOn){
@@ -2675,6 +2689,7 @@ function calcPlay(){
   if(c.loansOn&&c.lb>0&&!c.pslf&&!c.loansRefi)moves.push({p:62,t:'Refinance the loans and pay them off in 10 years',d:'Compare 3+ lenders. Then send the whole payment to the brokerage the month they\'re gone.'});
   if(c.childcareEst>0)moves.push({p:50,t:'Use the dependent care FSA',d:'Pays '+$L(LIM.dcfsa)+' of childcare with pre-tax money — about $3,000+ a year saved.'});
   if(hosp&&c.def401===0||(!hosp&&c.def401===0))moves.push({p:99,t:'Max the '+(hosp?'403(b)':'401(k)'),d:$L(LIM.k401)+'/yr pre-tax, from your first paycheck.'});
+  if(!c.actual&&c.cashLeft<0)moves.push({p:101,t:'Close the gap: spending is more than take-home',d:'After estimated spending you\'re about '+fk(-c.cashLeft)+' a year short. Look at the biggest lines on My Numbers before adding any new fixed cost.'});
   moves.sort(function(a,b){return b.p-a.p;});
   $('pb-top3').innerHTML=moves.slice(0,3).map(function(m,i){return '<div class="pb-move"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t" style="font-size:13px">'+m.t+'</div><div class="pb-d">'+m.d+'</div></div></div>';}).join('');
 }
