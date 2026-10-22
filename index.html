@@ -180,6 +180,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
   .hdr h1{font-size:14px;}
   .nr input[type=number]{width:84px;}
 }
+.pb-step{display:flex;gap:10px;align-items:flex-start;padding:10px 11px;border:1px solid var(--bdr);border-radius:9px;margin-bottom:6px;background:var(--card);}
+.pb-step.off{opacity:.55;}
+.pb-n{width:24px;height:24px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.pb-step.off .pb-n{background:var(--mg);}
+.pb-body{flex:1;min-width:0;}
+.pb-t{font-size:12px;font-weight:600;}
+.pb-d{font-size:11px;color:var(--mg);line-height:1.5;margin-top:1px;}
+.pb-amt{font-size:12px;font-weight:700;text-align:right;flex-shrink:0;}
+.pb-amt small{display:block;font-size:10px;font-weight:400;color:var(--mg);}
+.pb-flag{display:flex;gap:8px;padding:9px 11px;border-radius:9px;margin-bottom:6px;font-size:11px;line-height:1.55;border-left:4px solid;}
+.pb-flag b{font-size:12px;}
+.pb-flag.r{background:var(--lrd);border-color:var(--rd);} .pb-flag.a{background:var(--lam);border-color:var(--am);} .pb-flag.g{background:var(--lg);border-color:var(--g);} .pb-flag.b{background:var(--lb);border-color:var(--b);}
+.pb-big{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pb-big .met{text-align:center;}
+.btn{padding:8px 14px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);}
+.btn.ghost{background:var(--card);color:var(--accent);}
+@media print{
+  body{background:#fff;font-size:11px;}
+  .mode-bar,.tabs,.no-print,.foot,#hdr .hdr-row,#hdr p{display:none!important;}
+  .panel{display:none!important;} #tab-play{display:block!important;}
+  .card,.pb-step,.pb-flag{break-inside:avoid;}
+  .hdr{background:#1D6B52!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .pb-n,.pb-flag,.tbl th{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
 </style>
 </head>
 <body>
@@ -228,6 +252,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
 <!-- TABS -->
 <div class="tabs" id="tabs">
   <button class="tab on" onclick="tab('reality')">📊 Reality Check</button>
+  <button class="tab" onclick="tab('play')">📋 My Playbook</button>
   <button class="tab" onclick="tab('paths')">🛤️ Three Paths</button>
   <button class="tab" onclick="tab('action')">⚡ Action Plan</button>
   <button class="tab" onclick="tab('fi')">🎯 FI Calculator</button>
@@ -418,6 +443,88 @@ body{font-family:var(--font);background:var(--bg);color:var(--dk);font-size:14px
     <div class="card"><div class="ctitle">If I change one thing — years of call saved</div>
       <div class="sens" id="sensitivity"></div></div>
   </div>
+</div>
+
+<!-- ═══ TAB: MY PLAYBOOK ════════════════════════════════════════════ -->
+<div id="tab-play" class="panel">
+  <div class="card" style="border-color:var(--accent)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:15px;font-weight:700" id="pb-title">Your financial playbook</div>
+        <div style="font-size:11px;color:var(--mg);margin-top:2px" id="pb-sub"></div>
+      </div>
+      <div class="no-print" style="display:flex;gap:6px">
+        <button class="btn" onclick="window.print()">🖨 Print / save PDF</button>
+        <button class="btn ghost" onclick="copyPlanLink(this)">🔗 Copy my plan link</button>
+        <button class="btn ghost" onclick="if(confirmReset())resetState()">Reset</button>
+      </div>
+    </div>
+    <div class="hint no-print" style="margin:8px 0 0">Built from everything you entered on Reality Check. Change anything there or below and this updates. Your entries are saved privately in this browser on this device — no one else sees them, and other people's entries never change yours. To open your plan on another device, use <strong>Copy my plan link</strong> and bookmark or email it to yourself. Come back each year, update the numbers, and see where you stand.</div>
+  </div>
+
+  <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
+
+  <div class="g2">
+    <div class="card no-print">
+      <div class="ctitle">Your goal and your brokerage plan</div>
+      <div class="sr"><label>I want call to be optional by age</label>
+        <input type="range" min="42" max="64" value="50" id="pb-goal" oninput="go()">
+        <span class="sv" id="pb-goal-v">50</span></div>
+      <div class="sr"><label>Brokerage I invest now / month</label>
+        <input type="range" min="0" max="15000" step="250" value="0" id="pb-brk" oninput="go()">
+        <span class="sv" id="pb-brk-v">$0</span></div>
+      <div class="sr"><label>Raise it every year by / month</label>
+        <input type="range" min="0" max="2000" step="100" value="500" id="pb-raise" oninput="go()">
+        <span class="sv" id="pb-raise-v">$500</span></div>
+      <div id="pb-dc-row">
+        <div class="sr"><label>Childcare ends in</label>
+          <input type="range" min="1" max="12" value="4" id="pb-dcend" oninput="go()">
+          <span class="sv" id="pb-dcend-v">4 yrs</span></div>
+        <div class="trow"><label>Send childcare money to the brokerage when it ends</label>
+          <label class="tog"><input type="checkbox" id="pb-dcredir" checked onchange="go()"><span class="tsl"></span></label></div>
+      </div>
+      <div class="trow" id="pb-loan-row"><label>Send the loan payment to the brokerage when loans are paid off</label>
+        <label class="tog"><input type="checkbox" id="pb-loanredir" checked onchange="go()"><span class="tsl"></span></label></div>
+      <div class="trow"><label>My health plan is a high-deductible plan (HSA eligible)</label>
+        <label class="tog"><input type="checkbox" id="pb-hdhp" onchange="go()"><span class="tsl"></span></label></div>
+      <div class="trow"><label>Part of my pay is bonus</label>
+        <label class="tog"><input type="checkbox" id="pb-bonus" onchange="go()"><span class="tsl"></span></label></div>
+      <div class="sr" id="pb-bonus-row" style="display:none"><label>Guaranteed base pay</label>
+        <input type="range" min="200000" max="1000000" step="10000" value="450000" id="pb-base" oninput="go()">
+        <span class="sv" id="pb-base-v">$450k</span></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Where this plan gets you</div>
+      <div id="pb-outcome"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Step 1 — Your monthly autopilot, in order</div>
+    <div id="pb-steps"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Step 2 — Your brokerage, year by year</div>
+    <div class="hint">The brokerage is the one account with no limit, so it decides when call becomes optional. This is your plan: start where you can, raise it every year, and add every cost that ends.</div>
+    <div style="overflow-x:auto"><table class="tbl" id="pb-ramp"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Step 3 — What to watch in your situation</div>
+    <div id="pb-flags"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle" id="pb-chk-title">Checklist</div>
+    <div id="pb-chk"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">How to invest it</div>
+    <div style="font-size:11px;line-height:1.6;color:#444">Low-cost total-market index funds, in every account: a US total stock market fund (e.g. VTI / FSKAX / SWTSX) plus an international fund (e.g. VXUS), with bonds added as you get closer to retirement. Expense ratios under 0.10%. Rebalance once a year. Never sell in a crash. Avoid advisors charging 1% of assets; use a flat-fee fiduciary if you want help. Start reading with <strong>The White Coat Investor</strong> (Jim Dahle) and <strong>If You Can</strong> (William Bernstein, free, 16 pages).</div>
+  </div>
+  <div class="hint">Assumptions: 5% real return, amounts in today's dollars, salary held flat in real terms, retirement spending from the FI Calculator tab. Social Security and employer contributions are not included — both make the picture better. Education only, not individual financial advice.</div>
 </div>
 
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
@@ -899,7 +1006,7 @@ function setMode(m){
 
 function tab(id){
   document.querySelectorAll('.tab').forEach(function(t,i){
-    t.classList.toggle('on',['reality','paths','action','fi','loans','rent','true'][i]===id);
+    t.classList.toggle('on',['reality','play','paths','action','fi','loans','rent','true'][i]===id);
   });
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
   $('tab-'+id).classList.add('on');
@@ -914,6 +1021,7 @@ function tab(id){
   }
   if(id==='rent')calcRentBuy();
   if(id==='true')calcTrue();
+  if(id==='play')calcPlay();
 }
 
 function setPath(n){
@@ -1135,6 +1243,8 @@ function go(){
   if(activePanel&&activePanel.id==='tab-action')calcAction();
   if(activePanel&&activePanel.id==='tab-fi'){syncFISR();calcFI();}
   if(activePanel&&activePanel.id==='tab-true')calcTrue();
+  if(activePanel&&activePanel.id==='tab-play')calcPlay();
+  saveState();
 }
 
 // ── RETIREMENT SPENDING & CALL OPTIONALITY ───────────────────────
@@ -2143,7 +2253,201 @@ function calcRentBuy(){
   $('rvb-txn-warn').innerHTML=txnHtml;
 }
 
+
+// ── MY PLAYBOOK ───────────────────────────────────────────────────
+function pbSim(c,o){
+  // o: {brk, raise, dcEnd, dcRedir, loanEnd, loanRedir, taxAdv}
+  var sa=startAge(),nw0=startNW(),rr=0.05,fiNum=retSpend(c)*25;
+  var dcMo=c.kidsCost>0?Math.round(c.childcareEst/12):0;
+  var loanMo=Math.round(c.loanPay/12);
+  function brkAt(y){ // monthly brokerage in plan year y (0-based)
+    var m=o.brk+o.raise*y;
+    if(o.dcRedir&&dcMo>0&&y>=o.dcEnd)m+=dcMo;
+    if(o.loanRedir&&loanMo>0&&o.loanEnd!==null&&y>=o.loanEnd)m+=loanMo;
+    return m;
+  }
+  var m=project(sa,nw0,function(y){return o.taxAdv+12*brkAt(y);},fiNum,rr,60);
+  if(m.coast!==null&&m.coast>=retAge())m.coast=null;
+  m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;
+  return m;
+}
+function calcPlay(){
+  var c=getCosts();
+  var hosp=c.planType==='403b',couple=c.hh==='couple';
+  var roth=c.actual?c.rothAmt:(couple?15000:7500);
+  var hsa=$('pb-hdhp').checked?(couple||c.nk>0?LIM.hsaFam:4400):0;
+  var taxAdv=c.deferrals+roth+hsa;
+  var goal=+$('pb-goal').value; $('pb-goal-v').textContent=goal;
+  if(c.actual&&c.brk>0&&+$('pb-brk').value===0){$('pb-brk').value=Math.min(15000,Math.round(c.brk/12/250)*250);}
+  var brk=+$('pb-brk').value; $('pb-brk-v').textContent=fkPrecise(brk);
+  var raise=+$('pb-raise').value; $('pb-raise-v').textContent=fkPrecise(raise);
+  var hasDC=c.kidsCost>0&&c.childcareEst>0;
+  $('pb-dc-row').style.display=hasDC?'block':'none';
+  var dcEnd=+$('pb-dcend').value; $('pb-dcend-v').textContent=dcEnd+' yr'+(dcEnd!==1?'s':'');
+  var hasLoan=c.loanPay>0;
+  $('pb-loan-row').style.display=hasLoan&&!c.pslf?'flex':'none';
+  var loanEnd=hasLoan?(c.pslf?(c.pslfYrsLeft||0):10):null;
+  $('pb-bonus-row').style.display=$('pb-bonus').checked?'flex':'none';
+  $('pb-base-v').textContent=fk(+$('pb-base').value);
+  var opts={brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:$('pb-dcredir').checked&&hasDC,loanEnd:loanEnd,loanRedir:$('pb-loanredir').checked&&hasLoan&&!c.pslf,taxAdv:taxAdv};
+  var plan=pbSim(c,opts);
+  var flat=pbSim(c,{brk:brk,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,taxAdv:taxAdv});
+  // Level brokerage needed from year 1 to hit goal
+  function solve(fn){var lo=0,hi=40000;if(!fn(hi))return null;for(var k=0;k<30;k++){var mid=(lo+hi)/2;if(fn(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;}
+  var needLevel=solve(function(m){var r=pbSim(c,{brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,taxAdv:taxAdv});return r.coast!==null&&r.coast<=goal;});
+  var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
+  var sa=plan.sa,yr1=MODE==='res'?'your first attending year (age '+sa+')':'today (age '+sa+')';
+  var spend=retSpend(c);
+
+  $('pb-title').textContent=(MODE==='res'?'Resident':'Attending')+' playbook — '+(c.s.overridden?fk(c.s.sal)+' salary':c.s.n+', '+fk(c.s.sal));
+  $('pb-sub').textContent='Household '+fk(c.gross)+' · '+(couple?'married':'single')+(c.nk?' · '+c.nk+' child'+(c.nk!==1?'ren':''):'')+(c.houseOn?' · '+fk(c.hp)+' home'+(c.buyYr>0?' (buying yr '+c.buyYr+')':''):' · renting')+(c.loansOn&&c.lb>0?' · '+fk(c.lb)+' loans':'')+' · plan starts '+yr1+' · updated '+new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'});
+
+  var goalMet=plan.coast!==null&&plan.coast<=goal;
+  $('pb-big').innerHTML=[
+    {l:'Savings rate',v:effSR(c)+'%',s:c.actual?'your actual rate today':'estimate today',c:effSR(c)>=20?'good':effSR(c)>=12?'warn':'bad'},
+    {l:'Call optional',v:plan.coast?'age '+plan.coast:'not by '+retAge(),s:'on this plan (goal '+goal+')',c:goalMet?'good':plan.coast?'warn':'bad'},
+    {l:'Full retirement',v:plan.fi?'age '+plan.fi:'past '+(sa+60),s:fk(spend)+'/yr in retirement',c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
+  ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
+
+  // Outcome
+  var out='<table class="tbl"><tr><th></th><th>Call optional</th><th>Full retirement</th></tr>'+
+    '<tr><td>Brokerage stays at '+fkPrecise(brk)+'/mo forever</td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
+    '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr></table>';
+  if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Call becomes optional at '+plan.coast+'. The single most important thing now is that the raises and redirects actually happen — set them up as automatic transfers.</div></div>';
+  else out+='<div class="pb-flag a" style="margin-top:8px"><div><b>To make call optional by '+goal+':</b> '+
+    (needRaise!==null?'raise your brokerage by <strong>'+fkPrecise(needRaise)+'/mo every year</strong> instead of '+fkPrecise(raise)+'. ':'no realistic yearly raise gets there from this start — ')+
+    (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
+    'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
+  out+='<div class="hint" style="margin-top:6px">For reference: a steady '+(needLevel!==null?fkPrecise(needLevel):'—')+'/mo from '+yr1+' reaches call optionality at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.</div>';
+  $('pb-outcome').innerHTML=out;
+
+  // Steps
+  var mo=function(a){return fkPrecise(a/12)+'<small>'+fk(a)+'/yr</small>';};
+  var spendYr=c.actual&&!c.spendEntered?Math.max(0,c.impliedSpend):c.totalSpend;
+  var efTarget=Math.round(3*spendYr/12/1000)*1000;
+  var steps=[];
+  steps.push({on:c.def401>0,t:(hosp?'403(b)':'401(k)')+' — max it, starting with your first paycheck',d:'Pre-tax. Call HR on day 1 — you cannot make up missed pay periods. Take any employer match first.',a:LIM.k401,fix:c.def401>0?null:'Turn on in Reality Check'});
+  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another $24,500 pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' of call':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in Reality Check'});
+  steps.push({on:true,t:'Backdoor Roth IRA'+(couple?' — both spouses':''),d:'Every January: contribute $7,500 to a traditional IRA, convert to Roth right away. Keep no other pre-tax IRA balances (pro-rata rule).',a:couple?15000:7500});
+  steps.push({on:hsa>0,t:'HSA',d:hsa>0?'Triple tax advantage. Invest it and pay current medical bills from cash if you can.':'Only if your health plan is a high-deductible plan. Most hospital plans are PPOs — check at open enrollment.',a:hsa||LIM.hsaFam});
+  if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
+  steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). Build it in year 1, then stop. '+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
+  if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year 10 — then that payment moves to the brokerage.',a:c.loanPay});
+  if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=Math.round(c.hp*0.23),dpMo=Math.max(0,dpNeed-Math.max(0,startNW()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' (20% down + closing) for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
+  steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.',a:brk*12,brk:true});
+  $('pb-steps').innerHTML=steps.map(function(st,i){
+    return '<div class="pb-step'+(st.on?'':' off')+'"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t">'+st.t+'</div><div class="pb-d">'+st.d+(st.fix?' <em>('+st.fix+')</em>':'')+'</div></div>'+
+      '<div class="pb-amt">'+(st.once?fk(st.a)+'<small>one-time</small>':(st.brk?fkPrecise(brk)+'/mo<small>then rising</small>':fkPrecise(st.a/12)+'/mo<small>'+fk(st.a)+'/yr</small>'))+'</div></div>';
+  }).join('');
+
+  // Ramp
+  var marks=[0,1,2,3,4,5,6,7,8,10,12,15,20];
+  if(plan.coast){var cy=plan.coast-sa-1;if(cy>=0&&marks.indexOf(cy)<0){marks.push(cy);marks.sort(function(a,b){return a-b;});}}
+  var rows='<tr><th>Year</th><th>Age at end</th><th>Brokerage / mo</th><th>All saving / yr</th><th>Net worth</th><th>What changes</th></tr>';
+  marks.forEach(function(y){
+    var ev=[];
+    if(y===0)ev.push('Start');
+    if(raise>0&&y>0)ev.push('+'+fkPrecise(raise)+'/mo raise');
+    if(opts.dcRedir&&y===dcEnd)ev.push('<strong>Childcare ends → +'+fkPrecise(c.childcareEst/12)+'/mo</strong>');
+    if(opts.loanRedir&&y===loanEnd)ev.push('<strong>Loans paid off → +'+fkPrecise(c.loanPay/12)+'/mo</strong>');
+    if(c.pslf&&loanEnd&&y===loanEnd)ev.push('<strong>PSLF forgiveness</strong>');
+    var age=sa+y;
+    var hl=(plan.coast&&age===plan.coast)||(y===dcEnd&&opts.dcRedir);
+    rows+='<tr'+(plan.coast===age+1?' class="hl-b"':'')+'><td>'+(y+1)+'</td><td>'+(age+1)+(plan.coast===age+1?' 📞 call optional':'')+'</td><td>'+fkPrecise(plan.brkAt(y))+'</td><td>'+fk(taxAdv+12*plan.brkAt(y))+' ('+Math.round((taxAdv+12*plan.brkAt(y))/c.gross*100)+'%)</td><td>'+fk(plan.series[y+1])+'</td><td style="font-size:10px">'+ev.join(' · ')+'</td></tr>';
+  });
+  rows+='<tr><td colspan="6" style="font-size:9px;color:var(--mg)">Net worth at end of each year. "All saving" = retirement plans'+(hsa?' + HSA':'')+' + Roth + brokerage. 📞 = enough saved that call becomes optional (needed at that age: '+(plan.coast?fk(callTarget(plan.coast,plan.fiNum,0.05)):'—')+').</td></tr>';
+  $('pb-ramp').innerHTML=rows;
+
+  // Flags
+  var F=[];
+  var th=c.takeHome/12;
+  var fixedMo=(c.housingCost+c.kidsCost+c.loanPay+c.cars)/12;
+  if(c.houseOn){
+    var ratio=c.hp/c.gross;
+    var houseLine='Your '+fk(c.hp)+' home is <strong>'+ratio.toFixed(1)+'× household income</strong>. Rule of thumb in NJ: about 2× — treat it as a ceiling, and lower with several kids in childcare.';
+    F.push({k:ratio>2.5?'r':ratio>2?'a':'g',t:ratio>2?'House price vs income':'House price is in range',b:houseLine+(c.owningNow?' All-in it costs '+fkPrecise(c.housingCost/12)+'/mo — '+Math.round(c.housingCost/12/th*100)+'% of take-home.':'')});
+  }
+  F.push({k:fixedMo/th>0.6?'r':fixedMo/th>0.45?'a':'g',t:'Fixed costs: '+Math.round(fixedMo/th*100)+'% of take-home',b:'Housing, childcare/school, loans and cars come to '+fkPrecise(fixedMo)+' of your '+fkPrecise(th)+' monthly take-home. '+(fixedMo/th>0.45?'Every $1,000/month of permanent cost takes about '+fk(12000/(1-0.46))+' a year of salary — see the True Cost tab before adding more.':'Keep it here: this is what leaves room to save.')});
+  if($('pb-bonus').checked){
+    var base=+$('pb-base').value,baseTH=base*(c.takeHome/c.gross)/12;
+    var mustCover=fixedMo+(c.otherCost/12);
+    F.push({k:mustCover>baseTH?'r':'g',t:mustCover>baseTH?'Your base pay doesn\'t cover your bills':'Base pay covers your bills',b:'Guaranteed base of '+fk(base)+' takes home about '+fkPrecise(baseTH)+'/mo; your monthly costs are about '+fkPrecise(mustCover)+'. '+(mustCover>baseTH?'You\'re relying on bonuses for ordinary bills. When a bonus lands, move the shortfall ('+fkPrecise((mustCover-baseTH)*6)+' per six months) into a separate account and pay yourself from it monthly. Don\'t add fixed costs until base pay covers them.':'Good — send bonuses straight to savings the day they arrive.')});
+  }
+  if(c.childcareEst>0) F.push({k:'b',t:'The day childcare ends',b:'That frees '+fkPrecise(c.childcareEst/12)+'/mo. Set up the brokerage increase now so it starts the same month — otherwise it disappears into spending. '+(opts.dcRedir?'Your plan already counts on it.':'<strong>Your plan currently doesn\'t redirect it</strong> — turning that on moves call optionality from '+(plan.coast||'never')+' to '+(pbSim(c,Object.assign({},opts,{dcRedir:true})).coast||'never')+'.')});
+  if(c.def457===0&&hosp) F.push({k:'a',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another $24,500 a year pre-tax into a 457(b). Check your plan and turn it on in Reality Check.'});
+  if(c.nPriv>0) F.push({k:'a',t:'Private school',b:fk(c.schoolEst)+'/yr for '+c.nPriv+' child'+(c.nPriv!==1?'ren':'')+', for up to 13 years each. Paid from take-home, so it takes about '+fk(c.schoolEst/(1-0.46))+' of salary a year.'});
+  if(c.cars>=24000) F.push({k:'a',t:'Cars',b:fk(c.cars)+'/yr. A paid-off car you keep 8–10 years is one of the easiest fixed costs to cut.'});
+  F.push({k:'b',t:'Disability insurance',b:'Your income is your biggest asset. Own-occupation, individually owned policy covering about 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers will issue'+($('pb-bonus').checked?', and make sure bonus pay is included in what\'s covered':'')+'. '+(MODE==='res'?'Buy it before you graduate, while you\'re healthy and resident discounts apply.':'Re-check coverage whenever income rises.')});
+  if(c.nk>0||couple) F.push({k:'b',t:'Term life insurance',b:'About 10–15× income for someone depending on you: '+fk(c.s.sal*10)+'–'+fk(c.s.sal*15)+', 20–30 year term. No whole life or IUL. Plus a $2M+ umbrella policy.'});
+  $('pb-flags').innerHTML=F.map(function(f){return '<div class="pb-flag '+f.k+'"><div><b>'+f.t+'.</b> '+f.b+'</div></div>';}).join('');
+
+  // Checklist
+  $('pb-chk-title').textContent=MODE==='res'?'Before you finish training':'This year';
+  var chk=MODE==='res'?[
+    ['Disability insurance — own-occupation','Final year of training'],
+    ['Get on RAP or IBR, confirm PSLF eligibility of your future employer','Now'],
+    ['Roth IRA — $7,500 each year of residency','Every January'],
+    ['Ask about the 403(b)/401(k), 457(b), employer contribution and HSA before signing','During contract negotiation'],
+    ['Day 1: max the retirement plan(s) before the first paycheck','First week as attending'],
+    ['Set up the automatic brokerage transfer — even $250/mo','Month 1 as attending'],
+    ['Rent for 2 years; buy once you know the job, the town, and your take-home','Years 1–2'],
+    ['Come back to this playbook and update your actual numbers','Every year']
+  ]:[
+    ['Retirement plans maxed — check the pay stub, not the election form','Now'],
+    ['Backdoor Roth done for '+(couple?'both of you':'you'),'January'],
+    ['Find your real savings rate (Reality Check → "Find my real savings rate")','This month'],
+    ['Raise the brokerage transfer to '+fkPrecise(plan.brkAt(1))+'/mo','Next raise or January'],
+    (c.childcareEst>0?['Schedule the brokerage increase for when childcare ends','Before the last daycare bill']:null),
+    ['Disability coverage still matches your income','Annually'],
+    ['Update this playbook with your new numbers','Every year']
+  ].filter(Boolean);
+  $('pb-chk').innerHTML=chk.map(function(x){return '<div class="oop-item" style="margin-bottom:5px"><div style="font-size:14px">☐</div><div class="oop-body"><div class="oop-title">'+x[0]+'</div></div><div style="font-size:10px;color:var(--mg);white-space:nowrap">'+x[1]+'</div></div>';}).join('');
+}
+
+// ── SAVE / RESTORE INPUTS (this browser only) ─────────────────────
+var STATE_KEY='surgeonFI.v1',restoring=false;
+function saveState(){
+  if(restoring)return;
+  try{
+    localStorage.setItem(STATE_KEY,JSON.stringify(stateObj()));
+  }catch(e){}
+}
+function restoreState(){
+  var st=null;
+  try{
+    var m=location.hash.match(/plan=([^&]+)/);
+    if(m){st=JSON.parse(atob(decodeURIComponent(m[1])));history.replaceState(null,'',location.pathname);}
+  }catch(e){st=null;}
+  if(!st){try{st=JSON.parse(localStorage.getItem(STATE_KEY)||'null');}catch(e){}}
+  if(!st||!st.v)return;
+  restoring=true;
+  try{
+    if(st.mode==='att')setMode('att');
+    Object.keys(st.v).forEach(function(id){
+      var el=document.getElementById(id);if(!el)return;
+      if(el.type==='checkbox')el.checked=!!st.v[id];else el.value=st.v[id];
+    });
+    if(st.v['sal-override-on'])$('sal-override').style.display='inline-block';
+    if(st.dp)setDP(st.dp);
+  }catch(e){}
+  restoring=false;
+  if(st.tab)tab(st.tab);
+}
+function stateObj(){var st={mode:MODE,dp:curDP,v:{}};document.querySelectorAll('.shell input[id], .shell select[id]').forEach(function(el){st.v[el.id]=el.type==='checkbox'?el.checked:el.value;});return st;}
+function copyPlanLink(btn){
+  var url=location.origin+location.pathname+'#plan='+encodeURIComponent(btoa(JSON.stringify(stateObj())));
+  var done=function(){var t=btn.textContent;btn.textContent='✓ Link copied';setTimeout(function(){btn.textContent=t;},2000);};
+  try{navigator.clipboard.writeText(url).then(done,function(){window.prompt('Copy your plan link:',url);});}
+  catch(e){window.prompt('Copy your plan link:',url);}
+}
+function confirmReset(){var b=document.activeElement;if(b&&b.dataset.armed){return true;}if(b){b.dataset.armed='1';b.textContent='Tap again to clear';setTimeout(function(){delete b.dataset.armed;b.textContent='Reset';},3000);}return false;}
+function resetState(){
+  try{localStorage.removeItem(STATE_KEY);}catch(e){}
+  location.reload();
+}
+
 // ── INIT ──────────────────────────────────────────────────────────
+restoreState();
 go();
 </script>
 </body>
