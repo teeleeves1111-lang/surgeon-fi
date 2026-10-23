@@ -110,6 +110,17 @@ details.fold>summary::-webkit-details-marker{display:none;}
 details.fold>summary::before{content:'▸ ';}
 details.fold[open]>summary::before{content:'▾ ';}
 details.fold[open]>summary{margin-bottom:8px;}
+.ftf{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--bdr);}
+.ftf:last-child{border-bottom:none;}
+.ftf>input{width:17px;height:17px;margin:1px 0 0;flex-shrink:0;accent-color:var(--accent);cursor:pointer;}
+.ftf-d{flex:1;min-width:0;}
+.ftf-d>summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:600;color:var(--dk);line-height:1.35;}
+.ftf-d>summary::-webkit-details-marker{display:none;}
+.ftf-d>summary::after{content:' ▸';color:var(--accent);font-weight:400;}
+.ftf-d[open]>summary::after{content:' ▾';}
+.ftf-d[open]>summary{margin-bottom:4px;}
+.ftf.done .ftf-d>summary{color:var(--mg);text-decoration:line-through;}
+@media print{.ftf>input{display:none;}}
 .ptabs{display:flex;gap:4px;margin-bottom:9px;flex-wrap:wrap;}
 .ptab{padding:6px 12px;font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;border:1px solid var(--bdr);background:var(--card);color:var(--mg);transition:all .15s;}
 .ptab.on{background:var(--g);color:white;border-color:var(--g);}
@@ -526,11 +537,10 @@ details.how ol:empty{display:none;}
     <div class="hint no-print" style="margin:8px 0 0">Built from My Numbers — change anything there or below and this updates. Saved privately on this device only. Use <strong>Copy my plan link</strong> to open it elsewhere. Come back each year and update it.</div>
   </div>
 
-  <div class="box box-g" style="margin-top:0"><div class="box-body" style="font-size:12px"><strong>The one idea that matters most:</strong> a surgeon who saves 25% of $400k will retire earlier and wealthier than one who saves 10% of $600k. Income is not the variable. The gap between income and spending is — and you control the gap.</div></div>
   <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
   <div class="card pb-top"><div class="ctitle" style="color:var(--accent)">Your top three moves</div><div id="pb-top3"></div></div>
-  <div class="card"><div class="ctitle">First things first — before you invest a dollar</div>
-    <div class="hint">The week you finish training. None of it is exciting; all of it protects your ability to earn and your family.</div>
+  <div class="card"><div class="ctitle">First things first — before you invest a dollar <span id="ftf-prog" style="float:right;color:var(--accent);text-transform:none;letter-spacing:0"></span></div>
+    <div class="hint">Tap an item to see why and how. Tick it off when it's done — this device remembers.</div>
     <div id="pb-basics"></div></div>
 
   <div class="g2">
@@ -545,6 +555,7 @@ details.how ol:empty{display:none;}
       <div class="sr"><label>Raise it every year by / month</label>
         <input type="range" min="0" max="2000" step="100" value="500" id="pb-raise" oninput="go()">
         <span class="sv" id="pb-raise-v">$500</span></div>
+      <details class="how pb-set"><summary>More settings — childcare, loans, pay raise, HSA, bonus</summary>
       <div id="pb-dc-row">
         <div class="sr"><label>Childcare ends in</label>
           <input type="range" min="1" max="12" value="4" id="pb-dcend" oninput="go()">
@@ -577,6 +588,7 @@ details.how ol:empty{display:none;}
       <div class="sr" id="pb-bonus-row" style="display:none"><label>Guaranteed base pay</label>
         <input type="range" min="200000" max="1000000" step="10000" value="450000" id="pb-base" oninput="go()">
         <span class="sv" id="pb-base-v">$450k</span></div>
+      </details>
     </div>
     <div class="card">
       <div class="ctitle">Where this plan gets you</div>
@@ -587,25 +599,25 @@ details.how ol:empty{display:none;}
   <div class="card">
     <div class="ctitle">Step 1 — Your monthly autopilot, in order</div>
     <div id="pb-steps"></div>
+    <div class="hint" id="pb-notusing"></div>
   </div>
 
-  <div class="card">
-    <div class="ctitle">Step 2 — Your brokerage, year by year</div>
+  <details class="card pb-more">
+    <summary class="ctitle">Step 2 — Your brokerage, year by year</summary>
     <div class="hint">The brokerage is the one account with no limit, so it decides when work becomes optional. This is your plan: start where you can, raise it every year, and add every cost that ends.</div>
     <div style="overflow-x:auto"><table class="tbl" id="pb-ramp"></table></div>
-  </div>
+  </details>
 
-  <div class="card">
-    <div class="ctitle">Step 3 — What to watch in your situation</div>
+  <div class="card" id="pb-flags-card">
+    <div class="ctitle">What to watch in your situation</div>
     <div id="pb-flags"></div>
   </div>
 
-  <div class="card">
-    <div class="ctitle" id="pb-chk-title">Checklist</div>
-    <div id="pb-chk"></div>
-  </div>
-
   <div class="ctitle" style="margin:16px 2px 6px">The playbook — tap a section to open</div>
+  <details class="card pb-more">
+    <summary class="ctitle" id="pb-chk-title">Timeline</summary>
+    <div id="pb-chk"></div>
+  </details>
   <details class="card pb-more">
     <summary class="ctitle">Automate it — set up once, runs for years</summary>
     <div class="hint">You don't need discipline. You need a one-time setup, so the saving happens before you see the money.</div>
@@ -2494,8 +2506,8 @@ function calcPlay(){
   var goalMet=plan.coast!==null&&plan.coast<=goal;
   $('pb-big').innerHTML=[
     {l:'Saving now',v:Math.round((taxAdv+12*brk)/c.gross*100)+'%',s:fk(taxAdv+12*brk)+'/yr incl. '+fkPrecise(brk)+'/mo brokerage',c:(taxAdv+12*brk)/c.gross>=0.2?'good':(taxAdv+12*brk)/c.gross>=0.12?'warn':'bad'},
-    {l:'Work optional',v:(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+'),s:'if nothing changes → on your plan',c:goalMet?'good':plan.coast?'warn':'bad'},
-    {l:'Full retirement',v:(flat.fi||'—')+' → '+(plan.fi||'—'),s:'if nothing changes → on your plan',c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
+    {l:'Work optional — with this plan',v:plan.coast?'Age '+plan.coast:'Not before '+retAge(),s:'If nothing changes: '+(flat.coast?'age '+flat.coast:'not before '+retAge()),c:goalMet?'good':plan.coast?'warn':'bad'},
+    {l:'Full retirement — with this plan',v:plan.fi?'Age '+plan.fi:'Not reached',s:'If nothing changes: '+(flat.fi?'age '+flat.fi:'not reached'),c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
   // Outcome
@@ -2605,6 +2617,9 @@ function calcPlay(){
     return null;
   };
   steps.forEach(function(st){st.how=HOW(st.t);});
+  var unused=steps.filter(function(st){return !st.on;});
+  $('pb-notusing').innerHTML=unused.length?'Not using: '+unused.map(function(st){return st.t.split(' — ')[0]+(st.fix?' <em>('+st.fix.toLowerCase()+')</em>':'');}).join(', ')+'.':'';
+  steps=steps.filter(function(st){return st.on;});
   $('pb-steps').innerHTML=steps.map(function(st,i){
     return '<div class="pb-step'+(st.on?'':' off')+'"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t">'+st.t+'</div><div class="pb-d">'+st.d+(st.fix?' <em>('+st.fix+')</em>':'')+'</div>'+(st.how?'<details class="how"><summary>How to do it</summary><ol>'+st.how.map(function(h){return h.charAt(0)==='§'?'</ol><div class="how-h">'+h.slice(1)+'</div><ol>':'<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</div>'+
       '<div class="pb-amt">'+(st.once?fk(st.a)+'<small>one-time</small>':(st.brk?fkPrecise(brk)+'/mo<small>then rising</small>':fkPrecise(st.a/12)+'/mo<small>'+fk(st.a)+'/yr</small>'))+'</div></div>';
@@ -2652,10 +2667,11 @@ function calcPlay(){
   if(c.cars>=24000) F.push({k:'a',t:'Cars',b:fk(c.cars)+'/yr. A paid-off car you keep 8–10 years is one of the easiest fixed costs to cut.'});
   if(false)F.push({k:'b',t:'Disability insurance',b:'Your income is your biggest asset. Own-occupation, individually owned policy covering about 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers will issue'+($('pb-bonus').checked?', and make sure bonus pay is included in what\'s covered':'')+'. '+(MODE==='res'?'Buy it before you graduate, while you\'re healthy and resident discounts apply.':'Re-check coverage whenever income rises.')});
   if(false) F.push({k:'b',t:'Term life insurance',b:'About 10–15× income for someone depending on you: '+fk(c.s.sal*10)+'–'+fk(c.s.sal*15)+', 20–30 year term. No whole life or IUL. Plus a $2M+ umbrella policy.'});
+  $('pb-flags-card').style.display=F.length?'block':'none';
   $('pb-flags').innerHTML=F.map(function(f){return '<div class="pb-flag '+f.k+'"><div><b>'+f.t+'.</b> '+f.b+'</div></div>';}).join('');
 
   // Checklist
-  $('pb-chk-title').textContent=MODE==='res'?'Before you finish training':'This year';
+  $('pb-chk-title').textContent=MODE==='res'?'Timeline — before you finish training':'Timeline — this year';
   var chk=MODE==='res'?[
     ['Disability insurance — own-occupation','Final year of training'],
     ['Get on RAP or IBR, confirm PSLF eligibility of your future employer','Now'],
@@ -2753,10 +2769,14 @@ function calcPlay(){
     {t:'Day 1 as an attending: max the retirement plan',d:'Call HR before your first paycheck — you can\'t make up missed pay periods. Then everything in Step 1 below.',how:null}
   ];
   basics=basics.filter(Boolean);
-  $('pb-basics').innerHTML=basics.map(function(b,i){
-    return '<div class="pb-step"><div style="font-size:15px;line-height:1">☐</div><div class="pb-body"><div class="pb-t">'+b.t+'</div><div class="pb-d">'+b.d+'</div>'+
-      (b.how?'<details class="how"><summary>How to do it</summary><ol>'+b.how.map(function(h){return '<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</div></div>';
+  var FTF=ftfLoad(),nDone=0;
+  $('pb-basics').innerHTML=basics.map(function(b){
+    var k=ftfKey(b.t),done=!!FTF[k];if(done)nDone++;
+    return '<div class="ftf'+(done?' done':'')+'"><input type="checkbox" data-k="'+k+'"'+(done?' checked':'')+' onchange="ftfToggle(this)" aria-label="Done">'+
+      '<details class="ftf-d"><summary>'+b.t+'</summary><div class="pb-d">'+b.d+'</div>'+
+      (b.how?'<details class="how"><summary>How to do it</summary><ol>'+b.how.map(function(h){return '<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</details></div>';
   }).join('');
+  $('ftf-prog').textContent=nDone+' of '+basics.length+' done';
   // ── Top three moves ──
   var moves=[];
   var yrsGain=function(alt){var x=pbSim(c,Object.assign({},opts,alt));var a=plan.coast||retAge()+5,b2=x.coast||retAge()+5;return a-b2;};
@@ -2786,6 +2806,12 @@ function calcPlay(){
 
 
 
+// ── First-things-first checklist: ticks are kept on this device (and in the plan link) ──
+var FTF_KEY='surgeonFI.ftf';
+function ftfKey(t){return t.toLowerCase().replace(/<[^>]*>/g,'').replace(/[^a-z0-9]+/g,' ').trim().split(' ').slice(0,3).join('-');}
+function ftfLoad(){try{return JSON.parse(localStorage.getItem(FTF_KEY)||'{}')||{};}catch(e){return {};}}
+function ftfToggle(el){var o=ftfLoad();if(el.checked)o[el.dataset.k]=1;else delete o[el.dataset.k];try{localStorage.setItem(FTF_KEY,JSON.stringify(o));}catch(e){}
+  el.parentNode.classList.toggle('done',el.checked);var n=document.querySelectorAll('#pb-basics .ftf input:checked').length,t=document.querySelectorAll('#pb-basics .ftf').length;$('ftf-prog').textContent=n+' of '+t+' done';}
 // ── PLAYBOOK OPTIONS (shared by playbook and summary bar) ──
 function pbOpts(c){
   var couple=c.hh==='couple';
@@ -2883,11 +2909,12 @@ function restoreState(){
     });
     if(st.v['sal-override-on'])$('sal-override').style.display='inline-block';
     if(st.dp)setDP(st.dp);
+    if(st.ftf&&m)try{localStorage.setItem(FTF_KEY,JSON.stringify(st.ftf));}catch(e){}
   }catch(e){}
   restoring=false;
   if(st.tab)tab(st.tab);
 }
-function stateObj(){var st={mode:MODE,dp:curDP,tab:CUR_TAB,v:{}};document.querySelectorAll('.shell input[id], .shell select[id]').forEach(function(el){st.v[el.id]=el.type==='checkbox'?el.checked:el.value;});return st;}
+function stateObj(){var st={mode:MODE,dp:curDP,tab:CUR_TAB,v:{},ftf:ftfLoad()};document.querySelectorAll('.shell input[id], .shell select[id]').forEach(function(el){st.v[el.id]=el.type==='checkbox'?el.checked:el.value;});return st;}
 function copyPlanLink(btn){
   var url=location.origin+location.pathname+'#plan='+encodeURIComponent(btoa(JSON.stringify(stateObj())));
   var done=function(){var t=btn.textContent;btn.textContent='✓ Link copied';setTimeout(function(){btn.textContent=t;},2000);};
@@ -2895,8 +2922,8 @@ function copyPlanLink(btn){
   catch(e){window.prompt('Copy your plan link:',url);}
 }
 function confirmReset(){var b=document.activeElement;if(b&&b.dataset.armed){return true;}if(b){b.dataset.armed='1';b.textContent='Tap again to clear';setTimeout(function(){delete b.dataset.armed;b.textContent='Reset';},3000);}return false;}
-window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more, details.how').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
-window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more, details.how').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
+window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
+window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
 function resetState(){
   try{localStorage.removeItem(STATE_KEY);}catch(e){}
   location.reload();
