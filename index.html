@@ -209,7 +209,7 @@ details.fold[open]>summary{margin-bottom:8px;}
 .pb-flag{display:flex;gap:8px;padding:9px 11px;border-radius:9px;margin-bottom:6px;font-size:11px;line-height:1.55;border-left:4px solid;}
 .pb-flag b{font-size:12px;}
 .pb-flag.r{background:var(--lrd);border-color:var(--rd);} .pb-flag.a{background:var(--lam);border-color:var(--am);} .pb-flag.g{background:var(--lg);border-color:var(--g);} .pb-flag.b{background:var(--lb);border-color:var(--b);}
-.pb-big{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pb-big{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
 .pb-big .met{text-align:center;}
 .btn{padding:8px 14px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);}
 .btn.ghost{background:var(--card);color:var(--accent);}
@@ -2484,7 +2484,7 @@ function pbSim(c,o){
   }
   var m=project(sa,nw0-(o.dpNow||0),sav,fiNum,rr,60);
   if(m.coast!==null&&m.coast>=retAge())m.coast=null;
-  m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;m.capYr=capYr;m.cashAt=cashAt;m.wantAt=wantAt;
+  m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;m.capYr=capYr;m.cashAt=cashAt;m.wantAt=wantAt;m.savAt=sav;
   return m;
 }
 function calcPlay(){
@@ -2522,18 +2522,21 @@ function calcPlay(){
   $('pb-sub').textContent='Household '+fk(c.gross)+' · '+(couple?'married':'single')+(c.nk?' · '+c.nk+' child'+(c.nk!==1?'ren':''):'')+(c.houseOn?' · '+fk(c.hp)+' home'+(c.buyYr>0?' (buying yr '+c.buyYr+')':''):' · renting')+(c.loansOn&&c.lb>0?' · '+fk(c.lb)+' loans':'')+' · plan starts '+yr1+' · updated '+new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'});
 
   var goalMet=plan.coast!==null&&plan.coast<=goal;
+  var pct=function(x){return Math.round(x/c.gross*100);};
+  var dpY=pbOpts(c).dpYr,sav0=flat.savAt(0)+dpY;   // the house fund is saving too — just into the house
+  var srNow=pct(sav0),sr10=pct(plan.savAt(10));
+  var ageTxt=function(m){return m.coast?'Age '+m.coast:'Not before '+retAge();};
   $('pb-big').innerHTML=[
-    (function(){var P0=pbOpts(c),sv=taxAdv+12*brk+P0.dpYr-opts.short;return {l:'Saving now',v:Math.round(sv/c.gross*100)+'%',s:fk(sv)+'/yr incl. '+fkPrecise(brk)+'/mo brokerage'+(P0.dpYr>0?' and the house fund':'')+(opts.short>0?' · after the '+fk(opts.short)+' gap':''),c:sv/c.gross>=0.2?'good':sv/c.gross>=0.12?'warn':'bad'};})(),
-    {l:'Work optional — with this plan',v:plan.coast?'Age '+plan.coast:'Not before '+retAge(),s:'If nothing changes: '+(flat.coast?'age '+flat.coast:'not before '+retAge()),c:goalMet?'good':plan.coast?'warn':'bad'},
-    {l:'Full retirement — with this plan',v:plan.fi?'Age '+plan.fi:'Not reached',s:'If nothing changes: '+(flat.fi?'age '+flat.fi:'not reached'),c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
+    {l:'If nothing changes — saving '+pct(flat.savAt(10))+'% in year 10',v:ageTxt(flat),s:'work optional · full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'<br>today: '+srNow+'% ('+fk(sav0)+'/yr'+(dpY>0?', including the house fund':'')+(opts.short>0?', after the '+fk(opts.short)+' gap':'')+')',c:flat.coast?'warn':'bad'},
+    {l:'With this plan — saving '+sr10+'% in year 10',v:ageTxt(plan),s:'work optional · full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'<br>the yearly raises'+(opts.dcRedir?', childcare':'')+(opts.loanRedir?', loans':'')+' and anything else you set below',c:goalMet&&!(opts.short>0)?'good':plan.coast?'warn':'bad'},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
   // Outcome
   var planCut=plan.capYr!==null?pbSim(c,Object.assign({},opts,{uncapped:true})):null;
   var out='<table class="tbl"><tr><th></th><th>Work optional</th><th>Full retirement</th></tr>'+
-    '<tr><td>Brokerage stays at '+fkPrecise(brk)+'/mo forever</td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
-    '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')'+(plan.capYr!==null?'<br><span style="font-size:10px;font-weight:400">as far as your budget goes</span>':'')+'</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr>'+
-    (planCut&&plan.capYr!==null?'<tr><td>Same plan, if you also spend less<br><span style="font-size:10px;color:var(--mg)">so every raise happens</span></td><td>'+(planCut.coast||'not by '+retAge())+'</td><td>'+(planCut.fi||'—')+'</td></tr>':'')+'</table>';
+    '<tr><td>If nothing changes — brokerage stays at '+fkPrecise(brk)+'/mo<br><span style="font-size:10px;color:var(--mg)">saving '+pct(flat.savAt(10))+'% in year 10</span></td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
+    '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')'+'<br><span style="font-size:10px;font-weight:400">saving '+pct(plan.savAt(10))+'% in year 10'+(plan.capYr!==null?' — as far as your budget goes':'')+'</span>'+'</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr>'+
+    (planCut&&plan.capYr!==null?'<tr><td>Same plan, if you also spend less<br><span style="font-size:10px;color:var(--mg)">saving '+pct(planCut.savAt(10))+'% in year 10, so every raise happens</span></td><td>'+(planCut.coast||'not by '+retAge())+'</td><td>'+(planCut.fi||'—')+'</td></tr>':'')+'</table>';
   var PO=pbOpts(c),short=PO.short,room=PO.room,shortBuy=PO.shortBuy;
   if(short>0||shortBuy>0) out+='<div class="pb-flag a" style="margin-top:8px"><div><b>'+(short>0?'First close the gap: you\'re about '+fk(short)+' a year short'+(shortBuy>short?', and about '+fk(shortBuy)+' a year after you buy the house':''):'After you buy the house you\'ll be about '+fk(shortBuy)+' a year short')+'.</b> '+
     'Take-home doesn\'t cover the app\'s estimated spending plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(PO.buying?', the down payment fund and then the higher cost of owning':'')+', so the ages above already count that much less saved.'+(PO.buying?' A later or smaller house closes it fastest — the down payment card on My Numbers shows the options.':(c.cashLeft<0?' See move 1.':''))+'</div></div>';
@@ -2870,9 +2873,9 @@ function pbOpts(c){
 }
 function updateSumbar(c){
   var P=pbOpts(c),plan=pbSim(c,P.opts),flat=pbSim(c,Object.assign({},P.opts,{raise:0,dcRedir:false,loanRedir:false,stepShare:0}));
-  var sr=Math.round((P.taxAdv+12*P.brk+P.dpYr-P.short)/c.gross*100);
+  var sr0=Math.round(flat.savAt(10)/c.gross*100),sr10=Math.round(plan.savAt(10)/c.gross*100);
   $('sumbar').style.display=CUR_TAB==='play'?'none':'flex';
-  $('sumbar').innerHTML='<div class="sb-i"><span class="sb-l">Saving now</span><b>'+sr+'%</b></div>'+
+  $('sumbar').innerHTML='<div class="sb-i"><span class="sb-l">Saving · yr 10</span><b>'+sr0+'% → '+sr10+'%</b></div>'+
     '<div class="sb-i"><span class="sb-l">Work optional</span><b>'+(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+')+'</b></div>'+
     '<div class="sb-i"><span class="sb-l">Retire</span><b>'+(flat.fi||'—')+' → '+(plan.fi||'—')+'</b></div>'+
     '<div style="font-size:10px;color:var(--accent);font-weight:600">'+(CUR_TAB==='play'?'today → plan':'plan ›')+'</div>';
