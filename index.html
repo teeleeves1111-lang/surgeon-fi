@@ -810,6 +810,7 @@ details.how ol:empty{display:none;}
 </div>
 <!-- ═══ TAB 5: STUDENT LOANS ══════════════════════════════════════════ -->
 <div id="tab-loans" class="panel">
+  <div id="sl-verdict"></div>
   <div class="box box-r">
     <div class="box-title" style="color:var(--rd)">⚠ SAVE is gone — the 2026 landscape changed dramatically</div>
     <div class="box-body">SAVE was struck down by federal courts and will not return. IBR and the new RAP plan (July 1, 2026) are now the primary income-driven options. Grad PLUS loans are closed to new borrowers as of July 1, 2026. Critically: non-PSLF income-driven forgiveness is now taxable income. Know your strategy before you sign your first contract.</div>
@@ -837,7 +838,7 @@ details.how ol:empty{display:none;}
       <div class="sr"><label>Private refi rate</label>
         <input type="range" min="3" max="8" step="0.1" value="5" id="sl-refi" oninput="calcLoans()">
         <span class="sv" id="sl-refi-v">5.0%</span></div>
-      <div style="font-size:10px;color:var(--mg);margin-top:4px;line-height:1.5">Assumes $65k residency salary for IDR payment calc. Specialty salary (above) used for attending phase. Household size and children come from the My Numbers tab.</div>
+      <div style="font-size:10px;color:var(--mg);margin-top:4px;line-height:1.5">Payments use household income from My Numbers (your salary plus your partner's, less pre-tax retirement), as on a joint return. Residency assumes a $65k salary plus your partner's income. Household size and children also come from My Numbers.</div>
     </div>
     <div class="card">
       <div class="ctitle">What changed in 2026</div>
@@ -1076,7 +1077,8 @@ var PHYS={prem:0.25};
 var LIM={k401:24500,k457:24500,ira:7500,hsaFam:8750,dcfsa:7500,giftExcl:19000,giftLife:15000000,ssBase:184500,compCap:360000,dcTotal:72000};
 var FED={
   couple:{std:32200,br:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[1e12,.37]],addlMed:250000,ctcPh:400000},
-  single:{std:16100,br:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[640600,.35],[1e12,.37]],addlMed:200000,ctcPh:200000}
+  single:{std:16100,br:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[640600,.35],[1e12,.37]],addlMed:200000,ctcPh:200000},
+  mfs:{std:16100,br:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[384350,.35],[1e12,.37]],addlMed:125000,ctcPh:200000} // married filing separately
 };
 var NJBR={
   couple:[[20000,.014],[50000,.0175],[70000,.0245],[80000,.035],[150000,.05525],[500000,.0637],[1000000,.0897],[1e12,.1075]],
@@ -1128,7 +1130,7 @@ function bracketTax(ti,br){
 }
 // o: {sal,pinc,hh,deferFed,deferNJ,propTax,mortInt,nk}
 function taxCalc(o){
-  var hh=o.hh||'couple',F=FED[hh];
+  var hh=o.hh||'couple',F=o.F||FED[hh],sk=o.saltK||1; // saltK 0.5 = married filing separately
   var gross=o.sal+(o.pinc||0);
   var nk=o.nk||0;
   // New Jersey: 401(k) deferrals excluded; 403(b)/457 deferrals are NJ-taxable. $1k exemption per adult, $1.5k per child.
@@ -1136,7 +1138,7 @@ function taxCalc(o){
   var nj=bracketTax(njTI,NJBR[hh]);
   // Federal
   var agi=Math.max(0,gross-(o.deferFed||0));
-  var saltCap=Math.max(10000,40400-0.30*Math.max(0,agi-505000));
+  var saltCap=Math.max(10000*sk,40400*sk-0.30*Math.max(0,agi-505000*sk));
   var salt=Math.min(saltCap,nj+(o.propTax||0));
   var itemized=salt+(o.mortInt||0);
   var ded=Math.max(F.std,itemized);
@@ -1204,6 +1206,7 @@ function tab(id){
     $('sl-bal').value=$('lb').value;
     $('sl-pslf').checked=$('pslf').checked;
     $('sl-yrs-left').value=MODE==='res'?$('yrs-left').value:0;
+    $('sl-qual-done').value=$('pslf').checked?Math.min(9,+$('pslf-yrs').value):0;
     calcLoans();
   }
   if(id==='rent')rvbSync();
@@ -1340,7 +1343,7 @@ function getCosts(){
   var impliedSpend=takeHome-nonPayInv-save529Amt;
   var unassigned=spendEntered?takeHome-nonPayInv-totalSpend:null;
 
-  return{s:s,gross:gross,pinc:pinc,hh:hh,actual:actual,A:A,tax:t,taxes:t.total,
+  return{s:s,gross:gross,pinc:pinc,hh:hh,actual:actual,A:A,tax:t,taxes:t.total,taxParams:taxParams,
     deferrals:deferrals,def401:def401,def457:def457,planType:planType,dcfsa:dcfsa,
     houseOn:houseOn,houseOwned:houseOwned,hp:hp,buyYr:buyYr,MT:MT,mRateEff:mRateEff,loanAmt:loanAmt,downNeeded:downNeeded,gift:gift,dpOwn:dpOwn,ownHousing:ownHousing,housingEst:housingEst,rentEst:rentEst,owningNow:owningNow,
     housingCost:housingCost,kidsCost:kidsCost,childcareEst:childcareEst,schoolEst:schoolEst,kidsOn:kidsOn,nk:nk,nDay:nDay,nPriv:nPriv,
@@ -2070,6 +2073,11 @@ function calcLoans(){
   var refiRate=+$('sl-refi').value/100;
   var sal=s.sal;
   var nk=kidsCount(),hs=hhSize();
+  var c=getCosts();
+  var fm=function(n){return '$'+(Math.round(n/10)*10).toLocaleString('en-US');}; // monthly, to $10
+  var defP=c.deferrals-c.def401-c.def457;           // partner's pre-tax retirement
+  var pAGI=Math.max(0,c.pinc-defP);                  // partner's share of AGI
+  $('sl-verdict').innerHTML='';
 
   $('sl-bal-v').textContent=fk(bal);
   $('sl-rate-v').textContent=(+$('sl-rate').value).toFixed(1)+'%';
@@ -2079,7 +2087,8 @@ function calcLoans(){
   $('sl-pslf-opts').style.display=pslfOn?'block':'none';
 
   if(bal===0){
-    $('sl-result').innerHTML='<div class="box box-g"><div class="box-title" style="color:var(--g)">No loans — you\'re ahead of most of your peers</div><div class="box-body">No loan analysis needed. Direct all resources toward maxing retirement accounts and building net worth from day 1.</div></div>';
+    $('sl-result').innerHTML='';
+    $('sl-verdict').innerHTML='<div class="box box-g"><div class="box-title" style="color:var(--g)">No loans — you\'re ahead of most of your peers</div><div class="box-body">No loan analysis needed. Direct all resources toward maxing retirement accounts and building net worth from day 1.</div></div>';
     return;
   }
 
@@ -2097,7 +2106,7 @@ function calcLoans(){
     return Math.max(0,Math.round(b));
   }
 
-  var resAGI=65000;
+  var resAGI=65000+pAGI;                              // joint return: partner income counts
   var resIBR=ibrPmt(resAGI),resRAP=rapPmt(resAGI);
   var resPmt=Math.min(resIBR,resRAP);
   var resPlan=resRAP<=resIBR?'RAP':'IBR';
@@ -2105,7 +2114,7 @@ function calcLoans(){
   var trainingPaid=resPmt*resMos;
   var balAtAtt=balAfter(bal,fedRate,resPmt,resMos);
 
-  var attAGI=sal-LIM.k401;
+  var attAGI=Math.max(0,c.gross-c.deferrals);        // same household AGI My Numbers uses
   var attIBR=ibrPmt(attAGI),attRAP=rapPmt(attAGI);
   var attPmtPSLF=Math.min(attIBR,attRAP);
   var attPlan=attIBR<=attRAP?'IBR':'RAP';
@@ -2126,14 +2135,16 @@ function calcLoans(){
   var refiRateStr=(+$('sl-refi').value).toFixed(1)+'%';
   var html='';
 
+  var vHtml='';
   if(pslfOn){
     var pslfSaves=totalOOPrefi-totalOOPpslf;
     var pslfWins=pslfSaves>0;
+    var doneYr=new Date().getFullYear()+yrsLeft+pslfYrsRemaining;
     html+='<div class="g2">';
     html+='<div class="card"><div class="ctitle" style="color:var(--g)">✓ PSLF Path (IBR/RAP → forgiveness)</div><table class="tbl">';
     html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0) html+='<tr><td>Residency ('+resPlan+')</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    if(attMosPSLF>0) html+='<tr><td>Attending ('+attPlan+(attIBR===stdCap&&attPlan==='IBR'?', capped':'')+')</td><td>'+fk(attPmtPSLF)+'</td><td>'+pslfYrsRemaining+' yr'+(pslfYrsRemaining!==1?'s':'')+'</td><td>'+fk(attPaidPSLF)+'</td></tr>';
+    if(resMos>0) html+='<tr><td>Residency ('+resPlan+')</td><td>'+fm(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    if(attMosPSLF>0) html+='<tr><td>Attending ('+attPlan+(attIBR===stdCap&&attPlan==='IBR'?', capped':'')+')</td><td>'+fm(attPmtPSLF)+'</td><td>'+pslfYrsRemaining+' yr'+(pslfYrsRemaining!==1?'s':'')+'</td><td>'+fk(attPaidPSLF)+'</td></tr>';
     else html+='<tr><td>PSLF completes during training</td><td colspan="2">—</td><td>$0</td></tr>';
     html+='<tr class="hl"><td>Forgiven (tax-free)</td><td>—</td><td>PSLF</td><td>'+fk(balForgiven)+'</td></tr>';
     html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPpslf)+'</strong></td></tr></table>';
@@ -2141,25 +2152,53 @@ function calcLoans(){
 
     html+='<div class="card"><div class="ctitle" style="color:var(--b)">Private Refinance Path</div><table class="tbl">';
     html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0) html+='<tr><td>Residency ('+resPlan+')</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
+    if(resMos>0) html+='<tr><td>Residency ('+resPlan+')</td><td>'+fm(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fm(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
     html+='<tr class="hl2"><td>Balance forgiven</td><td colspan="2">None (fully paid off)</td><td>$0</td></tr>';
     html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr></table>';
     html+='<div class="box box-r" style="margin-top:8px"><div class="box-body">Refinancing forfeits PSLF eligibility <strong>permanently</strong>. If your employer qualifies, do not refinance until you are certain you are leaving nonprofit medicine.</div></div></div>';
     html+='</div>';
 
-    html+='<div class="box '+(pslfWins?'box-g':'box-b')+'"><div class="box-title" style="color:'+(pslfWins?'var(--g)':'var(--b)')+'">';
-    html+=pslfWins?'✓ PSLF saves '+fk(pslfSaves)+' over private refinancing':'→ Private refi is '+fk(-pslfSaves)+' cheaper — but read the nuance below';
-    html+='</div><div class="box-body">';
+    vHtml+='<div class="box '+(pslfWins?'box-g':'box-b')+'"><div class="box-title" style="color:'+(pslfWins?'var(--g)':'var(--b)')+'">';
+    vHtml+=pslfWins?'✓ PSLF saves '+fk(pslfSaves)+' vs. refinancing — '+fk(balForgiven)+' forgiven tax-free around '+doneYr:'→ Private refi is '+fk(-pslfSaves)+' cheaper than PSLF — but read the nuance below';
+    vHtml+='</div><div class="box-body">';
     if(pslfWins){
-      html+='Your balance ('+fk(bal)+') is large enough that the <strong>'+fk(balForgiven)+' forgiven tax-free</strong> more than offsets any refi savings. PSLF is the clear winner as long as you stay at a qualifying employer. ';
-      html+='File your Employment Certification Form every year — it\'s the documentation that proves your qualifying payment count.';
+      vHtml+='You pay '+fm(attPmtPSLF)+'/mo as an attending ('+attPlan+'), '+fk(totalOOPpslf)+' in all, versus '+fk(totalOOPrefi)+' to pay it off at '+refiRateStr+'. PSLF wins as long as you stay at a qualifying employer. ';
+      vHtml+='File your Employment Certification Form every year — it\'s the record of your qualifying payment count.';
     } else {
-      html+='At '+fk(sal)+' salary, your attending payment ('+fk(attPmtPSLF)+'/mo) is close to a standard 10-year payoff, so little is left to forgive. ';
-      html+='PSLF still provides real value: protection if your income drops, and flexibility to leave nonprofit medicine later (just don\'t refinance). ';
-      html+='If your employer qualifies and certification is current, stay on PSLF unless you are certain about private practice.';
+      vHtml+='On '+fk(attAGI)+' household income, your attending payment ('+fm(attPmtPSLF)+'/mo) is close to a standard 10-year payoff, so little is left to forgive. ';
+      vHtml+='PSLF still provides real value: protection if your income drops, and flexibility to leave nonprofit medicine later (just don\'t refinance). ';
+      vHtml+='If your employer qualifies and certification is current, stay on PSLF unless you are certain about private practice.';
     }
-    html+='</div></div>';
+    vHtml+='</div></div>';
+
+    // Married filing separately: drops the partner's income from the payment but usually costs tax
+    if(c.hh==='couple'&&c.pinc>0){
+      var tp=c.taxParams;
+      var mfsExtra=function(surgSal,surgDefFed,surgDefNJ,jointT,owning){
+        var pt=owning?tp.propTax/2:0,mi=owning?tp.mortInt/2:0,fsa=c.dcfsa/2;
+        var a=taxCalc({sal:surgSal,pinc:0,hh:'single',F:FED.mfs,saltK:0.5,deferFed:surgDefFed+fsa,deferNJ:surgDefNJ,propTax:pt,mortInt:mi,nk:nk}).total;
+        var b=taxCalc({sal:c.pinc,pinc:0,hh:'single',F:FED.mfs,saltK:0.5,deferFed:defP+fsa,deferNJ:defP,propTax:pt,mortInt:mi,nk:0}).total;
+        return Math.max(0,a+b-jointT);
+      };
+      var attTaxX=mfsExtra(c.s.sal,c.def401+c.def457,c.planType==='401k'?c.def401:0,c.tax.total,true);
+      var resTaxX=resMos>0?mfsExtra(65000,0,0,taxCalc({sal:65000,pinc:c.pinc,hh:'couple',deferFed:defP+c.dcfsa,deferNJ:defP,nk:nk}).total,false):0;
+      var sAtt=Math.max(0,attAGI-pAGI),sRes=65000;
+      var sResPmt=resMos>0?Math.min(ibrPmt(sRes),rapPmt(sRes)):0;
+      var sBalAtt=balAfter(bal,fedRate,sResPmt,resMos);
+      var sAttPmt=Math.min(ibrPmt(sAtt),rapPmt(sAtt));
+      var sOOP=sResPmt*resMos+sAttPmt*attMosPSLF;
+      var loanCut=totalOOPpslf-sOOP;
+      var taxAdd=Math.round(resTaxX*resMos/12+attTaxX*pslfYrsRemaining);
+      var net=loanCut-taxAdd;
+      var wash=Math.abs(net)<Math.max(5000,0.1*loanCut);
+      vHtml+='<div class="box '+(net>0&&!wash?'box-g':'box-b')+'" style="margin-top:8px"><div class="box-title" style="color:'+(net>0&&!wash?'var(--g)':'var(--b)')+'">';
+      vHtml+=wash?'Filing separately is about a wash':net>0?'Filing separately could save about '+fk(net)+' more':'Filing jointly is the better deal here';
+      vHtml+='</div><div class="box-body">On separate returns, your partner\'s income drops out of the loan formula: your attending payment would be about '+fm(sAttPmt)+'/mo instead of '+fm(attPmtPSLF)+', or '+fk(loanCut)+' less over the PSLF years. ';
+      vHtml+='But separate returns cost about '+fk(attTaxX)+'/yr more in tax as an attending'+(resMos>0?' ('+fk(resTaxX)+'/yr in training)':'')+', roughly '+fk(taxAdd)+' in all. ';
+      vHtml+=wash?'The two roughly cancel out. ':net>0?'Net, you come out about '+fk(net)+' ahead. ':'The extra tax outweighs the lower payments. ';
+      vHtml+='Rough estimate — separate returns also lose some credits and deductions. Run both returns with your tax preparer each year before deciding.</div></div>';
+    }
   } else {
     var refiSaves=totalOOPfedStd-totalOOPrefi;
     var interestFed=totalOOPfedStd-bal;
@@ -2169,25 +2208,25 @@ function calcLoans(){
     html+='<div class="g2">';
     html+='<div class="card"><div class="ctitle">Federal Standard 10yr ('+rateStr+')</div><table class="tbl">';
     html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0) html+='<tr><td>Residency ('+resPlan+')</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    html+='<tr><td>Attending (standard '+rateStr+')</td><td>'+fk(fedStdPmt)+'</td><td>10 yrs</td><td>'+fk(fedStdPaid)+'</td></tr>';
+    if(resMos>0) html+='<tr><td>Residency ('+resPlan+')</td><td>'+fm(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    html+='<tr><td>Attending (standard '+rateStr+')</td><td>'+fm(fedStdPmt)+'</td><td>10 yrs</td><td>'+fk(fedStdPaid)+'</td></tr>';
     html+='<tr class="hl2"><td>Interest paid</td><td colspan="2"></td><td>'+fk(interestFed)+'</td></tr>';
     html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPfedStd)+'</strong></td></tr></table></div>';
     html+='<div class="card"><div class="ctitle" style="color:var(--g)">Private Refi + Attack ('+refiRateStr+')</div><table class="tbl">';
     html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
-    if(resMos>0) html+='<tr><td>Residency ('+resPlan+', pre-refi)</td><td>'+fk(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
-    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fk(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
+    if(resMos>0) html+='<tr><td>Residency ('+resPlan+', pre-refi)</td><td>'+fm(resPmt)+'</td><td>'+yrsLeft+' yr'+(yrsLeft!==1?'s':'')+'</td><td>'+fk(trainingPaid)+'</td></tr>';
+    html+='<tr><td>Attending (refi '+refiRateStr+')</td><td>'+fm(refiPmt)+'</td><td>10 yrs</td><td>'+fk(refiPaid)+'</td></tr>';
     html+='<tr class="hl2"><td>Interest saved vs federal</td><td colspan="2"></td><td>'+fk(Math.max(0,interestFed-interestRefi))+'</td></tr>';
     html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr></table></div>';
     html+='</div>';
-    html+='<div class="box box-g"><div class="box-title" style="color:var(--g)">→ Refinance at attending start and attack aggressively</div><div class="box-body">';
-    if(refiSaves>0) html+='Refinancing saves <strong>'+fk(refiSaves)+'</strong> vs keeping the federal rate. ';
-    html+='For private practice surgeons, refinance to the lowest rate you qualify for and pay off in 10 years or less. ';
-    html+='Physician-focused lenders: Laurel Road, SoFi, Earnest, Splash Financial — compare at least 3 current offers before signing. ';
-    html+='Do not extend the term past 10 years. ';
-    html+='Every dollar of prepayment earns a guaranteed '+rateStr+' — better than bonds, better than cash.';
-    html+='</div></div>';
+    vHtml+='<div class="box box-g"><div class="box-title" style="color:var(--g)">→ Refinance at attending start'+(refiSaves>0?' — saves '+fk(refiSaves)+' vs. the federal rate':'')+'</div><div class="box-body">';
+    vHtml+=fm(refiPmt)+'/mo for 10 years at '+refiRateStr+', '+fk(totalOOPrefi)+' in all. Refinance to the lowest rate you qualify for and pay off in 10 years or less. ';
+    vHtml+='Physician-focused lenders: Laurel Road, SoFi, Earnest, Splash Financial — compare at least 3 current offers before signing. ';
+    vHtml+='Do not extend the term past 10 years. ';
+    vHtml+='Every dollar of prepayment earns a guaranteed '+refiRateStr+' — better than bonds, better than cash.';
+    vHtml+='</div></div>';
   }
+  $('sl-verdict').innerHTML=vHtml;
   $('sl-result').innerHTML=html;
 }
 
