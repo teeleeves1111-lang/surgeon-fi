@@ -15,6 +15,7 @@ Everything is in the block marked `ANNUAL UPDATE` near the top of the script.
 | Federal student loan rates, RAP / IBR / PSLF rules | Student Loans tab text, `calcLoans()` | studentaid.gov (rates set each July) |
 | NJ seller "mansion tax" tiers | `mansionRate()` | NJ Division of Taxation |
 | NJ treatment of HSA contributions (taxed as of 2026; a bill to conform is pending) | HSA step text in `calcPlay()` | NJ Division of Taxation |
+| Catch-up limits (`catch50`, `catch6063`) and the Roth-catch-up wage threshold ($150,000 in 2026, in the `catch-hint` text and the Playbook step) | `var LIM=`, `catch-hint`, `calcPlay()` | IRS cost-of-living announcement (Oct/Nov) |
 | Gift tax annual exclusion and lifetime exemption (`giftExcl`, `giftLife`) | `var LIM=` | IRS cost-of-living announcement (Oct/Nov) |
 | Physician mortgage rate premium over conventional | `var PHYS=` | Quotes from physician-loan lenders |
 | Mortgage rate and property tax defaults | Rent vs Buy sliders `rvb-rate`, `rvb-tax` | Freddie Mac PMMS; NJ property tax averages |
