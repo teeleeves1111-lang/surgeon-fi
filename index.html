@@ -2253,8 +2253,8 @@ function calcTrue(){
 
   $('tc-tbl').innerHTML='<tr><th></th><th>Without it</th><th>With it</th></tr>'+
     (function(){var hf=pbOpts(c).dpYr,n0=S0.savAt(0)+hf,n1=S1.savAt(0)+hf;   // the house fund is saving too, as on the Playbook
-      return '<tr><td>Saving now'+(hf>0?'<br><span style="font-size:10px;color:var(--mg)">including the house fund</span>':'')+'</td><td>'+fk(n0)+' ('+pc(n0)+'%)</td><td>'+fk(n1)+' ('+pc(n1)+'%)'+(n1<0?' — deficit':'')+'</td></tr>';})()+
-    '<tr><td>Saving in year 10</td><td>'+fk(S0.savAt(10))+' ('+pc(S0.savAt(10))+'%)</td><td>'+fk(S1.savAt(10))+' ('+pc(S1.savAt(10))+'%)'+(S1.savAt(10)<0?' — deficit':'')+'</td></tr>'+
+      return '<tr><td>Saving now'+(hf>0?'<br><span style="font-size:10px;color:var(--mg)">including the house fund</span>':'')+'</td><td>'+fk(n0)+' ('+pc(n0)+'%)</td><td>'+fk(n1)+(n1<0?' — deficit':' ('+pc(n1)+'%)')+'</td></tr>';})()+
+    '<tr><td>Saving in year 10</td><td>'+fk(S0.savAt(10))+' ('+pc(S0.savAt(10))+'%)</td><td>'+fk(S1.savAt(10))+(S1.savAt(10)<0?' — deficit':' ('+pc(S1.savAt(10))+'%)')+'</td></tr>'+
     '<tr><td>Net worth in 20 years</td><td>'+fk(A0.nw20)+'</td><td>'+fk(A1.nw20)+'</td></tr>'+
     '<tr><td>FI number</td><td>'+fk(fiBase)+'</td><td>'+fk(fiWith)+'</td></tr>'+
     '<tr class="hl-b"><td>Work optional at</td><td>'+(A0.coast||'not before '+retAge())+'</td><td>'+(A1.coast||'not before '+retAge())+'</td></tr>'+
