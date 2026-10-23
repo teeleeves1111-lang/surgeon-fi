@@ -1007,7 +1007,7 @@ details.how ol:empty{display:none;}
     <div class="card">
       <div class="ctitle">Wealth comparison — renter vs owner</div>
       <div class="cw" style="height:240px"><canvas id="rent-chart"></canvas></div>
-      <div class="hint">Dollars before inflation. The renter invests the down payment and whatever owning would have cost extra each month.</div>
+      <div class="hint" id="rvb-chart-note">Dollars before inflation. The renter invests the down payment and whatever owning would have cost extra each month.</div>
     </div>
   </div>
   <div id="rvb-myth" style="margin-top:10px"></div>
@@ -2310,6 +2310,7 @@ function calcRentBuy(){
   $('rvb-appr-v').textContent=(+$('rvb-appr').value).toFixed(1)+'%';
   $('rvb-inv-v').textContent=(+$('rvb-inv').value).toFixed(1)+'%';
   $('rvb-tax-v').textContent=(+$('rvb-tax').value).toFixed(2)+'%';
+  var chartNoteBase='Dollars before inflation. Whoever pays less each month invests the difference.';
   $('rvb-rentg-v').textContent=(rentG*100).toFixed(1)+'%';
 
   var loan=price*(1-downPct);
@@ -2330,12 +2331,16 @@ function calcRentBuy(){
   var renterWealth=downAmt,ownerSide=0,loanBal=loan;
   var labels=[],renterData=[],grossData=[],netData=[];
   var breakeven=null,HORIZON=Math.max(years,30);
+  var beFirst=(function(){var rw=downAmt,os=0,lb=loan;for(var y=0;y<=HORIZON;y++){var hv=price*Math.pow(1+apprRate,y);
+      if(y>0&&hv-lb-saleCost(hv)+os>rw)return y;var rm=rent*Math.pow(1+rentG,y),om=mortPmt+(propTax+insur+maint)*Math.pow(1+apprRate,y);
+      for(var k=0;k<12;k++){rw=rw*(1+invR)+Math.max(0,om-rm);os=os*(1+invR)+Math.max(0,rm-om);lb=Math.max(0,lb-(mortPmt-lb*r));}}return null;})();
+  var chartYrs=beFirst&&beFirst>years?Math.min(30,beFirst+2):years;   // show the crossover when it comes after you'd sell
   for(var yr=0;yr<=HORIZON;yr++){
     var homeVal=price*Math.pow(1+apprRate,yr);
     var grossEq=Math.max(0,homeVal-loanBal);
     var netEq=grossEq-saleCost(homeVal)+ownerSide;
-    if(yr<=years){
-      labels.push(yr===0?'Now':'Yr '+yr);
+    if(yr<=chartYrs){
+      labels.push(yr===0?'Now':'Yr '+yr+(yr===years&&chartYrs>years?' · you sell':'')+(yr===beFirst&&chartYrs>years?' · buying ahead':''));
       renterData.push(Math.round(renterWealth/1000));
       grossData.push(Math.round((grossEq+ownerSide)/1000));
       netData.push(Math.round(Math.max(0,netEq)/1000));
@@ -2352,6 +2357,7 @@ function calcRentBuy(){
       }
     }
   }
+  $('rvb-chart-note').textContent=chartNoteBase+(chartYrs>years?' The chart runs past your '+years+'-year stay to year '+beFirst+', when buying pulls ahead.':'');
   var finalRenter=renterData[years]*1000,finalNet=netData[years]*1000;
   var diff=finalRenter-finalNet,renterWins=diff>0;
 
