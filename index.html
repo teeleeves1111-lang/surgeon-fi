@@ -1824,11 +1824,11 @@ function calcPaths(){
   var msSel=msAll[Math.min(curPath,3)];
   $('ms-strip').innerHTML=[
     {l:'Today',dot:MODE==='att'?'y':''},
-    {l:msSel.zero?'Age '+msSel.zero:'Not reached',sub:'Zero NW',dot:msSel.zero?'r':''},
+    (msSel.zero===sa?null:{l:msSel.zero?'Age '+msSel.zero:'Not reached',sub:'Zero NW',dot:msSel.zero?'r':''}),   // skip when you start at or above zero
     {l:msSel.million?'Age '+msSel.million:'Not reached',sub:'$1M milestone',dot:msSel.million?'r':''},
     {l:msSel.coast?'Age '+msSel.coast:'Not before '+retAge(),sub:'Work optional',sub2:msSel.coast?fk(callTarget(msSel.coast,fi,rr))+' saved':'',dot:msSel.coast?'k':''},
     {l:msSel.fi?'Age '+msSel.fi:'Not reached',sub:'Full FI',sub2:fk(fi)+' target',dot:msSel.fi?'k':''},
-  ].map(function(m){
+  ].filter(Boolean).map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
       (m.dot==='k'?'⭐':m.dot==='r'?'✓':m.dot==='y'?'📍':'◎')+'</div>'+
       '<div class="ms-age">'+m.l+'</div><div class="ms-lbl">'+(m.sub||'')+'</div>'+
