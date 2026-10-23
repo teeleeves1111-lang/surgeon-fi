@@ -2677,7 +2677,8 @@ function calcPlay(){
   // Flags
   var F=[];
   var cashNeed=roth+hsa+12*brk;
-  if(!c.actual&&cashNeed>Math.max(0,c.cashLeft)+600) F.push({k:'r',t:'Your budget doesn\'t have room for this plan yet',b:'The Roths'+(hsa?', HSA':'')+(brk?' and brokerage':'')+' need '+fk(cashNeed)+' a year of cash, but after the app\'s estimated spending '+(c.cashLeft<0?'you\'re '+fk(-c.cashLeft)+' a year short':'only '+fk(c.cashLeft)+' is left')+'. Bring fixed costs down, or enter your real numbers on My Numbers ("Find my real savings rate").'});
+  var G2=pbOpts(c);
+  if(!c.actual&&G2.short===0&&brk>0&&12*brk>G2.room+600) F.push({k:'r',t:'Your brokerage transfer is more than your budget leaves',b:'A '+fkPrecise(brk)+'/mo transfer is '+fk(12*brk)+' a year, but after the app\'s estimated spending and '+(couple?'the Roths':'the Roth')+' only '+fk(G2.room)+' is left. Either spending is lower than the estimate — enter your real numbers on My Numbers ("Find my real savings rate") — or the transfer means spending less.'});
   var th=c.takeHome/12;
   var fixedMo=(c.housingCost+c.kidsCost+c.loanPay+c.cars)/12;
   if(c.houseOn){
@@ -2828,7 +2829,8 @@ function calcPlay(){
   if(c.loansOn&&c.lb>0&&!c.pslf&&!c.loansRefi)moves.push({p:62,t:'Refinance the loans and pay them off in 10 years',d:'Compare 3+ lenders. Then send the whole payment to the brokerage the month they\'re gone.'});
   if(c.childcareEst>0)moves.push({p:50,t:'Use the dependent care FSA',d:'Pays '+$L(LIM.dcfsa)+' of childcare with pre-tax money — about $3,000+ a year saved.'});
   if(hosp&&c.def401===0||(!hosp&&c.def401===0))moves.push({p:99,t:'Max the '+(hosp?'403(b)':'401(k)'),d:$L(LIM.k401)+'/yr pre-tax, from your first paycheck.'});
-  if(!c.actual&&c.cashLeft<0)moves.push({p:101,t:'Close the gap: spending is more than take-home',d:'After estimated spending you\'re about '+fk(-c.cashLeft)+' a year short. Look at the biggest lines on My Numbers before adding any new fixed cost.'});
+  var G=pbOpts(c);   // one gap figure everywhere: spending + Roth/HSA + house fund vs take-home
+  if(G.short>0)moves.push({p:101,t:'Close the gap: you\'re about '+fk(G.short)+' a year short',d:'Take-home doesn\'t cover the app\'s estimated spending'+(c.cashLeft<0?' (that alone is '+fk(-c.cashLeft)+' over)':'')+' plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(G.dpYr>0?' and the house fund':'')+'. '+(G.dpYr>0?'A later or smaller house closes it fastest. ':'')+'Look at the biggest lines on My Numbers before adding any new fixed cost.'});
   moves.sort(function(a,b){return b.p-a.p;});
   $('pb-top3').innerHTML=moves.slice(0,3).map(function(m,i){return '<div class="pb-move"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t" style="font-size:13px">'+m.t+'</div><div class="pb-d">'+m.d+'</div></div></div>';}).join('');
 }
