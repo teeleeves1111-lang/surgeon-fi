@@ -857,10 +857,7 @@ details.how ol:empty{display:none;}
 
 <!-- ═══ TAB 7: TRUE COST ════════════════════════════════════════════ -->
 <div id="tab-true" class="panel">
-  <div class="box box-r" style="margin-top:0">
-    <div class="box-title" style="color:var(--rd)">Fixed costs are the decision that decides everything else</div>
-    <div class="box-body">A new attending salary feels unlimited, so a $4,000/month house upgrade or a $2,000/month lease feels small. It isn't. It is paid from take-home, not gross. Every dollar needs almost two dollars of salary. It never goes away when income dips. And it hits twice: it is money not saved <em>and</em> it raises the amount you need before you can stop working. Pick a cost below and see what it really costs.</div>
-  </div>
+  <div class="hint" style="margin:0 2px 10px;font-size:12px">Every fixed cost is paid from take-home, not gross — and if it lasts into retirement, it raises the amount you need before you can stop working. Pick one and see what it really costs.</div>
   <div class="g2">
     <div class="card">
       <div class="ctitle">The cost</div>
@@ -884,16 +881,15 @@ details.how ol:empty{display:none;}
         <input type="range" min="0" max="100" step="5" value="37" id="tc-retpct" oninput="calcTrue()">
         <span class="sv" id="tc-retpct-v">37%</span></div>
       <div class="hint">For a house, the mortgage ends but property tax, insurance and upkeep don't (≈37% of the extra cost in NJ). A lease you'd keep replacing is 100%.</div>
-      <div class="hint" style="margin-top:8px">Uses your salary, household and current savings from My Numbers. Real return 5%.</div>
+      <div class="hint" style="margin-top:8px">Uses your numbers from My Numbers and the same path as the other tabs.</div>
     </div>
-    <div class="card">
-      <div class="ctitle">What it really costs</div>
-      <div class="g3" id="tc-metrics"></div>
+    <div>
+      <div id="tc-msg"></div>
+      <div id="tc-metrics" style="display:none"></div>
     </div>
   </div>
-  <div id="tc-msg"></div>
   <div class="card">
-    <div class="ctitle">Your timeline — with and without this cost</div>
+    <div class="ctitle">The details — with and without this cost</div>
     <table class="tbl" id="tc-tbl"></table>
   </div>
 </div>
@@ -2198,7 +2194,7 @@ function calcLoans(){
 
 // ── TRUE COST OF A FIXED COST ─────────────────────────────────────
 var TC_PRESETS={
-  house:{amt:4000,yrs:31,ret:true,pct:37,d:'A $1.5M house instead of $1M in NJ — mortgage (6.75%), 2.23% property tax, insurance and upkeep on the extra $500k ≈ $4,000/mo.'},
+  house:{amt:4000,yrs:31,ret:true,pct:37,d:function(){var h=$('house').checked?+$('hp').value:1000000;return 'A '+fk(h+500000)+' house instead of '+($('house').checked?'your ':'a ')+fk(h)+' in NJ — mortgage, property tax, insurance and upkeep on the extra $500k ≈ $4,000/mo.';}},
   lease:{amt:2000,yrs:31,ret:true,pct:100,d:'A $2,000/month luxury lease, renewed every 3 years, instead of driving a paid-off car. People who lease keep leasing.'},
   school:{amt:6500,yrs:14,ret:false,pct:0,d:'Two children in private school at ~$39k each — for roughly 14 years of overlapping K–12.'},
   nanny:{amt:3000,yrs:5,ret:false,pct:0,d:'A full-time nanny (~$9k/mo) instead of daycare for two (~$6k/mo) until kindergarten.'},
@@ -2207,12 +2203,13 @@ var TC_PRESETS={
 function tcPreset(k){
   var p=TC_PRESETS[k];
   $('tc-amt').value=p.amt;$('tc-yrs').value=p.yrs;$('tc-ret').checked=p.ret;$('tc-retpct').value=p.pct;
-  $('tc-desc').textContent=p.d;
+  $('tc-desc').textContent=typeof p.d==='function'?p.d():p.d;
   document.querySelectorAll('#tc-presets .ptab').forEach(function(b){b.classList.toggle('on',b.getAttribute('onclick').indexOf("'"+k+"'")>0);});
   calcTrue();
 }
 function calcTrue(){
   var c=getCosts();
+  if(/^Default:|^A \$[\d.]+[MK]? house instead of/.test($('tc-desc').textContent)&&+$('tc-amt').value===4000)$('tc-desc').textContent=TC_PRESETS.house.d();
   var amt=+$('tc-amt').value,yrsV=+$('tc-yrs').value,perm=yrsV>30;
   var ret=$('tc-ret').checked,retPct=+$('tc-retpct').value/100;
   $('tc-amt-v').textContent=fkPrecise(amt);
@@ -2241,19 +2238,18 @@ function calcTrue(){
   var fiDelay=A0.fi&&A1.fi?A1.fi-A0.fi:(A0.fi&&!A1.fi?'60+':null);
   var coastDelay=A0.coast&&A1.coast?A1.coast-A0.coast:null;
 
-  $('tc-metrics').innerHTML=[
-    {l:'Salary needed to pay it',v:fk(grossNeeded)+'/yr',s:'at your '+Math.round(marg*100)+'% marginal tax rate',c:'bad'},
-    {l:'Share of take-home',v:Math.round(pctTake*100)+'%',s:fk(amt)+' of '+fk(c.takeHome/12)+'/mo — feels like '+Math.round(annual/c.gross*100)+'% of gross',c:'warn'},
-    {l:'Lost wealth after 20 yrs',v:fk(lost20),s:'paid '+fk(paid)+' — plus what it would have grown to',c:'bad'},
-    {l:'FI number goes up',v:ret?'+'+fk(annual*retPct*25):'$0',s:ret?fk(annual*retPct)+'/yr still owed in retirement × 25':'ends before retirement',c:ret?'bad':''},
-    {l:'Work optional',v:coastDelay===null?'—':(coastDelay>0?'+'+coastDelay+' yr'+(coastDelay!==1?'s':''):'no change'),s:'age '+(A0.coast||retAge()+'+')+' → '+(A1.coast||'not before '+retAge()),c:coastDelay>0?'bad':''},
-    {l:'Full FI',v:fiDelay===null?'—':(fiDelay==='60+'?'never':(fiDelay>0?'+'+fiDelay+' yrs':'no change')),s:'age '+(A0.fi||'—')+' → '+(A1.fi||'never'),c:fiDelay?'bad':''},
-  ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
-
-  $('tc-msg').innerHTML='<div class="box box-a"><div class="box-title" style="color:var(--am)">'+fkPrecise(amt)+' a month costs you '+fk(grossNeeded)+' a year of salary'+(perm?' — and never asks permission again':'')+'</div><div class="box-body">'+
-    'At '+fk(c.gross)+' gross, '+fk(annual)+'/yr looks like '+Math.round(annual/c.gross*100)+'% of income. But it comes out of take-home after a '+Math.round(marg*100)+'% marginal tax bite, so it is <strong>'+Math.round(pctTake*100)+'% of what actually reaches your account</strong>. '+
-    'Over 20 years the money paid plus the growth it gives up is <strong>'+fk(lost20)+'</strong>'+(ret?', and because it continues into retirement it raises the portfolio you need by another <strong>'+fk(annual*retPct*25)+'</strong>':'')+'. '+
-    'Income can fall — reimbursement cuts, a job change, less call, disability. Fixed costs can\'t. Decide them with the real numbers before they lock in.</div></div>';
+  var ages=function(m){return {w:m.coast?'age '+m.coast:'not before '+retAge(),f:m.fi?'age '+m.fi:'never'};};
+  var g0=ages(S0),g1=ages(S1);
+  $('tc-msg').innerHTML='<div class="box box-a" style="margin-top:0"><div class="box-title" style="color:var(--am);font-size:14px">'+fkPrecise(amt)+' a month costs you '+fk(grossNeeded)+' a year of salary'+(perm?' — and it never stops':'')+'</div><div class="box-body">'+
+    '<div style="margin:4px 0">It looks like '+Math.round(annual/c.gross*100)+'% of gross pay. But it comes out of take-home after a '+Math.round(marg*100)+'% marginal tax bite, so it is <strong>'+Math.round(pctTake*100)+'% of what actually reaches your account</strong>.</div>'+
+    '<div style="margin:4px 0">Over 20 years: <strong>'+fk(lost20)+'</strong> — '+fk(paid)+' paid plus what it would have grown to.</div>'+
+    '<div style="margin:4px 0">'+(ret?'It continues into retirement, so the amount you need goes up <strong>'+fk(fiAdd)+'</strong> ('+fk(annual*retPct)+'/yr × 25).':'It ends before retirement, so the amount you need stays the same.')+'</div>'+
+    '<table class="tbl" style="margin-top:8px"><tr><th></th><th>Without it</th><th>With it</th></tr>'+
+    '<tr><td>Saving in year 10</td><td>'+(S0.savAt(10)<0?'deficit':pc(S0.savAt(10))+'%')+'</td><td>'+(S1.savAt(10)<0?'deficit':pc(S1.savAt(10))+'%')+'</td></tr>'+
+    '<tr class="hl-b"><td>Work optional</td><td>'+g0.w+'</td><td>'+g1.w+'</td></tr>'+
+    '<tr class="hl"><td>Full retirement</td><td>'+g0.f+'</td><td>'+g1.f+'</td></tr></table>'+
+    '<div style="margin-top:6px;font-size:11px;color:var(--mg)">Income can fall — reimbursement cuts, a job change, less call, disability. Fixed costs can\'t. Decide them with the real numbers before they lock in.</div>'+
+    '</div></div>';
 
   $('tc-tbl').innerHTML='<tr><th></th><th>Without it</th><th>With it</th></tr>'+
     (function(){var hf=pbOpts(c).dpYr,n0=S0.savAt(0)+hf,n1=S1.savAt(0)+hf;   // the house fund is saving too, as on the Playbook
