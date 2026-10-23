@@ -2464,9 +2464,27 @@ function pbSim(c,o){
     if(o.loanRedir&&loanMo>0&&o.loanEnd!==null&&y>=o.loanEnd)m+=loanMo;
     return m;
   }
-  var m=project(sa,nw0-(o.dpNow||0),function(y){return o.taxAdv+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0);},fiNum,rr,60);
+  // Cash the budget has in year y for Roth/HSA/brokerage: today's leftover, adjusted for the house, plus money redirected when costs end
+  function cashAt(y){
+    var x=o.cashFree?o.cashFree(y):0;
+    if(o.dcRedir&&dcMo>0&&y>=o.dcEnd)x+=12*Math.round(dcMo*o.dcShare);
+    if(o.stepYr>0&&y>=o.stepYr-1)x+=12*Math.round(o.stepMo*o.stepShare);
+    if(o.loanRedir&&loanMo>0&&o.loanEnd!==null&&y>=o.loanEnd)x+=12*loanMo;
+    return x;
+  }
+  function wantAt(y){return (o.cashOut||0)+12*brkAt(y);}   // cash-funded saving the plan asks for
+  var capYr=null;
+  function sav(y){
+    if(o.capped&&!o.uncapped){ // estimate mode: you can only invest cash you have; a deficit comes out of savings
+      var want=wantAt(y),have=cashAt(y);
+      if(want>have+600&&capYr===null&&brkAt(y)>0)capYr=y;
+      return o.taxAdv-(o.cashOut||0)+Math.min(want,have);
+    }
+    return o.taxAdv+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0);
+  }
+  var m=project(sa,nw0-(o.dpNow||0),sav,fiNum,rr,60);
   if(m.coast!==null&&m.coast>=retAge())m.coast=null;
-  m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;
+  m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;m.capYr=capYr;m.cashAt=cashAt;m.wantAt=wantAt;
   return m;
 }
 function calcPlay(){
@@ -2495,8 +2513,8 @@ function calcPlay(){
   var flat=pbSim(c,{brk:brk,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,taxAdv:taxAdv,stepShare:0});
   // Level brokerage needed from year 1 to hit goal
   function solve(fn){var lo=0,hi=40000;if(!fn(hi))return null;for(var k=0;k<30;k++){var mid=(lo+hi)/2;if(fn(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;}
-  var needLevel=solve(function(m){var r=pbSim(c,{brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,taxAdv:taxAdv,stepShare:0});return r.coast!==null&&r.coast<=goal;});
-  var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
+  var needLevel=solve(function(m){var r=pbSim(c,{uncapped:true,brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,taxAdv:taxAdv,stepShare:0});return r.coast!==null&&r.coast<=goal;});
+  var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{uncapped:true,brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
   var sa=plan.sa,yr1=MODE==='res'?'your first attending year (age '+sa+')':'today (age '+sa+')';
   var spend=retSpend(c);
 
@@ -2511,12 +2529,12 @@ function calcPlay(){
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
   // Outcome
+  var planCut=plan.capYr!==null?pbSim(c,Object.assign({},opts,{uncapped:true})):null;
   var out='<table class="tbl"><tr><th></th><th>Work optional</th><th>Full retirement</th></tr>'+
     '<tr><td>Brokerage stays at '+fkPrecise(brk)+'/mo forever</td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
-    '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr></table>';
+    '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')'+(plan.capYr!==null?'<br><span style="font-size:10px;font-weight:400">as far as your budget goes</span>':'')+'</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr>'+
+    (planCut&&plan.capYr!==null?'<tr><td>Same plan, if you also spend less<br><span style="font-size:10px;color:var(--mg)">so every raise happens</span></td><td>'+(planCut.coast||'not by '+retAge())+'</td><td>'+(planCut.fi||'—')+'</td></tr>':'')+'</table>';
   var PO=pbOpts(c),short=PO.short,room=PO.room,shortBuy=PO.shortBuy;
-  var cutNow=room===null?0:Math.max(0,12*brk-room);           // brokerage beyond the cash the budget leaves
-  var cut10=cutNow+12*raise*10;                                 // yearly raises come out of spending (pay held flat after inflation)
   if(short>0||shortBuy>0) out+='<div class="pb-flag a" style="margin-top:8px"><div><b>'+(short>0?'First close the gap: you\'re about '+fk(short)+' a year short'+(shortBuy>short?', and about '+fk(shortBuy)+' a year after you buy the house':''):'After you buy the house you\'ll be about '+fk(shortBuy)+' a year short')+'.</b> '+
     'Take-home doesn\'t cover the app\'s estimated spending plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(PO.buying?', the down payment fund and then the higher cost of owning':'')+', so the ages above already count that much less saved.'+(PO.buying?' A later or smaller house closes it fastest — the down payment card on My Numbers shows the options.':(c.cashLeft<0?' See move 1.':''))+'</div></div>';
   else if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Work becomes optional at '+plan.coast+'. The single most important thing now is that the raises and redirects actually happen — set them up as automatic transfers.</div></div>';
@@ -2525,10 +2543,9 @@ function calcPlay(){
     (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
     'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
   if(PO.buying) out+='<div class="hint" style="margin-top:8px;color:#444"><b>The house is in this plan.</b> '+(c.actual?'When you buy in year '+c.buyYr+', the '+fk(PO.dpOwn)+' down payment comes out of what you\'ve saved; after that,':'Until you buy in year '+c.buyYr+', the down payment fund takes about '+fk(PO.dpYr)+' a year; after that,')+' owning costs about '+fk(PO.houseExtra)+' a year '+(PO.houseExtra>=0?'more':'less')+' than your rent. '+(c.actual?'The ages above count both against your savings.':'Both come out of what\'s left before anything reaches the brokerage.')+'</div>';
-  if(cut10>0||cutNow>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> '+
-    (cutNow>0?'A '+fkPrecise(brk)+'/mo brokerage transfer is about '+fk(cutNow)+' a year more than your budget leaves, so it means spending that much less from the start. ':'')+
-    (raise>0?'Each yearly raise of '+fkPrecise(raise)+'/mo also comes out of spending, because the app holds your pay flat after inflation: by year 10 you\'d be spending about <strong>'+fk(cut10)+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.':'')+
-    '</div>';
+  if(!c.actual&&plan.capYr!==null){var ex10=Math.max(0,plan.wantAt(10)-plan.cashAt(10));
+    out+='<div class="hint" style="margin-top:8px;color:#444"><b>Why the plan stops short.</b> '+(plan.capYr===0?'Right now':'From year '+(plan.capYr+1))+' your budget has no cash left for the brokerage you set'+(raise>0?' and its yearly raises':'')+', so the ages above count only what it can fund. With pay held flat after inflation, keeping every raise going means spending less than the app\'s estimate'+(ex10>0?' — about <strong>'+fk(ex10)+' a year less by year 10</strong>':'')+'. Real pay raises can cover part of it.</div>';}
+  else if(c.actual&&raise>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> Each yearly raise of '+fkPrecise(raise)+'/mo comes out of spending, because the app holds your pay flat after inflation: by year 10 you\'d be spending about <strong>'+fk(12*raise*10)+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.</div>';
   out+='<div class="hint" style="margin-top:6px">For reference: a steady '+(needLevel!==null?fkPrecise(needLevel):'—')+'/mo from '+yr1+' makes you work-optional at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.</div>';
   $('pb-outcome').innerHTML=out;
 
@@ -2847,7 +2864,7 @@ function pbOpts(c){
   var tp=c.taxParams,tp2={};for(var k in tp)tp2[k]=tp[k];tp2.sal=tp.sal+10000;
   var marg=(taxCalc(tp2).total-taxCalc(tp).total)/10000;
   return {taxAdv:taxAdv,brk:brk,marg:marg,short:short,shortBuy:shortBuy,room:room,buying:buying&&by>0,houseExtra:houseExtra,dpYr:c.actual?0:dpYr,dpOwn:c.dpOwn,
-    opts:{short:short,shortAt:shortAt,dpNow:dpNow,dpLater:c.actual&&buying&&by>0?c.dpOwn:0,buyYr:by,brk:brk,raise:+$('pb-raise').value,dcEnd:+$('pb-dcend').value,dcRedir:$('pb-dcredir').checked&&hasDC,dcShare:+$('pb-dcshare').value/100,
+    opts:{short:short,shortAt:shortAt,cashFree:cashFree,cashOut:roth+hsa,capped:!c.actual,dpNow:dpNow,dpLater:c.actual&&buying&&by>0?c.dpOwn:0,buyYr:by,brk:brk,raise:+$('pb-raise').value,dcEnd:+$('pb-dcend').value,dcRedir:$('pb-dcredir').checked&&hasDC,dcShare:+$('pb-dcshare').value/100,
     loanEnd:loanEnd,loanRedir:$('pb-loanredir').checked&&hasLoan&&!c.pslf,taxAdv:taxAdv,
     stepYr:+$('pb-stepyr').value,stepMo:Math.round((+$('pb-stepamt').value)*(1-marg)/12),stepShare:+$('pb-stepshare').value/100}};
 }
