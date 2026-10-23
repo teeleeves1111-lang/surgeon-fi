@@ -2445,9 +2445,9 @@ function calcRentBuy(){
     '<tr class="hl2"><td><strong>Net gone</strong></td><td><strong>'+fk(ownerNet)+'</strong></td></tr></table>'+
     '</div>'+
     '<div class="box '+(mythWin?'box-a':'box-b')+'" style="margin-bottom:0"><div class="box-body">'+
-    (mythWin?'<strong>The owner loses '+fk(ownerNet-renterGone)+' more per year than the renter.</strong> Principal paydown ('+fk(yr1Prin)+') isn\'t on either list because it isn\'t a cost — it is savings, the same as the renter investing the difference. ':
-             '<strong>Here owning loses '+fk(renterGone-ownerNet)+' less per year than renting.</strong> At this price, rent, and time horizon, buying is the better deal. ')+
-    'Break-even: renting wins whenever comparable rent is below about <strong>'+fkPrecise(beRent)+'/mo</strong>. Equity is not free money — it is your own down payment and principal coming back.'+
+    (mythWin?'<strong>In year 1, the owner loses '+fk(ownerNet-renterGone)+' more than the renter.</strong> '+(breakeven?'That gap shrinks every year — rent rises while the mortgage payment stays fixed — which is why buying pulls ahead if you stay about '+breakeven+' years. ':'Rent rises each year while the mortgage payment stays fixed, but at this price and rent the gap never closes within 30 years. ')+'Principal paydown ('+fk(yr1Prin)+') isn\'t on either list because it isn\'t a cost — it is savings, the same as the renter investing the difference. ':
+             '<strong>In year 1, owning loses '+fk(renterGone-ownerNet)+' less than renting.</strong> At this price, rent, and time horizon, buying is the better deal. ')+
+    'For a '+years+'-year stay, renting wins whenever comparable rent is below about <strong>'+fkPrecise(beRent)+'/mo</strong>. Equity is not free money — it is your own down payment and principal coming back.'+
     '</div></div></div>';
 
   var txnHtml='';
