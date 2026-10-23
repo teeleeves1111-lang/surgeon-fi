@@ -742,8 +742,8 @@ details.how ol:empty{display:none;}
   </div>
   <div class="card">
     <div class="ctitle">What if I saved more?</div>
-      <div class="sr"><label>Savings rate (% of gross pay)</label>
-        <input type="range" min="3" max="50" value="25" id="fi-sr" oninput="calcFI()">
+      <div class="sr"><label>Savings rate in year 10 (% of gross pay)</label>
+        <input type="range" min="0" max="50" value="25" id="fi-sr" oninput="calcFI()">
         <span class="sv" id="fi-sr-v">25%</span></div>
     <div class="hint" id="fi-sr-note" style="display:none"></div>
     <div id="fi-msg"></div>
@@ -1772,41 +1772,35 @@ function calcWaterfall(c){
 
 // ── THREE PATHS ────────────────────────────────────────────────────
 function calcPaths(){
-  var s=sp(),rr=0.05;
+  var s=sp(),rr=realReturn();
   var yrs=Math.max(10,retAge()-startAge()); // chart runs to full-retirement age
   var sa=startAge(),nwStart=startNW();
   var fi=retSpend(getCosts())*25;
   var c=getCosts();
   var myInv=effInvest(c);
   var mySR=effSR(c);
-
-  var postBuyInv=myInv,downPayment=0;
-  if(c.houseOn&&c.buyYr>0&&c.A.housing===null&&c.A.total===null){
-    var pbLifestyle=Math.round(Math.max(0,c.hp-1000000)*0.05);
-    postBuyInv=myInv-(c.ownHousing+pbLifestyle-c.rentEst);
-    downPayment=c.dpOwn;
-  }
+  var F=pbFlat(c),myNW0=nwStart-(pbOpts(c).opts.dpNow||0);   // same path as the Playbook's 'if nothing changes'
+  var my10=Math.round(F.savAt(10)/c.gross*100);
 
   var paths=[
     {n:'Ideal — 25%',sr:.25,col:'#1D6B52',bg:'rgba(29,158,117,0.08)'},
     {n:'Typical — 12%',sr:.12,col:'#E8A020',bg:'rgba(232,160,32,0.08)'},
     {n:'Lifestyle creep — 5%',sr:.05,col:'#C0392B',bg:'rgba(192,57,43,0.08)'},
-    {n:'My path — '+mySR+'%',sr:null,col:'#2355A0',bg:'rgba(35,85,160,0.08)',isMe:true},
+    {n:'My path — '+my10+'% in yr 10',sr:null,col:'#2355A0',bg:'rgba(35,85,160,0.08)',isMe:true},
   ];
 
   var labels=[],datasets=[],msAll=[];
   paths.forEach(function(path,pi){
     function yrSav(yr){
       if(!path.isMe) return Math.round(c.gross*path.sr);
-      return (c.houseOn&&c.buyYr>0&&yr>=c.buyYr)?postBuyInv:myInv;
+      return F.savAt(yr);   // includes the house: down payment, owning vs renting
     }
-    var ms=project(sa,nwStart,function(j){return yrSav(j)-(path.isMe&&downPayment&&j===c.buyYr?downPayment*(1+rr):0);},fi,rr,60);
+    var ms=path.isMe?F:project(sa,nwStart,yrSav,fi,rr,60);
     if(ms.coast!==null&&ms.coast>=retAge())ms.coast=null;
     // Once a path reaches full FI it stops saving and starts living on the portfolio (4% of the target a year)
-    var data=[],nwChart=nwStart,reached=false;
+    var data=[],nwChart=path.isMe?myNW0:nwStart,reached=false;
     for(var i=0;i<=yrs;i++){
       if(pi===0) labels.push(sa+i);
-      if(path.isMe&&downPayment&&i===c.buyYr) nwChart-=downPayment;
       if(!reached&&nwChart>=fi) reached=true;
       nwChart=Math.round(reached?nwChart*(1+rr)-fi/25:nwChart*(1+rr)+yrSav(i));
       data.push(Math.round(nwChart/1000));
@@ -1918,14 +1912,10 @@ function calcPaths(){
 function syncFISR(){
   var c=getCosts();
   var note=$('fi-sr-note');
-  if(c.actual||MODE==='att'){
-    var v=Math.max(3,Math.min(50,effSR(c)));
-    $('fi-sr').value=v;
-    note.style.display='block';
-    note.textContent='Starts at your '+(c.actual?'actual':'current')+' savings rate ('+effSR(c)+'%) — drag to compare.';
-  } else {
-    note.style.display='none';
-  }
+  var r10=Math.round(pbFlat(c).savAt(10)/c.gross*100);
+  $('fi-sr').value=Math.max(0,Math.min(50,r10));
+  note.style.display='block';
+  note.textContent='Starts where you\'ll be in year 10 if nothing changes ('+r10+'%) — drag to compare.';
 }
 function calcFI(){
   var c=getCosts();
@@ -1939,9 +1929,13 @@ function calcFI(){
     'Set manually. Turn the toggle back on to estimate it from My Numbers.';
   var rr=+$('fi-rr').value/100; $('fi-rr-v').textContent=(rr*100).toFixed(1)+'%';
   var sa=startAge(),nwStart=startNW();
-  var savings=Math.round(sr*100)===effSR(c)?effInvest(c):Math.round(c.gross*sr); // at your own rate, use your exact savings
+  // Same engine as the Playbook: start from 'if nothing changes' and add (or remove) saving every year
+  var F0=pbFlat(c),base10=F0.savAt(10)/c.gross;
+  var extra=Math.round(sr*100)===Math.round(base10*100)?0:Math.round((sr-base10)*c.gross);
+  var pj=extra?pbFlat(c,extra):F0;
+  var savings=pj.savAt(10);
   var fi=spend*25;
-  var pj=project(sa,nwStart,savings,fi,rr,45);
+  if(pj.series.length<46){var nwX=pj.series[pj.series.length-1];for(var k=pj.series.length;k<=45;k++){nwX=nwX*(1+rr)+pj.savAt(k-1);pj.series.push(nwX);}}
   var labels=[],nws=[],coastL=[],fiL=[];
   for(var i=0;i<=45;i++){
     var a=sa+i;
@@ -1957,7 +1951,7 @@ function calcFI(){
     {l:'Needed then',v:fk(coastFI),s:coastYr?'saved by age '+coastYr+' — grows to '+fk(fi)+' by '+retAge():'what you would need at age '+Math.min(50,retAge()),c:''},
     {l:'Full FI target',v:fk(fi),s:'25× retirement spending',c:''},
     {l:'Full FI age',v:fiYr?'age '+fiYr:'past '+endAge,s:'work completely optional',c:fiYr&&fiYr<=60?'good':fiYr&&fiYr<=65?'warn':'bad'},
-    {l:'Annual savings',v:fk(savings),s:Math.round(sr*100)+'% of '+fk(c.gross)+' gross',c:sr>=.2?'good':sr>=.12?'warn':'bad'},
+    {l:'Saving in year 10',v:fk(savings),s:Math.round(sr*100)+'% of '+fk(c.gross)+' gross'+(extra?' · '+fk(Math.abs(extra))+'/yr '+(extra>0?'more':'less')+' than now, every year':''),c:sr>=.2?'good':sr>=.12?'warn':'bad'},
     {l:'Safe withdrawal',v:fk(fi*.04),s:'4% of portfolio at FI',c:''},
   ].map(function(m){
     return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';
@@ -1980,7 +1974,7 @@ function calcFI(){
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
     (fiYr?(coastYr?'Work optional at '+coastYr:'Not work-optional before '+retAge())+' · full FI at '+fiYr:'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?'At '+Math.round(sr*100)+'% gross savings on '+fk(c.gross)+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement.':
+    (fiYr?'Saving '+Math.round(sr*100)+'% of gross pay in year 10'+(extra?' — about '+fk(Math.abs(extra))+' a year '+(extra>0?'more':'less')+' than now, every year —':'')+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement.':
     (coastYr?'Work becomes optional at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
     'At this savings rate, neither work optional nor full FI arrives in the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
     '</div></div>';
@@ -2451,10 +2445,14 @@ function calcRentBuy(){
 
 
 // ── MY PLAYBOOK ───────────────────────────────────────────────────
+// The one 'if nothing changes' path every tab uses: today's saving, the house paid for, no raises or redirects.
+// extra = $/yr more (or less) saved every year — what the 'What if' slider moves.
+function pbFlat(c,extra){return pbSim(c,{raise:0,dcRedir:false,loanRedir:false,stepShare:0,extra:extra||0});}
+function realReturn(){var e=document.getElementById('fi-rr');return e?(+e.value||5)/100:0.05;}
 function pbSim(c,o){
   // o: {brk, raise, dcEnd, dcRedir, dcShare, loanEnd, loanRedir, taxAdv, stepYr, stepMo, stepShare}; missing fields come from the playbook inputs
   o=Object.assign({},pbOpts(c).opts,o);
-  var sa=startAge(),nw0=startNW(),rr=0.05,fiNum=retSpend(c)*25;
+  var sa=startAge(),nw0=startNW(),rr=realReturn(),fiNum=retSpend(c)*25;
   var dcMo=c.kidsCost>0?Math.round(c.childcareEst/12):0;
   var loanMo=Math.round(c.loanPay/12);
   function brkAt(y){ // monthly brokerage in plan year y (0-based)
@@ -2478,9 +2476,9 @@ function pbSim(c,o){
     if(o.capped&&!o.uncapped){ // estimate mode: you can only invest cash you have; a deficit comes out of savings
       var want=wantAt(y),have=cashAt(y);
       if(want>have+600&&capYr===null&&brkAt(y)>0)capYr=y;
-      return o.taxAdv-(o.cashOut||0)+Math.min(want,have);
+      return o.taxAdv-(o.cashOut||0)+Math.min(want,have)+(o.extra||0);
     }
-    return o.taxAdv+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0);
+    return o.taxAdv+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0)+(o.extra||0);
   }
   var m=project(sa,nw0-(o.dpNow||0),sav,fiNum,rr,60);
   if(m.coast!==null&&m.coast>=retAge())m.coast=null;
