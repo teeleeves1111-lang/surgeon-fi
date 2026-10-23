@@ -2220,7 +2220,9 @@ function calcLoans(){
     html+='<tr class="hl"><td><strong>Total out of pocket</strong></td><td colspan="2"></td><td><strong>'+fk(totalOOPrefi)+'</strong></td></tr></table></div>';
     html+='</div>';
     vHtml+='<div class="box box-g"><div class="box-title" style="color:var(--g)">→ Refinance at attending start'+(refiSaves>0?' — saves '+fk(refiSaves)+' vs. the federal rate':'')+'</div><div class="box-body">';
-    vHtml+=fm(refiPmt)+'/mo for 10 years at '+refiRateStr+', '+fk(totalOOPrefi)+' in all. Refinance to the lowest rate you qualify for and pay off in 10 years or less. ';
+    vHtml+=fm(refiPmt)+'/mo for 10 years at '+refiRateStr+', '+fk(totalOOPrefi)+' in all. ';
+    if(resMos>0&&balAtAtt!==bal) vHtml+='That payment is on the '+fk(balAtAtt)+' you\'ll owe when you start as an attending, after '+yrsLeft+' more year'+(yrsLeft!==1?'s':'')+' of training (you owe '+fk(bal)+' today). My Numbers and the Playbook use today\'s balance: '+fm(std10(bal,refiRate))+'/mo. ';
+    vHtml+='Refinance to the lowest rate you qualify for and pay off in 10 years or less. ';
     vHtml+='Physician-focused lenders: Laurel Road, SoFi, Earnest, Splash Financial — compare at least 3 current offers before signing. ';
     vHtml+='Do not extend the term past 10 years. ';
     vHtml+='Every dollar of prepayment earns a guaranteed '+refiRateStr+' — better than bonds, better than cash.';
