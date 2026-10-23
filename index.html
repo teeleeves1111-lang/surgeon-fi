@@ -659,6 +659,16 @@ details.how ol:empty{display:none;}
     <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Size fixed costs to guaranteed pay.</strong> Bonuses can shrink or vanish with reimbursement cuts, a bad year, or a job change. The mortgage and tuition don't. If the house only works with the bonus, it's too much house.</div></div>
   </details>
 
+  <details class="card pb-more" id="pb-pre-card" style="display:none">
+    <summary class="ctitle" id="pb-pre-title">The last years before you retire</summary>
+    <div id="pb-pre"></div>
+  </details>
+
+  <details class="card pb-more" id="pb-col-card" style="display:none">
+    <summary class="ctitle">Paying for college</summary>
+    <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px" id="pb-col"></ul>
+  </details>
+
   <details class="card pb-more">
     <summary class="ctitle">Your retirement number</summary>
     <div id="pb-finum"></div>
@@ -2988,6 +2998,37 @@ function calcPlay(){
     [130000,160000,200000,250000].concat([spend]).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;}).map(function(v){
       var me=v===spend;return '<tr'+(me?' class="hl"':'')+'><td>'+fk(v)+'/yr'+(me?' (you)':'')+'</td><td>'+fk(v*25)+'</td>'+fnAges.map(function(a){return '<td>'+fk(callTarget(a,v*25,0.05))+'</td>';}).join('')+'</tr>';}).join('')+'</table>'+
     '<div class="hint" style="margin-top:6px">"Work optional" (some call it FU money) = saved enough that you could stop saving and still reach your full number by '+retAge()+'. Your paycheck then only has to cover today\'s bills, so you can leave a bad job, go part-time, or pay for call coverage. The amount needed rises with age because the money has less time to grow.</div>';
+
+  // ── Pre-retirement: from 50, or inside 15 years of full retirement ──
+  var preOn=MODE==='att'&&(sa>=50||retAge()-sa<=15),ytrP=Math.max(0,retAge()-sa);
+  $('pb-pre-card').style.display=preOn?'block':'none';
+  if(preOn){
+    var born=DATA.year-sa,rmdAge=born>=1960?75:73,wdY=spend;
+    $('pb-pre-title').textContent='The last '+(ytrP>0?ytrP+' year'+(ytrP!==1?'s':''):'stretch')+' before you retire — what changes';
+    var pre=[
+      ['Shift the mix before the finish line','The worst time for a crash is just before or just after you stop working, when you\'re selling to live. By the day you retire, hold roughly 5–7 years of withdrawals — about '+fk(wdY*5)+'–'+fk(wdY*7)+' at '+fk(wdY)+'/yr — in bonds and cash, so you never have to sell stocks low. Keep the rest in stocks; retirement can last 30+ years.'],
+      ['Social Security — don\'t claim on autopilot','Full retirement age is 67 if you were born in 1960 or later. Claiming at 62 cuts the check by up to 30% for life; each year you wait past 67 adds 8%, up to 24% more at 70. For a married surgeon, the higher earner waiting to 70 usually pays off — it also sets the survivor\'s check. Get your estimate at ssa.gov/myaccount. This app doesn\'t count Social Security, which makes your real picture better than shown.'],
+      ['Health insurance before Medicare','Medicare starts at 65. Retire earlier and you need a bridge: a spouse\'s plan, COBRA (up to 18 months), or the ACA marketplace. The extra ACA subsidies ended after 2025, so above 400% of the poverty line there\'s no help, and a couple in their early 60s can pay well over $20,000 a year. Budget it in your retirement spending (Paths → See the details). Once you\'re on Medicare, high income brings premium surcharges (IRMAA), set from your tax return two years earlier.'],
+      ['Which account to spend first','A common order: the taxable brokerage first (you pay tax only on gains), then pre-tax accounts, with Roth last — it grows tax-free longest and leaves no tax bill for heirs. Two exceptions worth knowing: leave your job in or after the year you turn 55 and you can draw that employer\'s 401(k)/403(b) without the 10% penalty (the "rule of 55"); a governmental 457(b) has no early-withdrawal penalty at any age once you leave. A non-governmental 457(b) may pay out on a fixed schedule when you leave — check your payout election now.'],
+      ['Roth conversions in the low-income years','Between your last paycheck and Social Security and required withdrawals (they start at '+rmdAge+' for you), your taxable income may be the lowest of your adult life. Converting some pre-tax money to Roth then, at lower brackets, can cut lifetime taxes and the forced withdrawals later. Mind the side effects: higher Medicare premiums two years later and the loss of any ACA subsidy. Worth one session with a flat-fee planner or CPA.'],
+      ['Wind down the practice side','Find out who pays the malpractice tail when you stop (claims-made policies need one; some employers or groups cover it). Disability insurance can go once work is optional. Stop HSA contributions the month you enroll in Medicare. Name beneficiaries on every account again — it\'s the one step that decides who inherits it.']
+    ];
+    $('pb-pre').innerHTML='<div class="hint" style="margin-top:0">Saving matters less now; protecting the money, timing Social Security and paying less tax on the way out matter more.</div>'+
+      pre.map(function(x){return '<div style="margin-top:8px;font-size:11px;line-height:1.6;color:#444"><strong>'+x[0]+'.</strong> '+x[1]+'</div>';}).join('');
+  }
+  // ── College ──
+  $('pb-col-card').style.display=c.nk>0?'block':'none';
+  if(c.nk>0){
+    var col=[
+      '<strong>What it costs (2025–26 averages):</strong> $45,000 a year in tuition and fees at a private college and $11,950 in-state public, before room and board. The most selective schools run far higher. A surgeon\'s income usually means no need-based aid — merit aid is where discounts come from.',
+      '<strong>Retirement first.</strong> Max the retirement plans and Roths before large 529 deposits. Your kids can borrow for college; you can\'t borrow for retirement.',
+      '<strong>The 529:</strong> grows tax-free when spent on school. New Jersey\'s 529 deduction only applies to incomes up to $200,000, so use any state\'s low-cost plan with index funds. '+(c.save529On?'You\'re putting '+fk(c.save529Amt/c.nk)+' a year per child into it.':'Turn on "Saving for 529" on My Numbers to include it in your budget.'),
+      '<strong>Grandparents can help a lot:</strong> each can put in five years of gift exclusions at once — '+$L(LIM.giftExcl*5)+' per child, '+$L(LIM.giftExcl*10)+' from a couple — with no gift tax.',
+      '<strong>If money is left over:</strong> change the beneficiary to another child, keep it for grandchildren, or roll up to $35,000 over time into the child\'s Roth IRA (the 529 must be open 15+ years).',
+      '<strong>Private K–12 and college back to back</strong> can mean 20+ years of tuition from take-home pay. Price both on True Cost before committing to the first.'
+    ];
+    $('pb-col').innerHTML=col.map(function(t){return '<li>'+t+'</li>';}).join('');
+  }
 
   var hasL=c.loansOn&&c.lb>0;
   $('pb-loans-card').style.display=hasL||MODE==='res'?'block':'none';
