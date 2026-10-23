@@ -266,7 +266,7 @@ details.how ol:empty{display:none;}
   <button class="mbtn on res" id="btn-res" onclick="setMode('res')">🏥 Resident
     <span>Planning for attending life</span></button>
   <button class="mbtn" id="btn-att" onclick="setMode('att')">👨‍⚕️ Attending
-    <span>3–5 years into practice</span></button>
+    <span>In practice</span></button>
 </div>
 
 <!-- HEADER -->
@@ -334,6 +334,10 @@ details.how ol:empty{display:none;}
 
       <!-- Attending only -->
       <div id="att-only" style="display:none">
+        <div class="sr"><label>Years in practice</label>
+          <input type="range" min="0" max="35" value="2" id="pyrs" oninput="$('pyrs-set').checked=true;go()">
+          <span class="sv" id="pyrs-v">2</span></div>
+        <input type="checkbox" id="pyrs-set" style="display:none">
         <div class="box box-b" style="margin:0 0 9px"><div class="box-body"><strong>Don't guess your savings rate.</strong> Most attendings don't know it, and most overestimate it. Turn on <strong>Find my real savings rate</strong> (next to the waterfall) — it builds the number from things on your pay stub and statements.</div></div>
       </div>
 
@@ -561,7 +565,7 @@ details.how ol:empty{display:none;}
 
   <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
   <div class="card pb-top"><div class="ctitle" style="color:var(--accent)">Your top three moves</div><div id="pb-top3"></div></div>
-  <div class="card"><div class="ctitle">First things first — before you invest a dollar <span id="ftf-prog" style="float:right;color:var(--accent);text-transform:none;letter-spacing:0"></span></div>
+  <div class="card"><div class="ctitle"><span id="ftf-title">First things first — before you invest a dollar</span> <span id="ftf-prog" style="float:right;color:var(--accent);text-transform:none;letter-spacing:0"></span></div>
     <div class="hint">Tap an item to see why and how. Tick it off when it's done — this device remembers.</div>
     <div id="pb-basics"></div></div>
 
@@ -650,7 +654,7 @@ details.how ol:empty{display:none;}
 
   <details class="card pb-more">
     <summary class="ctitle">Lifestyle creep and the 12-month rule</summary>
-    <div style="font-size:11px;line-height:1.6;color:#444">Lifestyle creep doesn't feel like a decision — it feels like finally affording normal things. It is the main reason high-earning physicians aren't wealthy. <strong>The 12-month rule:</strong> when income rises (attending pay, a raise, a bonus, a cost that ends), keep spending flat for 12 months and send the difference to savings. After a year you won't miss what you never started spending, and the higher savings rate feels normal. Made once at the residency-to-attending transition, this decision is worth more than any investment choice you'll ever make.</div>
+    <div style="font-size:11px;line-height:1.6;color:#444">Lifestyle creep doesn't feel like a decision — it feels like finally affording normal things. It is the main reason high-earning physicians aren't wealthy. <strong>The 12-month rule:</strong> when income rises (attending pay, a raise, a bonus, a cost that ends), keep spending flat for 12 months and send the difference to savings. After a year you won't miss what you never started spending, and the higher savings rate feels normal. <span id="creep-when">Made once at the residency-to-attending transition, this decision is worth more than any investment choice you'll ever make.</span></div>
     <div style="font-size:11px;line-height:1.6;color:#444;margin-top:6px"><strong>Plan for the expensive years you can see coming:</strong> parental leave (often partly unpaid for surgeons), fertility treatment, a new car, a wedding. Fund them from a separate savings bucket so they don't come out of the brokerage transfer.</div>
     <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Size fixed costs to guaranteed pay.</strong> Bonuses can shrink or vanish with reimbursement cuts, a bad year, or a job change. The mortgage and tuition don't. If the house only works with the bonus, it's too much house.</div></div>
   </details>
@@ -680,7 +684,7 @@ details.how ol:empty{display:none;}
     <div style="font-size:11px;line-height:1.6;color:#444;margin-bottom:6px">Keep it simple. You don't need to pick stocks, time the market, or pay anyone to do it for you. Own the whole market, cheaply, and leave it alone.</div>
     <ul style="font-size:11px;line-height:1.7;color:#444;padding-left:16px">
       <li><strong>Three low-cost index funds:</strong> a US total stock market fund, an international total stock market fund, and a US total bond market fund. That's the whole portfolio.</li>
-      <li><strong>Mostly stocks while you're young</strong> — they're what grows. <strong>Add bonds gradually</strong> as retirement gets closer, so a crash late in your career can't derail you.</li>
+      <li id="inv-mix"><strong>Mostly stocks while you're young</strong> — they're what grows. <strong>Add bonds gradually</strong> as retirement gets closer, so a crash late in your career can't derail you.</li>
       <li><strong>Keep costs low.</strong> Total-market index funds at Vanguard, Fidelity and Schwab cost a few hundredths of a percent a year.</li>
       <li><strong>Automate it</strong> — the same funds, every month, in every account.</li>
       <li><strong>Rebalance once a year</strong> back to your mix. Ignore the news the rest of the year.</li>
@@ -1148,6 +1152,8 @@ function sp(){
 }
 function startAge(){return MODE==='res'?(+$('age').value + +$('yrs-left').value):+$('age').value;}
 function startNW(){return +$('nw').value;}
+function pracYrs(){return MODE==='att'?+$('pyrs').value:0;}
+function ESTAB(){return MODE==='att'&&pracYrs()>3;}   // past the new-attending years: different first steps
 function catchAmt(a){return a>=60&&a<=63?LIM.catch6063:a>=50?LIM.catch50:0;}   // 403(b)/401(k) catch-up by age
 function catchOn(){return startAge()>=40&&$('catchup').checked&&$('def401').checked;}
 function dpCash(){return $('dpc-set').checked?+$('dp-cash').value:startNW();} // what can go toward a down payment
@@ -1429,6 +1435,8 @@ function go(){
   $('sal-r').innerHTML=s.overridden?'Custom salary entered':(s.dox?'Doximity 2026 avg':'Estimated avg')+'<br>Range: '+fk(s.lo)+'–'+fk(s.hi);
 
   $('age-v').textContent=$('age').value;
+  if(!$('pyrs-set').checked)$('pyrs').value=Math.max(0,Math.min(35,+$('age').value-33));   // until set: guessed from age
+  $('pyrs-v').textContent=$('pyrs').value+($('pyrs-set').checked?'':' (guess)');
   RYsync();
   if(MODE==='res') $('yrs-left-v').textContent=$('yrs-left').value+' yrs';
   $('nw-v').textContent=fk(+$('nw').value);
@@ -1655,7 +1663,7 @@ function calcWaterfall(c){
   c=c||getCosts();
   var tagE=' <span class="tag tag-est">est.</span>',tagA=' <span class="tag tag-act">yours</span>';
   var A=c.A,useTotal=A.total!==null;
-  $('wf-title').textContent=c.actual?'your numbers (annual)':'year 1 attending (estimates)';
+  $('wf-title').textContent=c.actual?'your numbers (annual)':MODE==='att'?'this year (estimates)':'year 1 attending (estimates)';
   var hp=c.hp;
   var downNeeded=c.downNeeded;
   var nwNow=startNW();
@@ -2785,7 +2793,7 @@ function calcPlay(){
   var spendYr=c.actual&&!c.spendEntered?Math.max(0,c.impliedSpend):c.totalSpend;
   var efTarget=Math.round(3*spendYr/12/1000)*1000;
   var steps=[];
-  steps.push({on:c.def401>0,t:(hosp?'403(b)':'401(k)')+' — max it, starting with your first paycheck',d:'Pre-tax. Call HR on day 1 — you cannot make up missed pay periods. Take any employer match first.',a:LIM.k401,fix:c.def401>0?null:'Turn on in My Numbers'});
+  steps.push({on:c.def401>0,t:(hosp?'403(b)':'401(k)')+(ESTAB()?' — max it every year':' — max it, starting with your first paycheck'),d:ESTAB()?'Pre-tax. Check a pay stub each January — the limit rises most years, and missed pay periods can\'t be made up. Take any employer match first.':'Pre-tax. Call HR on day 1 — you cannot make up missed pay periods. Take any employer match first.',a:LIM.k401,fix:c.def401>0?null:'Turn on in My Numbers'});
   if(catchOn()){var ca=catchAmt(sa),cFrom=sa<50?50:null;
     steps.push({on:true,t:'Catch-up contribution — age 50 and over',d:(cFrom?'Starts the year you turn 50: ':'')+$L(LIM.catch50)+' a year more in the '+(hosp?'403(b)':'401(k)')+' ('+$L(LIM.catch6063)+' at ages 60–63). Earned over $150,000 last year? It must go in as Roth, after tax — ask HR to set it up as a Roth catch-up.',a:ca||LIM.catch50,later:!!cFrom});}
   if(c.emp>0) steps.push({on:true,t:'Employer contribution',d:'Your employer adds this on top of salary — make sure you meet any vesting schedule before changing jobs.',a:c.emp});
@@ -2794,7 +2802,7 @@ function calcPlay(){
   steps.push({on:true,t:'Backdoor Roth IRA'+(couple?' — both spouses':''),d:'Every January: contribute '+$L(LIM.ira)+' to a traditional IRA, convert to Roth right away. Keep no other pre-tax IRA balances (pro-rata rule).',a:couple?15000:7500});
   steps.push({on:hsa>0,t:'HSA',d:hsa>0?'Triple tax advantage federally (New Jersey still taxes HSA contributions). Invest it and pay current medical bills from cash if you can.':'Only if your health plan is a high-deductible plan. Most hospital plans are PPOs — check at open enrollment.',a:hsa||LIM.hsaFam});
   if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
-  steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). Build it in year 1, then stop. '+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
+  steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). '+(ESTAB()?'Already have it in savings? Skip this; top it back up only after you use it. ':'Build it in year 1, then stop. ')+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
   if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year '+RY()+' — then that payment moves to the brokerage.',a:c.loanPay});
   if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=c.dpOwn,dpMo=Math.max(0,dpNeed-Math.max(0,dpCash()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' ('+Math.round(c.MT.down*100)+'% down + closing'+(c.gift>0?', after '+fk(c.gift)+' from family':'')+') for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
   steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.',a:brk*12,brk:true});
@@ -2988,17 +2996,23 @@ function calcPlay(){
     '<div class="pb-flag '+(!c.pslf&&hasL?'g':'b')+'" style="margin:0"><div><b>Private practice — refinance and attack'+(!c.pslf&&hasL?' (you)':'')+'</b><br>Refinance soon after starting; compare 3+ lenders. Rate over 7%: pay it off before investing beyond the match. Under 4%: invest the difference. In between: do both. Pay off in 10 years or less, then send the whole payment to the brokerage.</div></div></div>'+
     '<div class="hint" style="margin-top:6px">In residency: get on RAP or IBR (SAVE is gone). Payments stay low and count toward PSLF if you end up at a nonprofit. Non-PSLF forgiveness after 20–30 years is now taxable — don\'t let loans ride.</div>';
 
-  var houseItems=['Rent for the first 2 years. You don\'t yet know the job, the group, the town, or your real take-home — and many surgeons leave their first job within 2–3 years.',
+  var est=ESTAB(),owner=c.houseOn&&c.houseOwned;
+  var houseItems=[owner&&MODE==='att'?'You already own. The questions now: pay down the mortgage or invest the money, and whether to move up. See Rent vs Buy → "Keep or sell my home" with your real mortgage, and price a bigger house on True Cost before you look at listings.':
+    est?'Renting mid-career is fine. Buy when you\'re settled in the job and the town and the price fits the rules below — not because it feels overdue.':
+    'Rent for the first 2 years. You don\'t yet know the job, the group, the town, or your real take-home — and many surgeons leave their first job within 2–3 years.',
     'Buying and selling cost about '+Math.round((0.03+0.07+mansionRate(c.houseOn?c.hp:1500000))*100)+'% of the price in NJ (3% to buy; 7% to sell plus NJ\'s seller-paid mansion tax of 1%+ on $1M+ homes). On a '+fk(c.houseOn?c.hp:1500000)+' home that\'s '+fk((c.houseOn?c.hp:1500000)*(0.10+mansionRate(c.houseOn?c.hp:1500000)))+' gone if you move soon.',
     'Price: about 2× household income is the ceiling in NJ, lower with kids in childcare. Size it to guaranteed base pay, not bonus.',
     'Total housing (mortgage, property tax, insurance, upkeep) under 28% of gross. NJ property tax averages about 2.2% of value a year — and rises.',
-    'Put 20% down. Physician loans (0–10% down) work, but a small down payment plus an early forced sale can wipe out your cash.',
+    owner?'Moving up: a bigger house costs more than the price difference — selling costs on this one, buying costs on the next, and higher property tax for good. True Cost shows what it does to your timeline.':'Put 20% down. Physician loans (0–10% down) work, but a small down payment plus an early forced sale can wipe out your cash.',
     'Renting isn\'t throwing money away — owners lose interest, tax, insurance and upkeep instead. See the Rent vs Buy tab with your numbers.'];
   $('pb-house').innerHTML=houseItems.map(function(t){return '<li>'+t+'</li>';}).join('');
 
-  var insItems=['<strong>Disability (most urgent):</strong> own-occupation, individually owned so it follows you between jobs, covering 60–70% of income (about '+fkPrecise(c.gross*0.6/12)+'/mo for you, up to what insurers issue). Add residual/partial and cost-of-living riders. '+(MODE==='res'?'Buy it before you leave training.':'Increase it as income rises.'),
-    (c.nk>0||couple)?'<strong>Term life:</strong> 10–20× income for anyone who depends on you, 20–30 year term. About '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you.':'<strong>Term life:</strong> only once someone depends on your income.',
-    '<strong>Umbrella liability:</strong> $2M+, a few hundred dollars a year. Essential once you have assets.',
+  var nwL=Math.max(0,startNW()),lifeLo=Math.max(0,c.s.sal*10-nwL),lifeHi=Math.max(0,c.s.sal*20-nwL);   // what savings don't already cover
+  var lifeTxt=est?(lifeHi===0?'Your savings already cover what term life would replace — you may not need more. Keep a policy you have until you\'re sure.':'About '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+', less the '+fk(nwL)+' you\'ve saved: roughly '+fk(lifeLo)+'–'+fk(lifeHi)+'. The need shrinks as you save; once you\'re work-optional you may not need it.'):'About '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you.';
+  var diTail=MODE==='res'?'Buy it before you leave training.':est?'Keep it until work is optional — then it can go. Past 50, or after a health change, new coverage is expensive or hard to get, so keep the policy you have and raise it with the future-increase option.':'Increase it as income rises.';
+  var insItems=['<strong>Disability (most urgent):</strong> own-occupation, individually owned so it follows you between jobs, covering 60–70% of income (about '+fkPrecise(c.gross*0.6/12)+'/mo for you, up to what insurers issue). Add residual/partial and cost-of-living riders. '+diTail,
+    (c.nk>0||couple)?'<strong>Term life:</strong> 10–20× income for anyone who depends on you, '+(est?'on a term that runs until you\'re work-optional or the kids are on their own. ':'20–30 year term. ')+lifeTxt:'<strong>Term life:</strong> only once someone depends on your income.',
+    '<strong>Umbrella liability:</strong> $2M+, a few hundred dollars a year. Essential once you have assets'+(est?' — raise it toward your net worth.':'.'),
     '<strong>Say no</strong> to whole life, variable life and IUL. They\'re commission products sold as investments.'];
   insItems[0]+='<details class="how"><summary>How to do it</summary><ol><li>Get quotes through an independent broker who sells several companies and works with physicians — don\'t rely on your employer\'s group policy alone, which ends when you leave.</li><li>Ask for: true own-occupation (specialty-specific) definition, residual/partial disability, cost-of-living adjustment, and a future-increase option so you can raise coverage later without new medical exams.</li><li>'+(MODE==='res'?'Buy before you finish training, while resident discounts apply and your health history is clean.':'Raise coverage as income rises, using the future-increase option.')+'</li></ol></details>';
   $('pb-ins').innerHTML=insItems.map(function(t){return '<li>'+t+'</li>';}).join('');
@@ -3009,27 +3023,32 @@ function calcPlay(){
   var spendYrB=c.actual&&!c.spendEntered?Math.max(0,c.impliedSpend):c.totalSpend;
   var efB=Math.round(3*spendYrB/12/1000)*1000;
   var basics=[
-    {t:'Disability insurance — own-occupation, owned by you',d:'About 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers issue. '+(MODE==='res'?'Buy it before you finish training.':'Raise it as income rises.'),
+    {t:'Disability insurance — own-occupation, owned by you',d:'About 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers issue. '+(MODE==='res'?'Buy it before you finish training.':est?'Keep it until work is optional. Past 50 or after a health change, new coverage gets hard to buy — keep the policy you have.':'Raise it as income rises.'),
      how:['Get quotes through an independent broker who sells several companies and works with physicians. Don\'t rely only on your employer\'s group policy — it ends when you leave.','Ask for: a true own-occupation (specialty-specific) definition, residual/partial disability, a cost-of-living adjustment, and a future-increase option.',MODE==='res'?'Apply in your final year of training, while resident discounts apply and your health history is clean.':'Use the future-increase option each time your income goes up.']},
-    {t:'Term life insurance'+(hasDeps?'':' — once someone depends on you'),d:hasDeps?'10–20× income for the people who depend on you — about '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you, on a 20–30 year level term.':'Not needed until a partner or child depends on your income.',
+    {t:'Term life insurance'+(hasDeps?'':' — once someone depends on you'),d:hasDeps?(est?'Enough to replace what your savings don\'t yet cover for the people who depend on you. '+lifeTxt:'10–20× income for the people who depend on you — about '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you, on a 20–30 year level term.'):'Not needed until a partner or child depends on your income.',
      how:['Get quotes from an independent term-life broker or an online marketplace; level term for 20–30 years.','Insure a stay-at-home spouse too — replacing childcare and household work is expensive.','Name beneficiaries on the policy. Say no to whole life, universal life and IUL sold as investments.']},
     {t:'Pay off credit cards — and any debt over about 8%',d:'Paying off a 20% card is a guaranteed 20% return. Nothing you can invest in beats it. From now on, pay cards in full every month.',
      how:['List every debt with its interest rate. Pay minimums on all, then put every extra dollar on the highest rate first.','Set every card to autopay the full statement balance.','Low-rate debt (a 3–5% car loan or mortgage) can stay — it doesn\'t need to be rushed.']},
-    {t:'Emergency fund — about 3 months of spending',d:'About '+fk(efB)+' in high-yield savings, so a surprise doesn\'t land on a credit card.'+($('pb-bonus').checked?' With bonus pay, also hold enough to cover the gap until the next bonus.':''),
+    {t:'Emergency fund — about 3 months of spending',d:'About '+fk(efB)+' in high-yield savings, so a surprise doesn\'t land on a credit card.'+(est?' Already there? Then don\'t hold more cash than this — the rest belongs in the brokerage.':'')+($('pb-bonus').checked?' With bonus pay, also hold enough to cover the gap until the next bonus.':''),
      how:['Open a high-yield savings account at an online bank, or use a money-market fund at your brokerage.','Automate a transfer every payday until it\'s full, then send that transfer to the brokerage.']},
-    {t:'Umbrella liability — $2 million or more',d:'A few hundred dollars a year. Protects everything you\'re about to build from a lawsuit after a car accident or an injury at your home.',
+    {t:'Umbrella liability — $2 million or more',d:'A few hundred dollars a year. Protects '+(est?'what you\'ve built':'everything you\'re about to build')+' from a lawsuit after a car accident or an injury at your home.'+(est?' Raise it toward your net worth.':''),
      how:['Ask the company that insures your car and home; they usually sell it and may require higher auto/home liability limits first.','Add coverage as your net worth grows.']},
+    est?{t:'Estate plan — will, beneficiaries, and a trust once it\'s large',d:'Review your will'+(c.nk>0?', guardians':'')+' and every beneficiary designation. As net worth passes a few million, ask an estate attorney about a revocable living trust (skips probate, keeps it private). New Jersey has no estate tax, but its inheritance tax applies to heirs outside close family (spouse, children, grandchildren, parents) — siblings, nieces and nephews, friends.',
+     how:['Beneficiary designations are set in each account\'s website — they override a will, so check them every few years.','Ask a flat-fee estate attorney to review the will, guardianship, health-care proxy and power of attorney, and whether a trust makes sense.','Review after a marriage, birth, divorce, move, or a big change in net worth.']}:
     {t:hasDeps?(c.nk>0?'Will, guardian and beneficiaries':'Will and beneficiaries'):'Beneficiaries (and a will once you have a family)',d:hasDeps?(c.nk>0?'A basic will naming a guardian for your kids':'A basic will')+', beneficiaries on every retirement account and policy, and a health-care proxy and power of attorney.':'Name beneficiaries on your retirement accounts and life insurance now; add a will when you marry or have kids.',
      how:['Beneficiary designations are set in each account\'s website — they override a will, so check them.','A flat-fee estate attorney can do a basic will, guardianship, health-care proxy and power of attorney for a modest fixed price.','Review everything after a marriage, birth, divorce or move to a new state.']},
+    est?{t:'Check your contract before a renewal or any move',d:'Compare your pay with benchmarks for your specialty and your RVUs (MGMA, Doximity). Before changing jobs, know who pays the malpractice tail, the non-compete radius and length, and when any unvested employer retirement money vests.',
+     how:['Pull your current contract and the retirement plan\'s vesting schedule (the Summary Plan Description).','A physician-contract attorney reviews renewals and new offers for a flat fee.','Negotiate at renewal — it\'s the moment you have leverage.']}:
     {t:'Have your contract reviewed before you sign',d:'By an attorney who does physician contracts. The big three: who pays the malpractice tail if you leave, the non-compete (radius and length), and exactly how pay is set — base, productivity, and what changes after year 2.',
      how:['Ask colleagues or your specialty society for a physician-contract attorney; a flat-fee review is common.','Get the compensation formula, call schedule, tail coverage and termination terms in writing — not in an email or a verbal promise.','Negotiate before signing; it is much harder afterward.']},
-    {t:'Check when the employer retirement money vests',d:'Many plans take 2–6 years to vest, and most surgeons leave their first job within a few years. Unvested money stays behind.',
+    est?null:{t:'Check when the employer retirement money vests',d:'Many plans take 2–6 years to vest, and most surgeons leave their first job within a few years. Unvested money stays behind.',
      how:['Ask HR for the Summary Plan Description and find the vesting schedule.','If you\'re thinking about leaving, check whether waiting a few months would vest a big chunk.']},
-    (c.loansOn&&c.lb>0)||MODE==='res'?{t:'Decide your student loan plan before your first payment',d:c.pslf?'You\'re on the PSLF path: income-driven payments, certify your employer every year, and never refinance.':'PSLF if you\'ll work for a nonprofit or academic employer; otherwise refinance and pay it off in 10 years or less. Choosing wrong can cost six figures.',
+    (c.loansOn&&c.lb>0)||MODE==='res'?{t:est?'Stay on your student loan plan':'Decide your student loan plan before your first payment',d:c.pslf?'You\'re on the PSLF path: income-driven payments, certify your employer every year, and never refinance.':'PSLF if you\'ll work for a nonprofit or academic employer; otherwise refinance and pay it off in 10 years or less. Choosing wrong can cost six figures.',
      how:['Confirm whether your employer qualifies for PSLF at studentaid.gov (PSLF Help Tool).','Nonprofit: stay on IBR or RAP and certify yearly. Private practice: get 3+ refinance quotes once you\'re sure.','See the Student Loans tab for your numbers.']}:null,
-    {t:'Be careful who you take advice from',d:'A new attending salary makes you a target. Avoid commission-based "advisors" and say no to whole life, universal life, IUL or annuities sold as investments.',
+    {t:'Be careful who you take advice from',d:(est?'Bigger balances bring bigger pitches: 1%-of-assets advisors (on $2M that\'s $20,000 a year), whole life and annuities, private deals from colleagues.':'A new attending salary makes you a target.')+' Avoid commission-based "advisors" and say no to whole life, universal life, IUL or annuities sold as investments.',
      how:['If you want help, hire a fee-only fiduciary who charges a flat fee, not a percentage of your assets.','Ask anyone giving advice: "How are you paid?" If the answer involves commissions, walk away.']},
     couple?{t:'Agree on a savings target with your partner',d:'Write down a savings rate and the brokerage amount together. It\'s much easier to stick to a number you both chose.',how:null}:null,
+    est?{t:'Every retirement plan maxed — check the pay stub',d:'The '+(hosp?'403(b)':'401(k)')+(hosp?', the 457(b)':'')+(startAge()>=50?', the age-50 catch-up':'')+' and both backdoor Roths each January. Confirm on a pay stub, not the election form. Then everything in Step 1 below.',how:null}:
     {t:'Day 1 as an attending: max the retirement plan',d:'Call HR before your first paycheck — you can\'t make up missed pay periods. Then everything in Step 1 below.',how:null}
   ];
   basics=basics.filter(Boolean);
@@ -3041,6 +3060,12 @@ function calcPlay(){
       (b.how?'<details class="how"><summary>How to do it</summary><ol>'+b.how.map(function(h){return '<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</details></div>';
   }).join('');
   $('ftf-prog').textContent=nDone+' of '+basics.length+' done';
+  $('ftf-title').textContent=est?'The basics — check they\'re still in place':'First things first — before you invest a dollar';
+  $('creep-when').textContent=est?'Mid-career the same rule applies at every raise, at partnership, and the month a cost ends — money you never start spending is the easiest to invest.':'Made once at the residency-to-attending transition, this decision is worth more than any investment choice you\'ll ever make.';
+  var ytr=retAge()-startAge(),wd=retSpend(c);
+  $('inv-mix').innerHTML=!est?'<strong>Mostly stocks while you\'re young</strong> — they\'re what grows. <strong>Add bonds gradually</strong> as retirement gets closer, so a crash late in your career can\'t derail you.':
+    ytr>15?'<strong>About '+ytr+' years from full retirement: still mostly stocks.</strong> Start building bonds in the last 10 years, so a crash near the end can\'t derail you.':
+    '<strong>About '+Math.max(0,ytr)+' years from full retirement: time to build bonds.</strong> Aim to hold roughly 5–7 years of planned withdrawals — about '+fk(wd*5)+'–'+fk(wd*7)+' at '+fk(wd)+'/yr — in bonds and cash by the day you retire, so a crash then doesn\'t force you to sell stocks low. Keep the rest in stocks; a retirement can last 30+ years.';
   // ── Top three moves ──
   var moves=[];
   var yrsGain=function(alt){var x=pbSim(c,Object.assign({},opts,alt));var a=plan.coast||retAge()+5,b2=x.coast||retAge()+5;return a-b2;};
@@ -3056,7 +3081,7 @@ function calcPlay(){
   else moves.push({p:40,t:'Keep the plan on autopilot',d:'You\'re on track for work optional at '+plan.coast+'. Raise the brokerage '+fkPrecise(raise)+'/mo every year and add every cost that ends.'});
   if(!c.actual&&MODE==='att')moves.push({p:75,t:'Find your real savings rate',d:'This plan uses estimates. Turn on "Find my real savings rate" on My Numbers — most attendings overestimate theirs.'});
   if(fixedMo/th>0.6)moves.push({p:70,t:'Add no new fixed costs',d:'Housing, childcare, loans and cars already take '+Math.round(fixedMo/th*100)+'% of take-home. Each $1,000/mo of permanent cost needs about '+fk(12000/(1-0.46))+'/yr of salary.'});
-  if(c.houseOn&&!c.houseOwned&&c.buyYr===0)moves.push({p:72,t:'Rent for two years before buying',d:'You\'ll buy knowing your job, town and real take-home — and avoid a forced sale if the first job doesn\'t work out.'});
+  if(c.houseOn&&!c.houseOwned&&c.buyYr===0&&!ESTAB())moves.push({p:72,t:'Rent for two years before buying',d:'You\'ll buy knowing your job, town and real take-home — and avoid a forced sale if the first job doesn\'t work out.'});
   if(c.houseOn&&c.hp/c.gross>2.5&&!c.houseOwned)moves.push({p:78,t:'Aim for a house closer to '+fk(c.gross*2)+'',d:'Your '+fk(c.hp)+' target is '+(c.hp/c.gross).toFixed(1)+'× income. See the True Cost tab for what the difference does to your timeline.'});
   if(c.loansOn&&c.lb>0&&c.pslf)moves.push({p:65,t:'Certify PSLF employment every year',d:'Lowest income-driven payment, never refinance, and file the employer certification annually at studentaid.gov.'});
   if(c.loansOn&&c.lb>0&&!c.pslf&&!c.loansRefi)moves.push({p:62,t:'Refinance the loans and pay them off in 10 years',d:'Compare 3+ lenders. Then send the whole payment to the brokerage the month they\'re gone.'});
