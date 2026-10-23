@@ -340,6 +340,7 @@ details.how ol:empty{display:none;}
       <div class="sr"><label>Current net worth</label>
         <input type="range" min="-1000000" max="3000000" step="25000" value="-260000" id="nw" oninput="go()">
         <span class="sv" id="nw-v">−$260k</span></div>
+      <div class="hint" style="margin-top:-4px">Retirement accounts, brokerage and cash, minus student loans and other debts. Leave out your home and its mortgage — housing is set below.</div>
 
       <div class="sr"><label>Household</label>
         <select id="hh-type" onchange="go()">
@@ -363,6 +364,9 @@ details.how ol:empty{display:none;}
         <label class="tog"><input type="checkbox" id="def401" checked onchange="go()"><span class="tsl"></span></label></div>
       <div class="trow" id="def457-row"><label>Also max 457(b) — <span class="L" data-k="k457">$24,500</span> (most hospitals offer one)</label>
         <label class="tog"><input type="checkbox" id="def457" onchange="go()"><span class="tsl"></span></label></div>
+      <div class="trow" id="catch-row" style="display:none"><label>Catch-up from age 50 — <span class="L" data-k="catch50">$8,000</span> more a year (<span class="L" data-k="catch6063">$11,250</span> at ages 60–63)</label>
+        <label class="tog"><input type="checkbox" id="catchup" checked onchange="go()"><span class="tsl"></span></label></div>
+      <div class="hint" id="catch-hint" style="display:none">Earned over $150,000 last year? Your catch-up has to go in as Roth — after tax, so it doesn't lower your tax bill, and your plan must offer a Roth option. Governmental 457(b) plans have their own catch-up (not counted here).</div>
       <div class="sr"><label>Employer contributes (% of salary)</label>
         <input type="range" min="0" max="10" step="0.5" value="0" id="emp" oninput="go()">
         <span class="sv" id="emp-v">None</span></div>
@@ -377,6 +381,19 @@ details.how ol:empty{display:none;}
           <span class="sv" id="hp-v">$1.0M</span></div>
         <div class="trow" style="margin-bottom:2px"><label>Already own it (down payment already paid)</label>
           <label class="tog"><input type="checkbox" id="house-owned" onchange="go()"><span class="tsl"></span></label></div>
+        <div id="mort-own" style="display:none">
+          <div class="sr"><label>Mortgage still owed</label>
+            <input type="range" min="0" max="3000000" step="10000" value="800000" id="mort-bal" oninput="mortTouch()">
+            <span class="sv" id="mort-bal-v">$800k</span></div>
+          <div class="sr"><label>Its interest rate</label>
+            <input type="range" min="2" max="8" step="0.125" value="6.75" id="mort-rate" oninput="mortTouch()">
+            <span class="sv" id="mort-rate-v">6.75%</span></div>
+          <div class="sr"><label>Years left to pay</label>
+            <input type="range" min="0" max="30" step="1" value="30" id="mort-yrs" oninput="mortTouch()">
+            <span class="sv" id="mort-yrs-v">30 yrs</span></div>
+          <input type="checkbox" id="mort-set" style="display:none">
+          <div class="hint" id="mort-hint"></div>
+        </div>
         <div id="buy-yr-row" class="sr"><label>Years before buying</label>
           <input type="range" min="0" max="5" value="2" id="buy-yr" oninput="go()">
           <span class="sv" id="buy-yr-v">Yr 2</span></div>
@@ -386,6 +403,11 @@ details.how ol:empty{display:none;}
             <option value="phys10">Physician loan — 10% down</option>
             <option value="phys5">Physician loan — 5% down</option>
           </select></div>
+        <div id="dpcash-row" class="sr"><label>Cash and brokerage you could put toward it</label>
+          <input type="range" min="0" max="1500000" step="10000" value="0" id="dp-cash" oninput="$('dpc-set').checked=true;go()">
+          <span class="sv" id="dp-cash-v">$0</span></div>
+        <input type="checkbox" id="dpc-set" style="display:none">
+        <div class="hint" id="dpcash-hint" style="margin-top:-4px"></div>
         <div id="dpgift-row" class="sr"><label>Family help toward the down payment</label>
           <input type="range" min="0" max="500000" step="10000" value="0" id="dp-gift" oninput="go()">
           <span class="sv" id="dp-gift-v">$0</span></div>
@@ -569,6 +591,8 @@ details.how ol:empty{display:none;}
       </div>
       <div class="trow" id="pb-loan-row"><label>Send the loan payment to the brokerage when loans are paid off</label>
         <label class="tog"><input type="checkbox" id="pb-loanredir" checked onchange="go()"><span class="tsl"></span></label></div>
+      <div class="trow" id="pb-mort-row" style="display:none"><label>Send the mortgage payment to the brokerage when the house is paid off</label>
+        <label class="tog"><input type="checkbox" id="pb-mortredir" checked onchange="go()"><span class="tsl"></span></label></div>
       <div class="sr"><label>Pay rises in year</label>
         <input type="range" min="0" max="8" value="0" id="pb-stepyr" oninput="go()">
         <span class="sv" id="pb-stepyr-v">No raise</span></div>
@@ -742,7 +766,7 @@ details.how ol:empty{display:none;}
   </div>
   <div class="card">
     <div class="ctitle">What if I saved more?</div>
-      <div class="sr"><label>Savings rate in year 10 (% of gross pay)</label>
+      <div class="sr"><label>Savings rate in <span id="ry-lbl">year 10</span> (% of gross pay)</label>
         <input type="range" min="0" max="50" value="25" id="fi-sr" oninput="calcFI()">
         <span class="sv" id="fi-sr-v">25%</span></div>
     <div class="hint" id="fi-sr-note" style="display:none"></div>
@@ -903,12 +927,17 @@ details.how ol:empty{display:none;}
       <div class="ctitle">Your situation</div>
       <div class="hint" id="rvb-src" style="margin:-2px 0 8px"></div>
       <input type="checkbox" id="rvb-custom" style="display:none">
+      <div id="rvb-qrow" style="display:none;gap:4px;margin-bottom:10px;flex-wrap:wrap">
+        <button id="rvbq-keep" class="ptab on" onclick="setRvbQ('keep')">Keep or sell my home</button>
+        <button id="rvbq-buy" class="ptab" onclick="setRvbQ('buy')">Buy vs rent</button>
+        <select id="rvb-q" style="display:none"><option value="keep" selected>keep</option><option value="buy">buy</option></select>
+      </div>
 
-      <div class="sr"><label>Home price</label>
+      <div class="sr"><label id="rvb-price-lbl">Home price</label>
         <input type="range" min="600000" max="2500000" step="50000" value="1500000" id="rvb-price" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-price-v">$1.5M</span></div>
 
-      <div class="trow" style="align-items:flex-start;margin-bottom:8px">
+      <div class="trow" id="rvb-dp-row" style="align-items:flex-start;margin-bottom:8px">
         <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;padding-top:4px">Down payment</label>
         <div style="display:flex;gap:4px;flex:1;flex-wrap:wrap">
           <button id="dp-20" class="ptab on" onclick="rvbTouch();setDP(20)">20% conventional</button>
@@ -917,11 +946,11 @@ details.how ol:empty{display:none;}
         </div>
       </div>
 
-      <div class="sr"><label>Mortgage rate</label>
+      <div class="sr" id="rvb-rate-row"><label>Mortgage rate</label>
         <input type="range" min="5" max="9" step="0.25" value="6.75" id="rvb-rate" oninput="calcRentBuy();go()">
         <span class="sv" id="rvb-rate-v">6.75%</span></div>
 
-      <div class="sr"><label>Monthly rent</label>
+      <div class="sr"><label id="rvb-rent-lbl">Monthly rent</label>
         <input type="range" min="2000" max="12000" step="250" value="7500" id="rvb-rent" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-rent-v">$7.5k</span></div>
 
@@ -929,7 +958,7 @@ details.how ol:empty{display:none;}
         <input type="range" min="0" max="6" step="0.5" value="4" id="rvb-rentg" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-rentg-v">4.0%</span></div>
       <div class="hint" style="margin-top:-4px;margin-bottom:8px">Over decades, rents tend to rise about as fast as home prices — so the default matches appreciation.</div>
-      <div class="sr"><label>Years in home</label>
+      <div class="sr"><label id="rvb-yrs-lbl">Years in home</label>
         <input type="range" min="1" max="15" value="5" id="rvb-yrs" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-yrs-v">5 yrs</span></div>
 
@@ -937,7 +966,7 @@ details.how ol:empty{display:none;}
         <input type="range" min="2" max="8" step="0.5" value="4" id="rvb-appr" oninput="calcRentBuy()">
         <span class="sv" id="rvb-appr-v">4.0%</span></div>
 
-      <div class="sr"><label>Renter's investment return (before inflation)</label>
+      <div class="sr"><label id="rvb-inv-lbl">Renter's investment return (before inflation)</label>
         <input type="range" min="4" max="10" step="0.5" value="7" id="rvb-inv" oninput="calcRentBuy()">
         <span class="sv" id="rvb-inv-v">7.0%</span></div>
 
@@ -1002,7 +1031,7 @@ details.how ol:empty{display:none;}
       <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">State avg — adjust slider for your specific county. Also used in My Numbers.</div>
     </div>
     <div class="card">
-      <div class="ctitle">Wealth comparison — renter vs owner</div>
+      <div class="ctitle" id="rvb-ch-title">Wealth comparison — renter vs owner</div>
       <div class="cw" style="height:240px"><canvas id="rent-chart"></canvas></div>
       <div class="hint" id="rvb-chart-note">Dollars before inflation. The renter invests the down payment and whatever owning would have cost extra each month.</div>
     </div>
@@ -1027,7 +1056,7 @@ details.how ol:empty{display:none;}
   <div style="font-size:12px;color:var(--mg)">Eight quick questions. You can change anything later. Your answers stay on this device.</div>
   <div class="q"><span class="ql">Where are you?</span><div class="chips" data-q="stage"><button class="chip on" data-v="res">Resident / fellow</button><button class="chip" data-v="att">Attending</button></div>
     <div class="row" id="su-yrs-row">Years of training left <select id="su-yrs" style="max-width:90px"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div></div>
-  <div class="q"><label for="su-age">Your age</label><input type="number" id="su-age" value="30" min="24" max="60"></div>
+  <div class="q"><label for="su-age">Your age</label><input type="number" id="su-age" value="30" min="24" max="64"></div>
   <div class="q"><label for="su-spec">Specialty</label><select id="su-spec"></select>
     <div class="row">Or your actual / offered salary $<input type="number" id="su-sal" placeholder="optional" step="5000"></div></div>
   <div class="q"><span class="ql">Household</span><div class="chips" data-q="hh"><button class="chip on" data-v="couple">Married / partnered</button><button class="chip" data-v="single">Single</button></div>
@@ -1037,6 +1066,7 @@ details.how ol:empty{display:none;}
     <div class="row">Childcare per child / month $<input type="number" id="su-daymo" value="2500" step="100"></div></div>
   <div class="q"><span class="ql">Home</span><div class="chips" data-q="home"><button class="chip on" data-v="buylater">Renting, buying later</button><button class="chip" data-v="rent">Renting, no plans</button><button class="chip" data-v="own">I own</button><button class="chip" data-v="buynow">Buying now</button></div>
     <div class="row" id="su-hp-row">Home price $<input type="number" id="su-hp" value="1000000" step="25000"></div>
+    <div class="row" id="su-mort-row" style="display:none">Mortgage still owed $<input type="number" id="su-mort" placeholder="from your statement" step="10000"> at <input type="number" id="su-mrate" placeholder="rate" step="0.125" style="max-width:70px">% with <input type="number" id="su-myrs" placeholder="years" style="max-width:60px"> years left</div>
     <div class="row" id="su-rent-row" style="display:none">Rent / month $<input type="number" id="su-rent" value="4500" step="100"></div></div>
   <div class="q"><label for="su-lb">Student loans (total balance, 0 if none)</label><input type="number" id="su-lb" value="0" step="5000">
     <div class="chips" data-q="pslf" style="margin-top:6px"><button class="chip on" data-v="no">Private practice / not PSLF</button><button class="chip" data-v="yes">Nonprofit — going for PSLF</button></div></div>
@@ -1074,7 +1104,7 @@ var DATA={year:2026,reviewed:'October 2026'};
 function $L(n){return '$'+Math.round(n).toLocaleString('en-US');}
 // Physician mortgage: typical rate premium over a conventional loan (2026: about 0.125–0.5 points), no PMI
 var PHYS={prem:0.25};
-var LIM={k401:24500,k457:24500,ira:7500,hsaFam:8750,dcfsa:7500,giftExcl:19000,giftLife:15000000,ssBase:184500,compCap:360000,dcTotal:72000};
+var LIM={k401:24500,k457:24500,catch50:8000,catch6063:11250,ira:7500,hsaFam:8750,dcfsa:7500,giftExcl:19000,giftLife:15000000,ssBase:184500,compCap:360000,dcTotal:72000};
 var FED={
   couple:{std:32200,br:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[1e12,.37]],addlMed:250000,ctcPh:400000},
   single:{std:16100,br:[[12400,.10],[50400,.12],[105700,.22],[201775,.24],[256225,.32],[640600,.35],[1e12,.37]],addlMed:200000,ctcPh:200000},
@@ -1118,6 +1148,9 @@ function sp(){
 }
 function startAge(){return MODE==='res'?(+$('age').value + +$('yrs-left').value):+$('age').value;}
 function startNW(){return +$('nw').value;}
+function catchAmt(a){return a>=60&&a<=63?LIM.catch6063:a>=50?LIM.catch50:0;}   // 403(b)/401(k) catch-up by age
+function catchOn(){return startAge()>=40&&$('catchup').checked&&$('def401').checked;}
+function dpCash(){return $('dpc-set').checked?+$('dp-cash').value:startNW();} // what can go toward a down payment
 function hhType(){return $('hh-type').value;}
 function kidsCount(){return $('kids').checked?+$('nk').value:0;}
 function hhSize(){return (hhType()==='couple'?2:1)+kidsCount();}
@@ -1179,6 +1212,7 @@ function setMode(m){
   $('hdr-sub').textContent=m==='res'?
     'Model your trajectory before your first contract. Years 1–3 determine when work becomes optional.':
     'See where you stand today, where each path leads, and which single change moves the needle most.';
+  $('age').max=m==='att'?64:55;
   $('res-only').style.display=m==='res'?'block':'none';
   $('att-only').style.display=m==='att'?'block':'none';
   $('att-sens').style.display=m==='att'?'block':'none';
@@ -1265,10 +1299,12 @@ function getCosts(){
   var mRate=+$('rvb-rate').value, pTax=+$('rvb-tax').value/100;
   var MT=mortTerms(houseOwned),mRateEff=mRate+MT.prem;
   var loanAmt=hp*(1-MT.down);
+  var mortMo=null,mortYrs=null;                       // owned home: the real mortgage, which ends
+  if(houseOwned){loanAmt=+$('mort-bal').value;mRateEff=+$('mort-rate').value;mortYrs=loanAmt>0?+$('mort-yrs').value:0;mortMo=mortPmtMo(loanAmt,mRateEff,mortYrs);}
   var downNeeded=houseOn&&!houseOwned?Math.round(hp*(MT.down+0.03)):0;
   var gift=houseOn&&!houseOwned?Math.min(+$('dp-gift').value,downNeeded):0; // family gift, capped at what closing needs
   var dpOwn=downNeeded-gift;                                                 // cash that has to come from you
-  var ownHousing=houseOn?mtgPmt12(loanAmt,mRateEff)+Math.round(hp*pTax)+Math.round(hp*.004)+Math.round(hp*.01):0;
+  var ownHousing=houseOn?(houseOwned?mortMo*12:mtgPmt12(loanAmt,mRateEff))+Math.round(hp*pTax)+Math.round(hp*.004)+Math.round(hp*.01):0;
   var housingEst=houseOn&&buyYr===0?ownHousing:0;
   var rentEst=(houseOn&&buyYr>0)||!houseOn?+$('rent').value*12:0;
   var owningNow=houseOn&&buyYr===0;
@@ -1328,7 +1364,9 @@ function getCosts(){
 
   var left=gross-t.total-totalSpend;        // includes payroll deferrals (they're savings)
   var srPct=gross>0?Math.round((Math.max(0,left)+emp)/gross*100):0;
-  var cashLeft=left-deferrals;              // after-tax cash left after spending and payroll deferrals
+  var catchNow=catchOn()?catchAmt(startAge()):0;  // age-50+ catch-up, Roth (after tax) for earners over $150k
+  var payRet=deferrals+catchNow;             // everything going into retirement plans through payroll
+  var cashLeft=left-payRet;                 // after-tax cash left after spending and payroll retirement
   // Actual savings — built from what lands in accounts
   var rothAmt=0,brk=0,prepay=0,osav=0,nonPayInv=0;
   if(actual){
@@ -1336,16 +1374,16 @@ function getCosts(){
     brk=(numOrNull('act-brk')||0)*12;prepay=(numOrNull('act-prepay')||0)*12;osav=(numOrNull('act-osav')||0)*12;
     nonPayInv=rothAmt+brk+prepay+osav;
   }
-  var takeHome=gross-t.total-deferrals;
-  var invest=actual?deferrals+nonPayInv+emp:Math.max(0,left)+emp;
+  var takeHome=gross-t.total-deferrals-catchNow;
+  var invest=actual?payRet+nonPayInv+emp:Math.max(0,left)+emp;
   var investSR=gross>0?Math.round(invest/gross*100):0;
   var spendEntered=actual&&(A.total!==null||A.housing!==null||A.kids!==null||A.loans!==null||A.cars!==null||A.other!==null);
   var impliedSpend=takeHome-nonPayInv-save529Amt;
   var unassigned=spendEntered?takeHome-nonPayInv-totalSpend:null;
 
   return{s:s,gross:gross,pinc:pinc,hh:hh,actual:actual,A:A,tax:t,taxes:t.total,taxParams:taxParams,
-    deferrals:deferrals,def401:def401,def457:def457,planType:planType,dcfsa:dcfsa,
-    houseOn:houseOn,houseOwned:houseOwned,hp:hp,buyYr:buyYr,MT:MT,mRateEff:mRateEff,loanAmt:loanAmt,downNeeded:downNeeded,gift:gift,dpOwn:dpOwn,ownHousing:ownHousing,housingEst:housingEst,rentEst:rentEst,owningNow:owningNow,
+    deferrals:deferrals,catchNow:catchNow,payRet:payRet,def401:def401,def457:def457,planType:planType,dcfsa:dcfsa,
+    houseOn:houseOn,houseOwned:houseOwned,mortMo:mortMo,mortYrs:mortYrs,hp:hp,buyYr:buyYr,MT:MT,mRateEff:mRateEff,loanAmt:loanAmt,downNeeded:downNeeded,gift:gift,dpOwn:dpOwn,ownHousing:ownHousing,housingEst:housingEst,rentEst:rentEst,owningNow:owningNow,
     housingCost:housingCost,kidsCost:kidsCost,childcareEst:childcareEst,schoolEst:schoolEst,kidsOn:kidsOn,nk:nk,nDay:nDay,nPriv:nPriv,
     save529On:save529On,save529Amt:save529Amt,
     livingEst:livingEst,discEst:discEst,lifestyleEst:lifestyleEst,otherCost:otherCost,
@@ -1391,6 +1429,7 @@ function go(){
   $('sal-r').innerHTML=s.overridden?'Custom salary entered':(s.dox?'Doximity 2026 avg':'Estimated avg')+'<br>Range: '+fk(s.lo)+'–'+fk(s.hi);
 
   $('age-v').textContent=$('age').value;
+  RYsync();
   if(MODE==='res') $('yrs-left-v').textContent=$('yrs-left').value+' yrs';
   $('nw-v').textContent=fk(+$('nw').value);
   $('pinc-row').style.display=hhType()==='couple'?'flex':'none';
@@ -1399,11 +1438,26 @@ function go(){
   $('famsup-v').textContent=fkPrecise(+$('famsup').value);
   $('pinc-v').textContent=+$('pinc').value>0?fk(+$('pinc').value):'None';
   $('def457-row').style.display=$('plan-type').value==='403b'?'flex':'none';
+  $('catch-row').style.display=$('catch-hint').style.display=startAge()>=40?'':'none';
   $('house-opts').style.display=$('house').checked?'block':'none';
   $('hp-v').textContent=fk(+$('hp').value);
   $('buy-yr-row').style.display=$('house-owned').checked?'none':'flex';
   $('mort-row').style.display=$('house-owned').checked?'none':'flex';
   $('dpgift-row').style.display=$('house-owned').checked?'none':'flex';
+  $('dpcash-row').style.display=$('house-owned').checked?'none':'flex';
+  $('dpcash-hint').style.display=$('house-owned').checked?'none':'block';
+  if(!$('dpc-set').checked)$('dp-cash').value=Math.max(0,+$('nw').value);
+  $('dp-cash-v').textContent=fk(+$('dp-cash').value);
+  $('dpcash-hint').textContent=$('dpc-set').checked?'Not retirement accounts — they can\'t pay for a house without taxes and penalties.':'Set to your net worth until you change it. Count only cash and brokerage — not retirement accounts.';
+  $('mort-own').style.display=$('house').checked&&$('house-owned').checked?'block':'none';
+  if(!$('mort-set').checked){ // until set, an owned home is modeled as a new 20%-down mortgage at today's rate
+    $('mort-bal').value=Math.round(+$('hp').value*0.8/10000)*10000;$('mort-rate').value=+$('rvb-rate').value;$('mort-yrs').value=30;}
+  var mb=+$('mort-bal').value,my=+$('mort-yrs').value;
+  $('mort-bal-v').textContent=mb===0?'Paid off':fk(mb);
+  $('mort-rate-v').textContent=(+$('mort-rate').value).toFixed(3).replace(/0$/,'').replace(/\.?0+$/,'')+'%';
+  $('mort-yrs-v').textContent=mb===0?'—':my+' yr'+(my!==1?'s':'');
+  $('mort-hint').innerHTML=$('mort-set').checked?(mb===0?'No mortgage payment — property tax, insurance and upkeep still count.':'Payment '+fkPrecise(mortPmtMo(mb,+$('mort-rate').value,my))+'/mo, ending in '+my+' year'+(my!==1?'s':'')+'. Check a recent mortgage statement.'):
+    '<strong>Set these from your mortgage statement.</strong> Until you do, the app assumes you just bought it with 20% down at today\'s rate — too high if you locked in a lower rate or have paid some off. Paid off? Slide the balance to $0.';
   $('dp-gift-v').textContent=fk(+$('dp-gift').value);
   if($('house').checked){var byv=+$('buy-yr').value;$('buy-yr-v').textContent=byv===0?'Now':'Yr '+byv;}
   $('house-hint').textContent='Uses property tax ('+(+$('rvb-tax').value).toFixed(2)+'%) and mortgage rate ('+(+$('rvb-rate').value).toFixed(2)+'%) from the Rent vs Buy tab, '+(function(m){return m.down===0.2?'20% down':m.lbl+' (rate +'+m.prem+'%, no PMI)';})(mortTerms($('house-owned').checked))+', 0.4% insurance, 1% upkeep.';
@@ -1448,7 +1502,7 @@ function go(){
   $('act-other').placeholder=Math.round((c.livingEst+c.discEst+c.lifestyleEst+c.famCost+c.insEst)/12).toLocaleString();
   var estTotalMo=Math.round((c.housingEst+c.rentEst+c.childcareEst+c.schoolEst+c.loanEst+c.carsEst+c.livingEst+c.discEst+c.lifestyleEst+c.famCost+c.insEst)/12);
   $('act-total').placeholder=estTotalMo.toLocaleString();
-  $('act-def').textContent=fk(c.deferrals)+'/yr';
+  $('act-def').textContent=fk(c.payRet)+'/yr';
 
   calcWaterfall(c);
   calcPaths();
@@ -1496,6 +1550,8 @@ function retSpend(c){
   return +$('fi-spend').value;
 }
 function retAge(){return +$('fi-retage').value||65;}
+function RYsync(){var e=$('ry-lbl');if(e)e.textContent='year '+RY();}
+function RY(){return Math.max(1,Math.min(10,retAge()-startAge()-1));}   // 'year '+RY()+'' — or sooner when retirement is less than 11 years away
 // Portfolio needed at a given age so that, with no further saving, it grows to the FI number by retirement age
 function callTarget(age,fiNum,rr){return fiNum/Math.pow(1+rr,Math.max(0,retAge()-age));}
 // Project net worth; sav(i) = savings in year i. Returns milestone ages (age after n years = sa+n).
@@ -1516,6 +1572,12 @@ function project(sa,nw0,sav,fiNum,rr,yrs){
   return m;
 }
 
+// Monthly P&I on what's still owed (rounded like mtgPmt12 so a 30-year default matches it exactly)
+function mortPmtMo(bal,rate,yrs){
+  if(bal<=0||yrs<=0)return 0;var n=yrs*12,mr=rate/100/12;
+  return Math.round(mr===0?bal/n:bal*(mr*Math.pow(1+mr,n))/(Math.pow(1+mr,n)-1));
+}
+function mortTouch(){$('mort-set').checked=true;go();}
 // ── DOWN PAYMENT & PHYSICIAN MORTGAGE ─────────────────────────────
 function mortTerms(owned){
   var v=owned?'conv':(($('mort-type')||{}).value||'conv');
@@ -1578,7 +1640,7 @@ function dpCard(c,nwNow){
   if(smaller<hp&&smaller>=200000)bits.push('<strong>Smaller house:</strong> about '+fk(smaller)+' with 20% down '+when+'.');
   if(ch.down<0.2)bits.push('<strong>The physician loan</strong> costs about '+fkPrecise(Math.round(ch.extra/10)*10)+'/mo more than 20% down: a bigger loan at about '+PHYS.prem+' points more, with no PMI. About '+fkPrecise(10*Math.round((mtgAfter(hp*(1-ch.down),baseRate+ch.prem,12).int1-mtgAfter(hp*0.8,baseRate,12).int1)/120))+'/mo of that is extra interest; the rest is principal you keep.');
   return '<div class="box '+cls+'"><div class="box-title" style="color:'+col+'">'+title+'</div>'+
-    '<div class="box-body">'+splitHtml+' '+(giftAll>0?'You\'ll have saved <strong>'+fk(have-giftAll)+'</strong>, plus <strong>'+fk(giftAll)+'</strong> from family: <strong>'+fk(have)+'</strong>':'Saved by then: <strong>'+fk(have)+'</strong>')+(nw0>0?' (counting today\'s '+fk(nw0)+' net worth as usable cash)':'')+'. Retirement accounts can\'t be used for a down payment.'+
+    '<div class="box-body">'+splitHtml+' '+(giftAll>0?'You\'ll have saved <strong>'+fk(have-giftAll)+'</strong>, plus <strong>'+fk(giftAll)+'</strong> from family: <strong>'+fk(have)+'</strong>':'Saved by then: <strong>'+fk(have)+'</strong>')+(nw0>0?' (counting the '+fk(nw0)+' of cash and brokerage you have today)':'')+'. Retirement accounts can\'t be used for a down payment.'+
     '<div style="overflow-x:auto;margin:8px 0 6px"><table class="tbl dp-tbl"><tr><th>How you buy</th><th>Cash at closing</th><th>Mortgage / mo</th><th>Sell after 2 yrs*</th></tr>'+rows+'</table></div>'+
     (bits.length?bits.join(' ')+' ':'')+
     (giftAll>0?'<div style="margin:6px 0">'+'<strong>About family money:</strong> make it a gift, not a loan. Lenders want a signed gift letter and the money in your account before closing, and they count a family loan as debt. Each parent can give each of you $'+LIM.giftExcl.toLocaleString()+' a year with no paperwork'+(c.hh==='couple'?' — $'+(4*LIM.giftExcl).toLocaleString()+' a year from two parents to a couple':'')+'. A bigger gift only means the parent files a gift-tax return (Form 709); no tax is owed unless their lifetime gifts pass $'+(LIM.giftLife/1e6)+' million.</div>':'')+
@@ -1597,16 +1659,16 @@ function calcWaterfall(c){
   var hp=c.hp;
   var downNeeded=c.downNeeded;
   var nwNow=startNW();
-  var dpAlert=c.houseOn&&!c.houseOwned&&c.buyYr===0&&downNeeded>0&&c.dpOwn>nwNow;
+  var dpAlert=c.houseOn&&!c.houseOwned&&c.buyYr===0&&downNeeded>0&&c.dpOwn>dpCash();
   var pct=function(a){return Math.round(a/c.gross*100);};
 
   var items;
   if(c.actual){
-    var dlabel=c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)');
+    var dlabel=(c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)'))+(c.catchNow>0?' + catch-up':'');
     items=[{l:'Gross income',a:c.gross,col:'#1D6B52',inc:true},
       {l:'Federal + NJ + Social Security + Medicare',a:c.taxes,col:'#C0392B',p:pct(c.taxes),
         note:'fed '+fk(c.tax.fed)+' · NJ '+fk(c.tax.nj)+' · FICA '+fk(c.tax.fica)+(c.tax.itemizing?' · itemizing':'')}];
-    if(c.deferrals>0) items.push({l:'Payroll '+dlabel+tagA,a:c.deferrals,col:'#1D6B52',p:pct(c.deferrals),sv:true});
+    if(c.payRet>0) items.push({l:'Payroll '+dlabel+tagA,a:c.payRet,col:'#1D6B52',p:pct(c.payRet),sv:true});
     if(c.rothAmt>0) items.push({l:'Backdoor Roth'+tagA,a:c.rothAmt,col:'#1D6B52',p:pct(c.rothAmt),sv:true});
     if(c.brk>0) items.push({l:'Brokerage'+tagA,a:c.brk,col:'#1D6B52',p:pct(c.brk),sv:true});
     if(c.prepay>0) items.push({l:'Extra loan principal'+tagA,a:c.prepay,col:'#1D6B52',p:pct(c.prepay),sv:true});
@@ -1644,7 +1706,7 @@ function calcWaterfall(c){
   }
   if(c.save529On) items.push({l:'529 savings',a:c.save529Amt,col:'#8E44AD',p:pct(c.save529Amt)});
   if(c.emp>0) items.push({l:'+ Employer retirement contribution',a:c.emp,col:'#1D6B52',p:pct(c.emp),note:'on top of salary'});
-  if(c.deferrals>0&&!c.actual) items.push({l:'Payroll retirement savings',a:c.deferrals,col:'#1D6B52',p:pct(c.deferrals),note:(c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)'))+(c.defP>0?' + partner\'s plan':'')+' — taken before take-home'});
+  if(c.payRet>0&&!c.actual) items.push({l:'Payroll retirement savings',a:c.payRet,col:'#1D6B52',p:pct(c.payRet),note:(c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)'))+(c.catchNow>0?' + '+fk(c.catchNow)+' Roth catch-up':'')+(c.defP>0?' + partner\'s plan':'')+' — taken before take-home'});
   if(!c.actual){
     if(c.cashLeft>=0) items.push({l:'Cash left over each year',a:c.cashLeft,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:pct(c.cashLeft),note:'for Roths, brokerage, down payment — only if automated'});
     else items.push({l:'Short each year',a:-c.cashLeft,col:'#C0392B',bad:true,p:pct(-c.cashLeft),note:'spending is more than take-home — it comes from credit cards, savings or bonuses'});
@@ -1707,11 +1769,11 @@ function calcWaterfall(c){
   var wfFI=retSpend(c)*25;
   function coastAt(sav){var m=project(sa,nwv,sav,wfFI,rr,60);return m.coast!==null&&m.coast<retAge()?m.coast:null;}   // generic comparisons only (the 12% / 25% paths)
   // Your own ages come from the shared engine: house plan, budget and all
-  var noPlan={raise:0,dcRedir:false,loanRedir:false,stepShare:0};
+  var noPlan={raise:0,dcRedir:false,loanRedir:false,mortRedir:false,stepShare:0};
   var Sauto=pbSim(c,Object.assign({brk:1e7},noPlan));   // every leftover dollar invested, each year (capped at the cash you have)
   var Sfloor=pbSim(c,Object.assign({brk:0},noPlan));    // only the retirement accounts
   var coastEst=c.actual?pbFlat(c).coast:Sauto.coast;
-  var auto10=Math.round(Sauto.savAt(10)/c.gross*100);
+  var auto10=Math.round(Sauto.savAt(RY())/c.gross*100);
   var coast25=coastAt(c.gross*0.25),coast12=coastAt(c.gross*0.12);
   var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>age '+retAge()+' or later</strong>';
   var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(retAge()-coast25):null);
@@ -1732,28 +1794,28 @@ function calcWaterfall(c){
   if(!c.actual){
     // Estimate mode: show the room to save honestly, next to what happens if only the retirement accounts get funded
     var rothNeed=c.hh==='couple'?2*LIM.ira:LIM.ira;
-    var floorSav=c.deferrals+rothNeed+c.emp;
-    var floorAge=Sfloor.coast,floorSR=Math.round(Sfloor.savAt(10)/c.gross*100);
+    var floorSav=c.payRet+rothNeed+c.emp;
+    var floorAge=Sfloor.coast,floorSR=Math.round(Sfloor.savAt(RY())/c.gross*100);
     if(c.cashLeft<rothNeed){
-      var payAge=coastAt(c.deferrals+c.emp+Math.min(0,c.cashLeft));
-      msg='box-r|'+(c.cashLeft<0?'Spending is more than take-home: short '+fk(-c.cashLeft)+' a year':'Almost nothing left after spending')+'|Your payroll retirement plans still get funded ('+fk(c.deferrals+c.emp)+'/yr), but after the app\'s estimated spending '+(c.cashLeft<0?'you\'re <strong>'+fk(-c.cashLeft)+' a year short</strong> — that gap lands on credit cards, savings or bonuses':'only <strong>'+fk(c.cashLeft)+'</strong> is left — not even enough for the backdoor Roths')+'. At this rate work becomes optional at <strong>'+(payAge?'age '+payAge:retAge()+' or later')+'</strong>. '+
+      var payAge=coastAt(c.payRet+c.emp+Math.min(0,c.cashLeft));
+      msg='box-r|'+(c.cashLeft<0?'Spending is more than take-home: short '+fk(-c.cashLeft)+' a year':'Almost nothing left after spending')+'|Your payroll retirement plans still get funded ('+fk(c.payRet+c.emp)+'/yr), but after the app\'s estimated spending '+(c.cashLeft<0?'you\'re <strong>'+fk(-c.cashLeft)+' a year short</strong> — that gap lands on credit cards, savings or bonuses':'only <strong>'+fk(c.cashLeft)+'</strong> is left — not even enough for the backdoor Roths')+'. At this rate work becomes optional at <strong>'+(payAge?'age '+payAge:retAge()+' or later')+'</strong>. '+
         'Fix the gap before adding fixed costs: the biggest items above are where to look'+(c.kidsCost>0?' (childcare ends — plan for that money)':'')+(c.buyYr>0?'; and buying the house will add '+fk(Math.max(0,c.ownHousing-c.rentEst))+'/yr on top of today\'s rent':'')+'. <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
     } else if(pbOpts(c).buying){
       // Buying later: today's leftover is spoken for by the down payment fund, then by the higher cost of owning
       var HB=pbOpts(c),after=Math.max(0,Math.round(c.cashLeft-HB.houseExtra-rothNeed));
       var same=coastEst===floorAge||(coastEst&&floorAge&&Math.abs(coastEst-floorAge)<=1);
-      msg='box-a|Room to save today: '+c.srPct+'% — but the house plan needs it|After the app\'s estimated spending about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> is left over, on top of '+fk(c.deferrals+c.emp)+' going into retirement plans through payroll. '+
+      msg='box-a|Room to save today: '+c.srPct+'% — but the house plan needs it|After the app\'s estimated spending about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> is left over, on top of '+fk(c.payRet+c.emp)+' going into retirement plans through payroll. '+
         'Until you buy in year '+c.buyYr+', the down payment fund takes about <strong>'+fk(HB.dpYr)+' a year</strong>; after that, owning costs about '+fk(HB.houseExtra)+' a year more than your rent, leaving about <strong>'+fk(after)+' a year</strong> for the brokerage. '+
-        'Invested automatically, work becomes optional at '+coastAge+' (saving '+auto10+'% in year 10). '+(same?'If it drifts into spending, the answer barely changes — <strong>the house, not automation, sets your timeline</strong>. The down payment card below shows a later or smaller option.':'If it drifts into spending and only the retirement accounts get funded, work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>.')+
+        'Invested automatically, work becomes optional at '+coastAge+' (saving '+auto10+'% in year '+RY()+'). '+(same?'If it drifts into spending, the answer barely changes — <strong>the house, not automation, sets your timeline</strong>. The down payment card below shows a later or smaller option.':'If it drifts into spending and only the retirement accounts get funded, work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>.')+
         ' <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
-    } else msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> of cash is left over, on top of '+fk(c.deferrals+c.emp)+' going into retirement plans through payroll. '+
-      'If that is automated into savings, work becomes optional at '+coastAge+(Math.abs(auto10-c.srPct)>=1?' (saving '+auto10+'% in year 10'+(c.buyYr>0?', after the house':'')+')':'')+'. '+
-      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income'+(c.buyYr>0?' in year 10':'')+'), work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
+    } else msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> of cash is left over, on top of '+fk(c.payRet+c.emp)+' going into retirement plans through payroll. '+
+      'If that is automated into savings, work becomes optional at '+coastAge+(Math.abs(auto10-c.srPct)>=1?' (saving '+auto10+'% in year '+RY()+''+(c.buyYr>0?', after the house':'')+')':'')+'. '+
+      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income'+(c.buyYr>0?' in year '+RY()+'':'')+'), work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
       'The difference is whether the leftover is automated on day one. <em>Turn on "Find my real savings rate" to see what you actually save.</em>';
   }
 
   // Down payment: three ways to buy, and what a forced early sale costs
-  var dpWarning=(c.houseOn&&!c.houseOwned&&downNeeded>0)?dpCard(c,nwNow):'';
+  var dpWarning=(c.houseOn&&!c.houseOwned&&downNeeded>0)?dpCard(c,dpCash()):'';
   var housing=c.housingCost;
   if(!dpWarning&&housing/c.gross>0.28&&(c.owningNow||A.housing!==null)){
     dpWarning='<div class="box box-a">'+
@@ -1766,14 +1828,14 @@ function calcWaterfall(c){
 
   // Attending sensitivity — same engine as every tab: start from 'if nothing changes', change one thing
   if(MODE==='att'){
-    var F0=pbFlat(c),b10=F0.savAt(10)/c.gross,baseAge=F0.coast||retAge();
+    var F0=pbFlat(c),b10=F0.savAt(RY())/c.gross,baseAge=F0.coast||retAge();
     var gain=function(m){return m.coast?baseAge-m.coast:null;},ageOf={};
     var g0=gain;gain=function(m){var d=g0(m);if(d>0)ageOf[d+'_'+m.coast]=m.coast;return d>0?{d:d,age:m.coast}:null;};
     var sens=[20,25,30,35].filter(function(x){return x>Math.round(b10*100);}).map(function(sr){
-      return{l:'Save '+sr+'% in year 10 (about '+fk((sr/100-b10)*c.gross)+'/yr more, every year)',delta:gain(pbFlat(c,Math.round((sr/100-b10)*c.gross)))};
+      return{l:'Save '+sr+'% in year '+RY()+' (about '+fk((sr/100-b10)*c.gross)+'/yr more, every year)',delta:gain(pbFlat(c,Math.round((sr/100-b10)*c.gross)))};
     }).filter(function(x){return x.delta;});
     if(c.def457===0&&c.planType==='403b'){var d457=gain(pbFlat(c,LIM.k457));if(d457)sens.push({l:'Start the 457(b) (+'+$L(LIM.k457)+'/yr)',delta:d457});}
-    if(c.kidsCost>0&&c.childcareEst>0){var dk=gain(pbSim(c,{raise:0,dcRedir:true,loanRedir:false,stepShare:0}));if(dk)sens.push({l:'Send childcare money to the brokerage when it ends',delta:dk});}
+    if(c.kidsCost>0&&c.childcareEst>0){var dk=gain(pbSim(c,{raise:0,dcRedir:true,loanRedir:false,mortRedir:false,stepShare:0}));if(dk)sens.push({l:'Send childcare money to the brokerage when it ends',delta:dk});}
     if(c.hh==='couple'&&c.pinc===0){var dp=gain(pbFlat(c,60000));if(dp)sens.push({l:'Partner income ($150k → ~$60k saved)',delta:dp});}
     $('sensitivity').innerHTML=sens.length?sens.map(function(s){
       return '<div class="sens-item"><div class="sens-l">'+s.l+'</div><div class="sens-v">Age '+s.delta.age+(F0.coast?' (−'+s.delta.d+' yr'+(s.delta.d!==1?'s':'')+')':'')+'</div></div>';
@@ -1791,13 +1853,13 @@ function calcPaths(){
   var myInv=effInvest(c);
   var mySR=effSR(c);
   var F=pbFlat(c),myNW0=nwStart-(pbOpts(c).opts.dpNow||0);   // same path as the Playbook's 'if nothing changes'
-  var my10=Math.round(F.savAt(10)/c.gross*100);
+  var my10=Math.round(F.savAt(RY())/c.gross*100);
 
   var paths=[
     {n:'Ideal — 25%',sr:.25,col:'#1D6B52',bg:'rgba(29,158,117,0.08)'},
     {n:'Typical — 12%',sr:.12,col:'#E8A020',bg:'rgba(232,160,32,0.08)'},
     {n:'Lifestyle creep — 5%',sr:.05,col:'#C0392B',bg:'rgba(192,57,43,0.08)'},
-    {n:'My path — '+my10+'% in yr 10',sr:null,col:'#2355A0',bg:'rgba(35,85,160,0.08)',isMe:true},
+    {n:'My path — '+my10+'% in yr '+RY()+'',sr:null,col:'#2355A0',bg:'rgba(35,85,160,0.08)',isMe:true},
   ];
 
   var labels=[],datasets=[],msAll=[];
@@ -1923,10 +1985,10 @@ function calcPaths(){
 function syncFISR(){
   var c=getCosts();
   var note=$('fi-sr-note');
-  var r10=Math.round(pbFlat(c).savAt(10)/c.gross*100);
+  var r10=Math.round(pbFlat(c).savAt(RY())/c.gross*100);
   $('fi-sr').value=Math.max(0,Math.min(50,r10));
   note.style.display='block';
-  note.textContent='Starts where you\'ll be in year 10 if nothing changes ('+r10+'%) — drag to compare.';
+  note.textContent='Starts where you\'ll be in year '+RY()+' if nothing changes ('+r10+'%) — drag to compare.';
 }
 function calcFI(){
   var c=getCosts();
@@ -1941,10 +2003,10 @@ function calcFI(){
   var rr=+$('fi-rr').value/100; $('fi-rr-v').textContent=(rr*100).toFixed(1)+'%';
   var sa=startAge(),nwStart=startNW();
   // Same engine as the Playbook: start from 'if nothing changes' and add (or remove) saving every year
-  var F0=pbFlat(c),base10=F0.savAt(10)/c.gross;
+  var F0=pbFlat(c),base10=F0.savAt(RY())/c.gross;
   var extra=Math.round(sr*100)===Math.round(base10*100)?0:Math.round((sr-base10)*c.gross);
   var pj=extra?pbFlat(c,extra):F0;
-  var savings=pj.savAt(10);
+  var savings=pj.savAt(RY());
   var fi=spend*25;
   if(pj.series.length<46){var nwX=pj.series[pj.series.length-1];for(var k=pj.series.length;k<=45;k++){nwX=nwX*(1+rr)+pj.savAt(k-1);pj.series.push(nwX);}}
   var labels=[],nws=[],coastL=[],fiL=[];
@@ -1962,7 +2024,7 @@ function calcFI(){
     {l:'Needed then',v:fk(coastFI),s:coastYr?'saved by age '+coastYr+' — grows to '+fk(fi)+' by '+retAge():'what you would need at age '+Math.min(50,retAge()),c:''},
     {l:'Full FI target',v:fk(fi),s:'25× retirement spending',c:''},
     {l:'Full FI age',v:fiYr?'age '+fiYr:'past '+endAge,s:'work completely optional',c:fiYr&&fiYr<=60?'good':fiYr&&fiYr<=65?'warn':'bad'},
-    {l:'Saving in year 10',v:fk(savings),s:Math.round(sr*100)+'% of '+fk(c.gross)+' gross'+(extra?' · '+fk(Math.abs(extra))+'/yr '+(extra>0?'more':'less')+' than now, every year':''),c:sr>=.2?'good':sr>=.12?'warn':'bad'},
+    {l:'Saving in year '+RY()+'',v:fk(savings),s:Math.round(sr*100)+'% of '+fk(c.gross)+' gross'+(extra?' · '+fk(Math.abs(extra))+'/yr '+(extra>0?'more':'less')+' than now, every year':''),c:sr>=.2?'good':sr>=.12?'warn':'bad'},
     {l:'Safe withdrawal',v:fk(fi*.04),s:'4% of portfolio at FI',c:''},
   ].map(function(m){
     return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';
@@ -1985,12 +2047,12 @@ function calcFI(){
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
     (fiYr?(coastYr?'Work optional at '+coastYr:'Not work-optional before '+retAge())+' · full FI at '+fiYr:'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?'Saving '+Math.round(sr*100)+'% of gross pay in year 10'+(extra?' — about '+fk(Math.abs(extra))+' a year '+(extra>0?'more':'less')+' than now, every year —':'')+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement.':
+    (fiYr?'Saving '+Math.round(sr*100)+'% of gross pay in year '+RY()+''+(extra?' — about '+fk(Math.abs(extra))+' a year '+(extra>0?'more':'less')+' than now, every year —':'')+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full FI (work completely optional) at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement.':
     (coastYr?'Work becomes optional at age '+coastYr+' — but full FI is past the projection window. Reduce retirement spending or raise savings rate to reach full FI sooner.':
     'At this savings rate, neither work optional nor full FI arrives in the projection window. Raising savings rate by 5 percentage points makes a significant difference.'))+
     '</div></div>';
 
-  var tblFI=spend*25,tblSA=34,tblNW=-150000;
+  var tblFI=spend*25,tblSA=MODE==='att'?startAge():34,tblNW=MODE==='att'?startNW():-150000;   // attendings: from where you are now
   function calcTL(grossPct){
     var m=project(tblSA,tblNW,Math.round(c.gross*grossPct/100),tblFI,0.05,50);
     return{coast:m.coast!==null&&m.coast<retAge()?m.coast:null,fi:m.fi};
@@ -2009,17 +2071,17 @@ function calcFI(){
           (r>=30?'WCI: retire early':r>=20?'WCI: end of career':r>=15?'Borderline':'Below target')+'</td></tr>';
     }).join('')+
     '<tr><td colspan="4" style="font-size:9px;color:var(--mg);padding-top:5px">'+
-    '* Assumptions: '+fk(c.gross)+' household gross, start age 34, NW −$150k, 5% real return, '+fk(spend)+'/yr retirement spending → '+fk(tblFI)+' FI number, full retirement at '+retAge()+'. Work optional = enough saved to stop saving and still reach that number by '+retAge()+'. '+
+    '* Assumptions: '+fk(c.gross)+' household gross, start age '+tblSA+', NW '+fk(tblNW)+(MODE==='att'?' (yours today)':' (a new attending)')+', 5% real return, '+fk(spend)+'/yr retirement spending → '+fk(tblFI)+' FI number, full retirement at '+retAge()+'. Work optional = enough saved to stop saving and still reach that number by '+retAge()+'. '+
     'Social Security at 70 (~$30–50k/yr for a surgeon) not included — reduces portfolio needed in late retirement.</td></tr>';
 
   if(MODE==='att'){
-    var P0=pbFlat(c),p10=P0.savAt(10)/c.gross,pBase=P0.coast||retAge();
+    var P0=pbFlat(c),p10=P0.savAt(RY())/c.gross,pBase=P0.coast||retAge();
     $('fi-sensitivity').innerHTML=[20,25,30,35].map(function(testSR){
       if(testSR<=Math.round(p10*100))return '';
       var t=pbFlat(c,Math.round((testSR/100-p10)*c.gross));
       var delta=t.coast?pBase-t.coast:null;
       return delta!==null&&delta>0?
-        '<div class="sens-item"><div class="sens-l">Saving <strong>'+testSR+'%</strong> in year 10</div>'+
+        '<div class="sens-item"><div class="sens-l">Saving <strong>'+testSR+'%</strong> in year '+RY()+'</div>'+
         '<div class="sens-v">Work optional at '+t.coast+' (−'+delta+' yrs)</div></div>':'';
     }).join('')||'<div style="font-size:12px;color:var(--mg)">Already at or above these rates.</div>';
     $('fi-sens').style.display='block';
@@ -2270,7 +2332,7 @@ function calcTrue(){
   var sa=startAge(),nw0=startNW(),rr=realReturn();
   var dur=perm?99:yrsV;
   var fiAdd=ret?annual*retPct*25:0;
-  var S0=pbFlat(c),S1=pbSim(c,{raise:0,dcRedir:false,loanRedir:false,stepShare:0,extra:function(i){return i<dur?-annual:0;},fiAdd:fiAdd});
+  var S0=pbFlat(c),S1=pbSim(c,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,stepShare:0,extra:function(i){return i<dur?-annual:0;},fiAdd:fiAdd});
   var fiBase=S0.fiNum,fiWith=S1.fiNum;
   var A0={coast:S0.coast,fi:S0.fi,nw20:S0.series[20]},A1={coast:S1.coast,fi:S1.fi,nw20:S1.series[20]};
   var base=S0.savAt(0),pc=function(x){var v=Math.round(x/c.gross*100);return v<0?'−'+(-v):v;};
@@ -2286,7 +2348,7 @@ function calcTrue(){
     '<div style="margin:4px 0">Over 20 years: <strong>'+fk(lost20)+'</strong> — '+fk(paid)+' paid plus what it would have grown to.</div>'+
     '<div style="margin:4px 0">'+(ret?'It continues into retirement, so the amount you need goes up <strong>'+fk(fiAdd)+'</strong> ('+fk(annual*retPct)+'/yr × 25).':'It ends before retirement, so the amount you need stays the same.')+'</div>'+
     '<table class="tbl" style="margin-top:8px"><tr><th></th><th>Without it</th><th>With it</th></tr>'+
-    '<tr><td>Saving in year 10</td><td>'+(S0.savAt(10)<0?'deficit':pc(S0.savAt(10))+'%')+'</td><td>'+(S1.savAt(10)<0?'deficit':pc(S1.savAt(10))+'%')+'</td></tr>'+
+    '<tr><td>Saving in year '+RY()+'</td><td>'+(S0.savAt(RY())<0?'deficit':pc(S0.savAt(RY()))+'%')+'</td><td>'+(S1.savAt(RY())<0?'deficit':pc(S1.savAt(RY()))+'%')+'</td></tr>'+
     '<tr class="hl-b"><td>Work optional</td><td>'+g0.w+'</td><td>'+g1.w+'</td></tr>'+
     '<tr class="hl"><td>Full retirement</td><td>'+g0.f+'</td><td>'+g1.f+'</td></tr></table>'+
     '<div style="margin-top:6px;font-size:11px;color:var(--mg)">Income can fall — reimbursement cuts, a job change, less call, disability. Fixed costs can\'t. Decide them with the real numbers before they lock in.</div>'+
@@ -2304,6 +2366,7 @@ function calcTrue(){
 // NJ selling cost: ~7% (commission, realty transfer fee, closing) + seller-paid "mansion tax" (since July 2025)
 function mansionRate(v){return v>3.5e6?0.035:v>3e6?0.03:v>2.5e6?0.025:v>2e6?0.02:v>=1e6?0.01:0;}
 function saleCost(v){return v*(0.07+mansionRate(v));}
+function simRent(v){return Math.round(v*0.004/250)*250;}   // rough rent for a similar home: 0.4% of value a month
 var STATE_TAX={AL:0.41,AK:1.04,AZ:0.62,AR:0.62,CA:0.71,CO:0.51,CT:1.79,DE:0.57,FL:0.89,
   GA:0.92,HI:0.29,ID:0.69,IL:2.08,IN:0.87,IA:1.57,KS:1.41,KY:0.83,LA:0.56,ME:1.09,
   MD:1.07,MA:1.14,MI:1.54,MN:1.12,MS:0.65,MO:0.97,MT:0.84,NE:1.73,NV:0.60,NH:1.93,
@@ -2323,20 +2386,98 @@ function setDP(pct){
   calcRentBuy();
 }
 // Rent vs Buy starts from My Numbers; changing price, rent, years or the down payment here means 'trying other numbers'
+function rvbKeep(){return $('house').checked&&$('house-owned').checked&&$('rvb-q').value==='keep';}   // owners: keep or sell, not buy or rent
+function setRvbQ(q){$('rvb-q').value=q;rvbSync();saveState();}
 function rvbTouch(){$('rvb-custom').checked=true;saveState();}
 function rvbSync(force){
   if(force)$('rvb-custom').checked=false;
   var c=getCosts(),mt=mortTerms(false);
+  var own=c.houseOwned,keep=rvbKeep();
+  $('rvb-qrow').style.display=own?'flex':'none';
+  $('rvbq-keep').classList.toggle('on',keep);$('rvbq-buy').classList.toggle('on',!keep);
   if(!$('rvb-custom').checked){
     $('rvb-price').value=Math.min(2500000,Math.max(600000,c.hp));
-    $('rvb-rent').value=Math.min(12000,Math.max(2000,+$('rent').value));
+    $('rvb-rent').value=Math.min(12000,Math.max(2000,keep?simRent(c.hp):+$('rent').value));
     curDP=Math.round(mt.down*100);
+  }
+  if(keep){
+    var mtxt=c.loanAmt>0?fk(c.loanAmt)+' owed at '+(+$('mort-rate').value)+'%, '+c.mortYrs+' yrs left'+($('mort-set').checked?'':' (set it on My Numbers)'):'paid off';
+    $('rvb-src').innerHTML='From My Numbers: your '+fk(c.hp)+' home, mortgage '+mtxt+'. Rent for a similar home is an estimate (0.4% of its value a month) — check local listings.'+($('rvb-custom').checked?' <a href="#" onclick="rvbSync(true);saveState();return false">↺ Back to my numbers</a>':'');
+    setDP(curDP);return;
   }
   var mine=fk(Math.min(2500000,Math.max(600000,c.hp)))+' home, '+fkPrecise(+$('rent').value)+'/mo rent, '+(c.houseOwned?'20% down':mt.lbl.replace('conventional, ',''));
   $('rvb-src').innerHTML=$('rvb-custom').checked?'Trying other numbers. <a href="#" onclick="rvbSync(true);saveState();return false">↺ Back to my numbers</a> ('+mine+')':'From My Numbers: your '+mine+'. Change anything to try other numbers.';
   setDP(curDP);
 }
 
+// Owners: keep the home, or sell it now and rent a similar one — investing the proceeds and whatever each month costs less
+function calcKeep(price,rent,years,apprRate,invReturn,taxRate,rentG){
+  var B=+$('mort-bal').value,mr=+$('mort-rate').value,n=B>0?+$('mort-yrs').value:0;
+  var pmt=mortPmtMo(B,mr,n),r=mr/100/12;
+  var propTax=Math.round(price*taxRate/12),insur=Math.round(price*0.004/12),maint=Math.round(price*0.010/12);
+  var carry=propTax+insur+maint,own0=(pmt>0?pmt:0)+carry;
+  var sale0=Math.round(saleCost(price)),net0=Math.max(0,Math.round(price-B-sale0));
+  var invR=invReturn/12,HORIZON=Math.max(years,30);
+  var sellW=net0,keepSide=0,bal=B,mLeft=n*12;
+  var labels=[],keepData=[],sellData=[],series=[];
+  for(var yr=0;yr<=HORIZON;yr++){
+    var hv=price*Math.pow(1+apprRate,yr);
+    var keepNet=hv-bal-saleCost(hv)+keepSide;
+    series.push({k:keepNet,s:sellW});
+    if(yr<HORIZON){
+      var rentMo=rent*Math.pow(1+rentG,yr);
+      for(var m=0;m<12;m++){
+        var ownMo=(mLeft>0?pmt:0)+carry*Math.pow(1+apprRate,yr);
+        sellW=sellW*(1+invR)+Math.max(0,ownMo-rentMo);
+        keepSide=keepSide*(1+invR)+Math.max(0,rentMo-ownMo);
+        if(mLeft>0){bal=Math.max(0,bal-(pmt-bal*r));mLeft--;}
+      }
+    }
+  }
+  var lead=function(y){return series[y].k-series[y].s;};   // + = keeping ahead
+  var flip=null;for(var y=1;y<=HORIZON;y++){if((lead(y)>0)!==(lead(years)>0)&&y>years){flip=y;break;}}
+  var chartYrs=flip?Math.min(30,flip+2):years;
+  for(var y2=0;y2<=chartYrs;y2++){labels.push(y2===0?'Now':'Yr '+y2+(y2===years&&chartYrs>years?' · your horizon':''));keepData.push(Math.round(Math.max(0,series[y2].k)/1000));sellData.push(Math.round(series[y2].s/1000));}
+  var d=lead(years),keepWins=d>0;
+  var paidOff=n>0&&n<=HORIZON?n:null;
+  var body='Your '+fk(price)+' home'+(B>0?', '+fk(B)+' still owed at '+mr+'% ('+fkPrecise(pmt)+'/mo, paid off in '+n+' yr'+(n!==1?'s':'')+')':', no mortgage')+', vs renting a similar home at '+fkPrecise(rent)+'/mo rising '+(rentG*100).toFixed(1)+'% a year. '+
+    'Keeping it costs about '+fkPrecise(own0)+'/mo today'+(paidOff&&pmt>0?'; once the mortgage is gone in '+n+' year'+(n!==1?'s':'')+', only tax, insurance and upkeep remain — '+fkPrecise(carry)+'/mo at today\'s value':'')+'. '+
+    'Selling now costs about '+fk(sale0)+' (commission, transfer tax'+(mansionRate(price)>0?', NJ mansion tax':'')+') and leaves '+fk(net0)+' to invest. '+
+    (flip?(keepWins?'Look further out, though: from about <strong>year '+flip+'</strong>, selling and renting would have come out ahead. ':'Keeping pulls ahead if you stay about <strong>'+flip+' years</strong>. '):(keepWins?'Selling doesn\'t catch up within 30 years at these assumptions. ':'Keeping doesn\'t catch up within 30 years at these assumptions. '))+
+    'The renter comes out ahead only if the sale money and any monthly savings really are invested — and that money rises and falls with the market, while the house keeps a roof over you either way. Not counted: capital gains tax on a gain above $500k for a couple ($250k single), and moving costs.';
+  $('rvb-verdict').innerHTML='<div class="box '+(keepWins?'box-b':'box-a')+'" style="margin-top:0"><div class="box-title" style="color:'+(keepWins?'var(--b)':'var(--am)')+'">'+
+    'At '+years+' year'+(years!==1?'s':'')+', '+(keepWins?'keeping your home leads by '+fk(d):'selling and renting leads by '+fk(-d))+'</div><div class="box-body">'+body+'</div></div>';
+  $('rvb-chart-note').textContent='Dollars before inflation. Keep = home value minus what\'s owed and the cost of selling, plus anything invested. Whoever pays less each month invests the difference.'+(chartYrs>years?' The chart runs past year '+years+' to year '+flip+', when the lead changes.':'');
+  if(typeof Chart!=='undefined'){
+    if(rentChrt) rentChrt.destroy();
+    rentChrt=new Chart($('rent-chart'),{type:'line',data:{labels:labels,datasets:[
+      {label:'Sell now and rent',data:sellData,borderColor:'#1D6B52',backgroundColor:'rgba(29,107,82,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
+      {label:'Keep (after selling costs, + anything invested)',data:keepData,borderColor:'#2355A0',tension:.3,fill:false,pointRadius:0,borderWidth:2}
+    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return '$'+v+'k';},font:{size:10}}}}}});
+  }
+  // Year 1: what keeping costs that doesn't come back, including the return the equity could earn
+  var int1=0,b1=B;for(var k=0;k<12&&b1>0;k++){var it=b1*r;int1+=it;b1-=pmt-it;}int1=Math.round(int1);
+  var eqRet=Math.round(net0*invReturn),gone=int1+carry*12+eqRet-Math.round(price*apprRate);
+  $('rvb-myth').innerHTML='<div class="card"><div class="ctitle">What keeping really costs this year</div>'+
+    '<div class="g2"><table class="tbl"><tr><th>Keep — gone</th><th>Annual</th></tr>'+
+    (int1>0?'<tr><td>Mortgage interest</td><td>'+fk(int1)+'</td></tr>':'')+
+    '<tr><td>Property tax, insurance, upkeep</td><td>'+fk(carry*12)+'</td></tr>'+
+    '<tr><td>Return given up on your '+fk(net0)+' of equity</td><td>'+fk(eqRet)+'</td></tr>'+
+    '<tr><td style="color:var(--g)">Less: appreciation ('+(apprRate*100).toFixed(1)+'%)</td><td style="color:var(--g)">−'+fk(Math.round(price*apprRate))+'</td></tr>'+
+    '<tr class="hl2"><td><strong>Net gone</strong></td><td><strong>'+fk(gone)+'</strong></td></tr></table>'+
+    '<table class="tbl"><tr><th>Sell and rent — gone</th><th>Annual</th></tr><tr><td>Rent</td><td>'+fk(rent*12)+'</td></tr>'+
+    '<tr><td>Selling cost, once</td><td>'+fk(sale0)+'</td></tr><tr><td colspan="2" style="font-size:10px;color:var(--mg)">The '+fk(net0)+' left after selling is invested and keeps earning.</td></tr></table></div>'+
+    '<div class="box box-b" style="margin-bottom:0"><div class="box-body">Equity isn\'t free: money tied up in the house could be invested instead. '+(B>0?'Paying the mortgage down early earns a guaranteed '+mr+'%'+(mr<=4?' — well below what investing is expected to earn, so there\'s no reason to prepay it.':mr>=6?' with no risk — close to what stocks are assumed to earn ('+(invReturn*100).toFixed(1)+'%). Reasonable once retirement accounts are maxed, especially as retirement nears.':' — less than investing is expected to earn, but guaranteed. Max retirement accounts first.'):'')+'</div></div></div>';
+  $('rvb-txn-warn').innerHTML='';
+  $('rvb-costs').innerHTML='<div class="g2"><div class="card"><div class="ctitle" style="color:var(--b)">Keep</div><table class="tbl"><tr><th>Item</th><th>Monthly</th></tr>'+
+    '<tr><td>Mortgage P&amp;I</td><td>'+fkPrecise(pmt)+'</td></tr><tr><td>Property tax</td><td>'+fkPrecise(propTax)+'</td></tr><tr><td>Insurance</td><td>'+fkPrecise(insur)+'</td></tr><tr><td>Maintenance (1%)</td><td>'+fkPrecise(maint)+'</td></tr>'+
+    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fkPrecise(own0)+'</strong></td></tr></table></div>'+
+    '<div class="card"><div class="ctitle" style="color:var(--g)">Sell and rent</div><table class="tbl"><tr><th>Item</th><th>Monthly</th></tr><tr><td>Rent</td><td>'+fkPrecise(rent)+'</td></tr>'+
+    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fkPrecise(rent)+'</strong></td></tr></table><div style="font-size:11px;color:var(--g);margin-top:8px">'+fk(net0)+' from the sale invested at '+(invReturn*100).toFixed(1)+'%/yr</div></div></div>';
+  $('rvb-gap').innerHTML='';$('rvb-breakdown').innerHTML='';
+}
 function calcRentBuy(){
   var price=+$('rvb-price').value;
   var downPct=curDP/100;
@@ -2356,6 +2497,14 @@ function calcRentBuy(){
   $('rvb-inv-v').textContent=(+$('rvb-inv').value).toFixed(1)+'%';
   $('rvb-tax-v').textContent=(+$('rvb-tax').value).toFixed(2)+'%';
   var chartNoteBase='Dollars before inflation. Whoever pays less each month invests the difference.';
+  var keep=rvbKeep();
+  ['rvb-dp-row','rvb-rate-row'].forEach(function(id){$(id).style.display=keep?'none':'';});
+  $('rvb-price-lbl').textContent=keep?'What your home is worth':'Home price';
+  $('rvb-rent-lbl').textContent=keep?'Rent for a similar home':'Monthly rent';
+  $('rvb-yrs-lbl').textContent=keep?'Years from now':'Years in home';
+  $('rvb-inv-lbl').textContent=keep?'Investment return (before inflation)':'Renter\'s investment return (before inflation)';
+  $('rvb-ch-title').textContent=keep?'Wealth comparison — keep vs sell and rent':'Wealth comparison — renter vs owner';
+  if(keep){calcKeep(price,rent,years,apprRate,invReturn,taxRate,rentG);return;}
   $('rvb-rentg-v').textContent=(rentG*100).toFixed(1)+'%';
 
   var loan=price*(1-downPct);
@@ -2518,7 +2667,7 @@ function calcRentBuy(){
 // ── MY PLAYBOOK ───────────────────────────────────────────────────
 // The one 'if nothing changes' path every tab uses: today's saving, the house paid for, no raises or redirects.
 // extra = $/yr more (or less) saved every year — what the 'What if' slider moves.
-function pbFlat(c,extra){return pbSim(c,{raise:0,dcRedir:false,loanRedir:false,stepShare:0,extra:extra||0});}
+function pbFlat(c,extra){return pbSim(c,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,stepShare:0,extra:extra||0});}
 function realReturn(){var e=document.getElementById('fi-rr');return e?(+e.value||5)/100:0.05;}
 function pbSim(c,o){
   // o: {brk, raise, dcEnd, dcRedir, dcShare, loanEnd, loanRedir, taxAdv, stepYr, stepMo, stepShare}; missing fields come from the playbook inputs
@@ -2527,11 +2676,13 @@ function pbSim(c,o){
   var xtra=function(y){return typeof o.extra==='function'?o.extra(y):(o.extra||0);};
   var dcMo=c.kidsCost>0?Math.round(c.childcareEst/12):0;
   var loanMo=Math.round(c.loanPay/12);
+  var mortMo=c.houseOwned&&c.A.housing===null&&c.A.total===null?(c.mortMo||0):0;   // owned home: payment ends with the mortgage
   function brkAt(y){ // monthly brokerage in plan year y (0-based)
     var m=o.brk+o.raise*y;
     if(o.dcRedir&&dcMo>0&&y>=o.dcEnd)m+=Math.round(dcMo*o.dcShare);
     if(o.stepYr>0&&y>=o.stepYr-1)m+=Math.round(o.stepMo*o.stepShare);
     if(o.loanRedir&&loanMo>0&&o.loanEnd!==null&&y>=o.loanEnd)m+=loanMo;
+    if(o.mortRedir&&mortMo>0&&y>=c.mortYrs)m+=mortMo;
     return m;
   }
   // Cash the budget has in year y for Roth/HSA/brokerage: today's leftover, adjusted for the house, plus money redirected when costs end
@@ -2540,17 +2691,21 @@ function pbSim(c,o){
     if(o.dcRedir&&dcMo>0&&y>=o.dcEnd)x+=12*Math.round(dcMo*o.dcShare);
     if(o.stepYr>0&&y>=o.stepYr-1)x+=12*Math.round(o.stepMo*o.stepShare);
     if(o.loanRedir&&loanMo>0&&o.loanEnd!==null&&y>=o.loanEnd)x+=12*loanMo;
+    if(o.mortRedir&&mortMo>0&&y>=c.mortYrs)x+=12*mortMo;
     return x;
   }
   function wantAt(y){return (o.cashOut||0)+12*brkAt(y);}   // cash-funded saving the plan asks for
   var capYr=null;
+  var cOn=catchOn();
+  function cd(y){return cOn?catchAmt(sa+y)-c.catchNow:0;}   // catch-up starting (or changing) after today
   function sav(y){
     if(o.capped&&!o.uncapped){ // estimate mode: you can only invest cash you have; a deficit comes out of savings
       var want=wantAt(y),have=cashAt(y);
       if(want>have+600&&capYr===null&&brkAt(y)>0)capYr=y;
-      return o.taxAdv-(o.cashOut||0)+Math.min(want,have)+xtra(y);
+      var d=cd(y);
+      return o.taxAdv-(o.cashOut||0)+Math.min(want+Math.max(0,d),have)+Math.min(0,d)+xtra(y);
     }
-    return o.taxAdv+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0)+xtra(y);
+    return o.taxAdv+cd(y)+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0)+xtra(y);
   }
   var m=project(sa,nw0-(o.dpNow||0),sav,fiNum,rr,60);
   if(m.coast!==null&&m.coast>=retAge())m.coast=null;
@@ -2562,7 +2717,9 @@ function calcPlay(){
   var hosp=c.planType==='403b',couple=c.hh==='couple';
   var roth=c.actual?c.rothAmt:(couple?15000:7500);
   var hsa=$('pb-hdhp').checked?(couple||c.nk>0?LIM.hsaFam:4400):0;
-  var taxAdv=c.deferrals+roth+hsa+c.emp;
+  var taxAdv=c.payRet+roth+hsa+c.emp;
+  var gMin=Math.min(retAge()-1,startAge()+1);$('pb-goal').min=gMin;$('pb-goal').max=Math.max(gMin,retAge()-1);
+  if(+$('pb-goal').value<gMin)$('pb-goal').value=Math.min(retAge()-1,startAge()+5);   // a goal age you haven't passed
   var goal=+$('pb-goal').value; $('pb-goal-v').textContent=goal;
   if(c.actual&&c.brk>0&&+$('pb-brk').value===0){$('pb-brk').value=Math.min(15000,Math.round(c.brk/12/250)*250);}
   var brk=+$('pb-brk').value; $('pb-brk-v').textContent=fkPrecise(brk);
@@ -2572,6 +2729,7 @@ function calcPlay(){
   var dcEnd=+$('pb-dcend').value; $('pb-dcend-v').textContent=dcEnd+' yr'+(dcEnd!==1?'s':'');
   var hasLoan=c.loanPay>0;
   $('pb-loan-row').style.display=hasLoan&&!c.pslf?'flex':'none';
+  $('pb-mort-row').style.display=c.houseOwned&&c.mortMo>0?'flex':'none';
   var loanEnd=hasLoan?(c.pslf?(c.pslfYrsLeft||0):10):null;
   $('pb-bonus-row').style.display=$('pb-bonus').checked?'flex':'none';
   $('pb-base-v').textContent=fk(+$('pb-base').value);
@@ -2580,11 +2738,11 @@ function calcPlay(){
   $('pb-stepyr-v').textContent=opts.stepYr>0?'Year '+opts.stepYr:'No raise';$('pb-step-opts').style.display=opts.stepYr>0?'block':'none';
   $('pb-stepamt-v').textContent=fk(+$('pb-stepamt').value);$('pb-stepshare-v').textContent=Math.round(opts.stepShare*100)+'%';
   var plan=pbSim(c,opts);
-  var flat=pbSim(c,{brk:brk,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,taxAdv:taxAdv,stepShare:0});
+  var flat=pbSim(c,{brk:brk,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,mortRedir:false,taxAdv:taxAdv,stepShare:0});
   // Level brokerage needed from year 1 to hit goal
   function solve(fn){var lo=0,hi=40000;if(!fn(hi))return null;for(var k=0;k<30;k++){var mid=(lo+hi)/2;if(fn(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;}
-  var needLevel=solve(function(m){var r=pbSim(c,{uncapped:true,brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,taxAdv:taxAdv,stepShare:0});return r.coast!==null&&r.coast<=goal;});
-  var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{uncapped:true,brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
+  var needLevel=solve(function(m){var r=pbSim(c,{uncapped:true,brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,mortRedir:false,taxAdv:taxAdv,stepShare:0});return r.coast!==null&&r.coast<=goal;});
+  var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{uncapped:true,brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
   var sa=plan.sa,yr1=MODE==='res'?'your first attending year (age '+sa+')':'today (age '+sa+')';
   var spend=retSpend(c);
 
@@ -2594,19 +2752,19 @@ function calcPlay(){
   var goalMet=plan.coast!==null&&plan.coast<=goal;
   var pct=function(x){return Math.round(x/c.gross*100);};
   var dpY=pbOpts(c).dpYr,sav0=flat.savAt(0)+dpY;   // the house fund is saving too — just into the house
-  var srNow=pct(sav0),sr10=pct(plan.savAt(10));
+  var srNow=pct(sav0),sr10=pct(plan.savAt(RY()));
   var ageTxt=function(m){return m.coast?'Age '+m.coast:'Not before '+retAge();};
   $('pb-big').innerHTML=[
-    {l:'If nothing changes — saving '+pct(flat.savAt(10))+'% in year 10',v:ageTxt(flat),s:'work optional · full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'<br>today: '+srNow+'% ('+fk(sav0)+'/yr'+(dpY>0?', including the house fund':'')+(opts.short>0?', after the '+fk(opts.short)+' gap':'')+')',c:flat.coast?'warn':'bad'},
-    {l:'With this plan — saving '+sr10+'% in year 10',v:ageTxt(plan),s:'work optional · full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'<br>the yearly raises'+(opts.dcRedir?', childcare':'')+(opts.loanRedir?', loans':'')+' and anything else you set below',c:goalMet&&!(opts.short>0)?'good':plan.coast?'warn':'bad'},
+    {l:'If nothing changes — saving '+pct(flat.savAt(RY()))+'% in year '+RY()+'',v:ageTxt(flat),s:'work optional · full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'<br>today: '+srNow+'% ('+fk(sav0)+'/yr'+(dpY>0?', including the house fund':'')+(opts.short>0?', after the '+fk(opts.short)+' gap':'')+')',c:flat.coast?'warn':'bad'},
+    {l:'With this plan — saving '+sr10+'% in year '+RY()+'',v:ageTxt(plan),s:'work optional · full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'<br>the yearly raises'+(opts.dcRedir?', childcare':'')+(opts.loanRedir?', loans':'')+' and anything else you set below',c:goalMet&&!(opts.short>0)?'good':plan.coast?'warn':'bad'},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
 
   // Outcome
   var planCut=plan.capYr!==null?pbSim(c,Object.assign({},opts,{uncapped:true})):null;
   var out='<table class="tbl"><tr><th></th><th>Work optional</th><th>Full retirement</th></tr>'+
-    '<tr><td>If nothing changes — brokerage stays at '+fkPrecise(brk)+'/mo<br><span style="font-size:10px;color:var(--mg)">saving '+pct(flat.savAt(10))+'% in year 10</span></td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
-    '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')'+'<br><span style="font-size:10px;font-weight:400">saving '+pct(plan.savAt(10))+'% in year 10'+(plan.capYr!==null?' — as far as your budget goes':'')+'</span>'+'</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr>'+
-    (planCut&&plan.capYr!==null?'<tr><td>Same plan, if you also spend less<br><span style="font-size:10px;color:var(--mg)">saving '+pct(planCut.savAt(10))+'% in year 10, so every raise happens</span></td><td>'+(planCut.coast||'not by '+retAge())+'</td><td>'+(planCut.fi||'—')+'</td></tr>':'')+'</table>';
+    '<tr><td>If nothing changes — brokerage stays at '+fkPrecise(brk)+'/mo<br><span style="font-size:10px;color:var(--mg)">saving '+pct(flat.savAt(RY()))+'% in year '+RY()+'</span></td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
+    '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')'+'<br><span style="font-size:10px;font-weight:400">saving '+pct(plan.savAt(RY()))+'% in year '+RY()+''+(plan.capYr!==null?' — as far as your budget goes':'')+'</span>'+'</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr>'+
+    (planCut&&plan.capYr!==null?'<tr><td>Same plan, if you also spend less<br><span style="font-size:10px;color:var(--mg)">saving '+pct(planCut.savAt(RY()))+'% in year '+RY()+', so every raise happens</span></td><td>'+(planCut.coast||'not by '+retAge())+'</td><td>'+(planCut.fi||'—')+'</td></tr>':'')+'</table>';
   var PO=pbOpts(c),short=PO.short,room=PO.room,shortBuy=PO.shortBuy;
   if(short>0||shortBuy>0) out+='<div class="pb-flag a" style="margin-top:8px"><div><b>'+(short>0?'First close the gap: you\'re about '+fk(short)+' a year short'+(shortBuy>short?', and about '+fk(shortBuy)+' a year after you buy the house':''):'After you buy the house you\'ll be about '+fk(shortBuy)+' a year short')+'.</b> '+
     'Take-home doesn\'t cover the app\'s estimated spending plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(PO.buying?', the down payment fund and then the higher cost of owning':'')+', so the ages above already count that much less saved.'+(PO.buying?' A later or smaller house closes it fastest — the down payment card on My Numbers shows the options.':(c.cashLeft<0?' See move 1.':''))+'</div></div>';
@@ -2616,10 +2774,10 @@ function calcPlay(){
     (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
     'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
   if(PO.buying) out+='<div class="hint" style="margin-top:8px;color:#444"><b>The house is in this plan.</b> '+(c.actual?'When you buy in year '+c.buyYr+', the '+fk(PO.dpOwn)+' down payment comes out of what you\'ve saved; after that,':'Until you buy in year '+c.buyYr+', the down payment fund takes about '+fk(PO.dpYr)+' a year; after that,')+' owning costs about '+fk(PO.houseExtra)+' a year '+(PO.houseExtra>=0?'more':'less')+' than your rent. '+(c.actual?'The ages above count both against your savings.':'Both come out of what\'s left before anything reaches the brokerage.')+'</div>';
-  if(!c.actual&&plan.capYr!==null){var ex10=Math.max(0,plan.wantAt(10)-plan.cashAt(10));
-    out+='<div class="hint" style="margin-top:8px;color:#444"><b>Why the plan stops short.</b> '+(plan.capYr===0?'Right now':'From year '+(plan.capYr+1))+' your budget has no cash left for the brokerage you set'+(raise>0?' and its yearly raises':'')+', so the ages above count only what it can fund. With pay held flat after inflation, keeping every raise going means spending less than the app\'s estimate'+(ex10>0?' — about <strong>'+fk(ex10)+' a year less by year 10</strong>':'')+'. Real pay raises can cover part of it.</div>';}
-  else if(c.actual&&raise>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> Each yearly raise of '+fkPrecise(raise)+'/mo comes out of spending, because the app holds your pay flat after inflation: by year 10 you\'d be spending about <strong>'+fk(12*raise*10)+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.</div>';
-  out+='<div class="hint" style="margin-top:6px">For reference: a steady '+(needLevel!==null?fkPrecise(needLevel):'—')+'/mo from '+yr1+' makes you work-optional at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.</div>';
+  if(!c.actual&&plan.capYr!==null){var ex10=Math.max(0,plan.wantAt(RY())-plan.cashAt(RY()));
+    out+='<div class="hint" style="margin-top:8px;color:#444"><b>Why the plan stops short.</b> '+(plan.capYr===0?'Right now':'From year '+(plan.capYr+1))+' your budget has no cash left for the brokerage you set'+(raise>0?' and its yearly raises':'')+', so the ages above count only what it can fund. With pay held flat after inflation, keeping every raise going means spending less than the app\'s estimate'+(ex10>0?' — about <strong>'+fk(ex10)+' a year less by year '+RY()+'</strong>':'')+'. Real pay raises can cover part of it.</div>';}
+  else if(c.actual&&raise>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> Each yearly raise of '+fkPrecise(raise)+'/mo comes out of spending, because the app holds your pay flat after inflation: by year '+RY()+' you\'d be spending about <strong>'+fk(12*raise*RY())+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.</div>';
+  out+='<div class="hint" style="margin-top:6px">'+(needLevel!==null?'For reference: a steady '+fkPrecise(needLevel)+'/mo from '+yr1+' makes you work-optional at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.':'For reference: no steady brokerage amount from '+yr1+' makes you work-optional by '+goal+'. Try a later goal age or lower retirement spending.')+'</div>';
   $('pb-outcome').innerHTML=out;
 
   // Steps
@@ -2628,15 +2786,17 @@ function calcPlay(){
   var efTarget=Math.round(3*spendYr/12/1000)*1000;
   var steps=[];
   steps.push({on:c.def401>0,t:(hosp?'403(b)':'401(k)')+' — max it, starting with your first paycheck',d:'Pre-tax. Call HR on day 1 — you cannot make up missed pay periods. Take any employer match first.',a:LIM.k401,fix:c.def401>0?null:'Turn on in My Numbers'});
+  if(catchOn()){var ca=catchAmt(sa),cFrom=sa<50?50:null;
+    steps.push({on:true,t:'Catch-up contribution — age 50 and over',d:(cFrom?'Starts the year you turn 50: ':'')+$L(LIM.catch50)+' a year more in the '+(hosp?'403(b)':'401(k)')+' ('+$L(LIM.catch6063)+' at ages 60–63). Earned over $150,000 last year? It must go in as Roth, after tax — ask HR to set it up as a Roth catch-up.',a:ca||LIM.catch50,later:!!cFrom});}
   if(c.emp>0) steps.push({on:true,t:'Employer contribution',d:'Your employer adds this on top of salary — make sure you meet any vesting schedule before changing jobs.',a:c.emp});
   if(c.defP>0) steps.push({on:true,t:'Partner\'s 401(k)/403(b)',d:'Your partner maxes their own plan — pre-tax, through their payroll.',a:c.defP});
-  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another '+$L(LIM.k401)+' pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' sooner to work optional':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in My Numbers'});
+  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another '+$L(LIM.k401)+' pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' sooner to work optional':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in My Numbers'});
   steps.push({on:true,t:'Backdoor Roth IRA'+(couple?' — both spouses':''),d:'Every January: contribute '+$L(LIM.ira)+' to a traditional IRA, convert to Roth right away. Keep no other pre-tax IRA balances (pro-rata rule).',a:couple?15000:7500});
   steps.push({on:hsa>0,t:'HSA',d:hsa>0?'Triple tax advantage federally (New Jersey still taxes HSA contributions). Invest it and pay current medical bills from cash if you can.':'Only if your health plan is a high-deductible plan. Most hospital plans are PPOs — check at open enrollment.',a:hsa||LIM.hsaFam});
   if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
   steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). Build it in year 1, then stop. '+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
-  if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year 10 — then that payment moves to the brokerage.',a:c.loanPay});
-  if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=c.dpOwn,dpMo=Math.max(0,dpNeed-Math.max(0,startNW()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' ('+Math.round(c.MT.down*100)+'% down + closing'+(c.gift>0?', after '+fk(c.gift)+' from family':'')+') for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
+  if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year '+RY()+' — then that payment moves to the brokerage.',a:c.loanPay});
+  if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=c.dpOwn,dpMo=Math.max(0,dpNeed-Math.max(0,dpCash()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' ('+Math.round(c.MT.down*100)+'% down + closing'+(c.gift>0?', after '+fk(c.gift)+' from family':'')+') for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
   steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.',a:brk*12,brk:true});
   // ── "How to do it" for each step ──
   var perCheck=function(a){return $L(Math.ceil(a/26))+' per paycheck if paid every two weeks ('+$L(Math.ceil(a/24))+' if twice a month)';};
@@ -2722,12 +2882,13 @@ function calcPlay(){
   steps=steps.filter(function(st){return st.on;});
   $('pb-steps').innerHTML=steps.map(function(st,i){
     return '<div class="pb-step'+(st.on?'':' off')+'"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t">'+st.t+'</div><div class="pb-d">'+st.d+(st.fix?' <em>('+st.fix+')</em>':'')+'</div>'+(st.how?'<details class="how"><summary>How to do it</summary><ol>'+st.how.map(function(h){return h.charAt(0)==='§'?'</ol><div class="how-h">'+h.slice(1)+'</div><ol>':'<li>'+h+'</li>';}).join('')+'</ol></details>':'')+'</div>'+
-      '<div class="pb-amt">'+(st.once?fk(st.a)+'<small>one-time</small>':(st.brk?fkPrecise(brk)+'/mo<small>then rising</small>':fkPrecise(st.a/12)+'/mo<small>'+fk(st.a)+'/yr</small>'))+'</div></div>';
+      '<div class="pb-amt">'+(st.later?fkPrecise(st.a/12)+'/mo<small>from age 50</small>':st.once?fk(st.a)+'<small>one-time</small>':(st.brk?fkPrecise(brk)+'/mo<small>then rising</small>':fkPrecise(st.a/12)+'/mo<small>'+fk(st.a)+'/yr</small>'))+'</div></div>';
   }).join('');
 
   // Ramp
   var marks=[0,1,2,3,4,5,6,7,8,10,12,15,20];
   if(plan.coast){var cy=plan.coast-sa-1;if(cy>=0&&marks.indexOf(cy)<0){marks.push(cy);marks.sort(function(a,b){return a-b;});}}
+  if(opts.mortRedir&&c.mortYrs>0&&c.mortYrs<=20&&marks.indexOf(c.mortYrs)<0){marks.push(c.mortYrs);marks.sort(function(a,b){return a-b;});}
   var rows='<tr><th>Year</th><th>Age at end</th><th>Brokerage / mo</th><th>All saving / yr</th><th>Net worth</th><th>What changes</th></tr>';
   marks.forEach(function(y){
     var ev=[];
@@ -2736,6 +2897,7 @@ function calcPlay(){
     if(opts.dcRedir&&y===dcEnd)ev.push('<strong>Childcare ends → +'+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo</strong>');
     if(opts.stepYr>0&&y===opts.stepYr-1&&opts.stepShare>0)ev.push('<strong>Pay raise → +'+fkPrecise(opts.stepMo*opts.stepShare)+'/mo</strong>');
     if(opts.loanRedir&&y===loanEnd)ev.push('<strong>Loans paid off → +'+fkPrecise(c.loanPay/12)+'/mo</strong>');
+    if(opts.mortRedir&&y===c.mortYrs)ev.push('<strong>House paid off → +'+fkPrecise(c.mortMo)+'/mo</strong>');
     if(c.pslf&&loanEnd&&y===loanEnd)ev.push('<strong>PSLF forgiveness</strong>');
     var age=sa+y;
     var hl=(plan.coast&&age===plan.coast)||(y===dcEnd&&opts.dcRedir);
@@ -2812,10 +2974,11 @@ function calcPlay(){
   $('pb-auto').innerHTML='<tr><th>When</th><th>What</th><th>Why</th></tr>'+autoRows.map(function(r){return '<tr><td style="white-space:nowrap">'+r[0]+'</td><td>'+r[1]+'</td><td style="font-size:10px;color:var(--mg)">'+r[2]+'</td></tr>';}).join('');
 
   var fiNum=spend*25;
+  var fnAges=(function(){var a0=sa<45?45:Math.ceil((sa+1)/5)*5,r=[];for(var a=a0;r.length<3&&a<retAge();a+=5)r.push(a);if(!r.length)r.push(retAge()-1);return r;})(); // ages still ahead of you
   $('pb-finum').innerHTML='<div style="font-size:11px;line-height:1.6;color:#444">Your full retirement number is <strong>25 × what you\'ll spend each year in retirement</strong> — at '+fk(spend)+'/yr that\'s <strong>'+fk(fiNum)+'</strong>. Withdrawing 4% a year from that portfolio, adjusted for inflation, has historically lasted 30+ years (the "4% rule"). Every $1,000 a year of permanent lifestyle adds $25,000 to the number.</div>'+
-    '<table class="tbl" style="margin-top:8px"><tr><th>Retirement spending</th><th>Full FI number</th><th>Needed at 45 for work to be optional</th><th>at 50</th><th>at 55</th></tr>'+
+    '<table class="tbl" style="margin-top:8px"><tr><th>Retirement spending</th><th>Full FI number</th>'+fnAges.map(function(a,i){return '<th>'+(i===0?'Needed at '+a+' for work to be optional':'at '+a)+'</th>';}).join('')+'</tr>'+
     [130000,160000,200000,250000].concat([spend]).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;}).map(function(v){
-      var me=v===spend;return '<tr'+(me?' class="hl"':'')+'><td>'+fk(v)+'/yr'+(me?' (you)':'')+'</td><td>'+fk(v*25)+'</td><td>'+fk(callTarget(45,v*25,0.05))+'</td><td>'+fk(callTarget(50,v*25,0.05))+'</td><td>'+fk(callTarget(55,v*25,0.05))+'</td></tr>';}).join('')+'</table>'+
+      var me=v===spend;return '<tr'+(me?' class="hl"':'')+'><td>'+fk(v)+'/yr'+(me?' (you)':'')+'</td><td>'+fk(v*25)+'</td>'+fnAges.map(function(a){return '<td>'+fk(callTarget(a,v*25,0.05))+'</td>';}).join('')+'</tr>';}).join('')+'</table>'+
     '<div class="hint" style="margin-top:6px">"Work optional" (some call it FU money) = saved enough that you could stop saving and still reach your full number by '+retAge()+'. Your paycheck then only has to cover today\'s bills, so you can leave a bad job, go part-time, or pay for call coverage. The amount needed rises with age because the money has less time to grow.</div>';
 
   var hasL=c.loansOn&&c.lb>0;
@@ -2919,14 +3082,14 @@ function pbOpts(c){
   var couple=c.hh==='couple';
   var roth=c.actual?c.rothAmt:(couple?2*LIM.ira:LIM.ira);
   var hsa=$('pb-hdhp').checked?(couple||c.nk>0?LIM.hsaFam:4400):0;
-  var taxAdv=c.deferrals+roth+hsa+c.emp;
+  var taxAdv=c.payRet+roth+hsa+c.emp;
   var hasDC=c.kidsCost>0&&c.childcareEst>0,hasLoan=c.loanPay>0;
   var loanEnd=hasLoan?(c.pslf?(c.pslfYrsLeft||0):10):null;
   var brk=+$('pb-brk').value;
   // A planned home purchase: the down payment has to be saved first, and owning costs more than renting afterward
   var buying=c.houseOn&&!c.houseOwned&&c.A.housing===null&&c.A.total===null,by=c.buyYr;
   var houseExtra=buying&&by>0?Math.round(c.ownHousing+Math.max(0,c.hp-1e6)*0.05-c.rentEst):0; // owning vs renting, per year
-  var dpYr=buying&&by>0?Math.round(Math.max(0,c.dpOwn-Math.max(0,startNW()))/by):0;            // down payment fund, per year until buying
+  var dpYr=buying&&by>0?Math.round(Math.max(0,c.dpOwn-Math.max(0,dpCash()))/by):0;            // down payment fund, per year until buying
   var dpNow=buying&&by===0?c.dpOwn:0;                                                           // buying now: cash out of net worth today
   var cashFree=function(y){return c.cashLeft-(buying&&by>0?(y<by?dpYr:houseExtra):0);};
   // Estimate mode: whatever the budget can't cover (Roth/HSA, down payment fund, then the higher cost of owning) is saved less — the plan subtracts it.
@@ -2941,13 +3104,14 @@ function pbOpts(c){
   return {taxAdv:taxAdv,brk:brk,marg:marg,short:short,shortBuy:shortBuy,room:room,buying:buying&&by>0,houseExtra:houseExtra,dpYr:c.actual?0:dpYr,dpOwn:c.dpOwn,
     opts:{short:short,shortAt:shortAt,cashFree:cashFree,cashOut:roth+hsa,capped:!c.actual,dpNow:dpNow,dpLater:c.actual&&buying&&by>0?c.dpOwn:0,buyYr:by,brk:brk,raise:+$('pb-raise').value,dcEnd:+$('pb-dcend').value,dcRedir:$('pb-dcredir').checked&&hasDC,dcShare:+$('pb-dcshare').value/100,
     loanEnd:loanEnd,loanRedir:$('pb-loanredir').checked&&hasLoan&&!c.pslf,taxAdv:taxAdv,
+    mortRedir:$('pb-mortredir').checked&&c.houseOwned&&c.mortMo>0&&c.A.housing===null&&c.A.total===null,
     stepYr:+$('pb-stepyr').value,stepMo:Math.round((+$('pb-stepamt').value)*(1-marg)/12),stepShare:+$('pb-stepshare').value/100}};
 }
 function updateSumbar(c){
-  var P=pbOpts(c),plan=pbSim(c,P.opts),flat=pbSim(c,Object.assign({},P.opts,{raise:0,dcRedir:false,loanRedir:false,stepShare:0}));
-  var sr0=Math.round(flat.savAt(10)/c.gross*100),sr10=Math.round(plan.savAt(10)/c.gross*100);
+  var P=pbOpts(c),plan=pbSim(c,P.opts),flat=pbSim(c,Object.assign({},P.opts,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,stepShare:0}));
+  var sr0=Math.round(flat.savAt(RY())/c.gross*100),sr10=Math.round(plan.savAt(RY())/c.gross*100);
   $('sumbar').style.display=CUR_TAB==='play'?'none':'flex';
-  $('sumbar').innerHTML='<div class="sb-i"><span class="sb-l">Saving · yr 10</span><b>'+sr0+'% → '+sr10+'%</b></div>'+
+  $('sumbar').innerHTML='<div class="sb-i"><span class="sb-l">Saving · yr '+RY()+'</span><b>'+sr0+'% → '+sr10+'%</b></div>'+
     '<div class="sb-i"><span class="sb-l">Work optional</span><b>'+(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+')+'</b></div>'+
     '<div class="sb-i"><span class="sb-l">Retire</span><b>'+(flat.fi||'—')+' → '+(plan.fi||'—')+'</b></div>'+
     '<div style="font-size:10px;color:var(--accent);font-weight:600">'+(CUR_TAB==='play'?'today → plan':'plan ›')+'</div>';
@@ -2958,7 +3122,7 @@ function chipVal(q){var on=document.querySelector('#setup [data-q="'+q+'"] .chip
 function setupSync(){
   $('su-yrs-row').style.display=chipVal('stage')==='res'?'flex':'none';
   $('su-pinc-row').style.display=chipVal('hh')==='couple'?'flex':'none';
-  var h=chipVal('home');$('su-hp-row').style.display=h==='rent'?'none':'flex';$('su-rent-row').style.display=h==='rent'?'flex':'none';
+  var h=chipVal('home');$('su-hp-row').style.display=h==='rent'?'none':'flex';$('su-rent-row').style.display=h==='rent'?'flex':'none';$('su-mort-row').style.display=h==='own'?'flex':'none';
 }
 function openSetup(){
   var sel=$('su-spec');if(!sel.options.length)sel.innerHTML=$('spec').innerHTML;sel.value=$('spec').value;
@@ -2973,7 +3137,7 @@ document.addEventListener('click',function(e){
 function applySetup(){
   var stage=chipVal('stage');
   setMode(stage);
-  $('age').value=+$('su-age').value||30;
+  $('age').max=stage==='att'?64:55;$('age').value=+$('su-age').value||30;
   if(stage==='res')$('yrs-left').value=$('su-yrs').value;
   $('spec').value=$('su-spec').value;
   var sal=+$('su-sal').value;
@@ -2982,6 +3146,7 @@ function applySetup(){
   var nk=+$('su-nk').value;$('kids').checked=nk>0;if(nk>0){$('nk').value=nk;$('nday').value=Math.min(nk,+$('su-nday').value);$('daymo').value=+$('su-daymo').value||2500;}
   var h=chipVal('home');$('house').checked=h!=='rent';$('house-owned').checked=h==='own';$('buy-yr').value=h==='buylater'?2:0;
   if(h!=='rent')$('hp').value=+$('su-hp').value||1000000;else $('rent').value=+$('su-rent').value||4500;
+  if(h==='own'&&$('su-mort').value!==''){$('mort-set').checked=true;$('mort-bal').value=+$('su-mort').value;$('mort-rate').value=+$('su-mrate').value||+$('rvb-rate').value;$('mort-yrs').value=$('su-myrs').value!==''?+$('su-myrs').value:25;}
   var lb=+$('su-lb').value||0;$('loans').checked=lb>0;$('lb').value=lb;$('pslf').checked=chipVal('pslf')==='yes';
   $('plan-type').value=chipVal('emp');$('def457').checked=chipVal('emp')==='403b';$('emp').value=Math.min(10,Math.max(0,+$('su-emp').value||0));
   if(stage==='att'&&+$('nw').value<-100000)$('nw').value=0;
