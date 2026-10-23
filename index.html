@@ -900,20 +900,23 @@ details.how ol:empty{display:none;}
 
 <!-- ═══ TAB 6: RENT VS BUY ══════════════════════════════════════════ -->
 <div id="tab-rent" class="panel">
+  <div id="rvb-verdict"></div>
   <div class="g2">
     <div class="card">
       <div class="ctitle">Your situation</div>
+      <div class="hint" id="rvb-src" style="margin:-2px 0 8px"></div>
+      <input type="checkbox" id="rvb-custom" style="display:none">
 
       <div class="sr"><label>Home price</label>
-        <input type="range" min="600000" max="2500000" step="50000" value="1500000" id="rvb-price" oninput="calcRentBuy()">
+        <input type="range" min="600000" max="2500000" step="50000" value="1500000" id="rvb-price" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-price-v">$1.5M</span></div>
 
       <div class="trow" style="align-items:flex-start;margin-bottom:8px">
         <label style="font-size:12px;color:var(--mg);width:155px;min-width:100px;flex-shrink:0;padding-top:4px">Down payment</label>
-        <div style="display:flex;gap:4px;flex:1">
-          <button id="dp-10" class="ptab" onclick="setDP(10)">10%</button>
-          <button id="dp-15" class="ptab" onclick="setDP(15)">15%</button>
-          <button id="dp-20" class="ptab on" onclick="setDP(20)">20%</button>
+        <div style="display:flex;gap:4px;flex:1;flex-wrap:wrap">
+          <button id="dp-20" class="ptab on" onclick="rvbTouch();setDP(20)">20% conventional</button>
+          <button id="dp-10" class="ptab" onclick="rvbTouch();setDP(10)">10% physician</button>
+          <button id="dp-5" class="ptab" onclick="rvbTouch();setDP(5)">5% physician</button>
         </div>
       </div>
 
@@ -922,18 +925,18 @@ details.how ol:empty{display:none;}
         <span class="sv" id="rvb-rate-v">6.75%</span></div>
 
       <div class="sr"><label>Monthly rent</label>
-        <input type="range" min="2000" max="12000" step="250" value="7500" id="rvb-rent" oninput="calcRentBuy()">
+        <input type="range" min="2000" max="12000" step="250" value="7500" id="rvb-rent" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-rent-v">$7.5k</span></div>
 
       <div class="sr"><label>Years in home</label>
-        <input type="range" min="1" max="15" value="5" id="rvb-yrs" oninput="calcRentBuy()">
+        <input type="range" min="1" max="15" value="5" id="rvb-yrs" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-yrs-v">5 yrs</span></div>
 
-      <div class="sr"><label>Home appreciation/yr</label>
+      <div class="sr"><label>Home appreciation / yr (before inflation)</label>
         <input type="range" min="2" max="8" step="0.5" value="4" id="rvb-appr" oninput="calcRentBuy()">
         <span class="sv" id="rvb-appr-v">4.0%</span></div>
 
-      <div class="sr"><label>Investment return (renter)</label>
+      <div class="sr"><label>Renter's investment return (before inflation)</label>
         <input type="range" min="4" max="10" step="0.5" value="7" id="rvb-inv" oninput="calcRentBuy()">
         <span class="sv" id="rvb-inv-v">7.0%</span></div>
 
@@ -996,33 +999,25 @@ details.how ol:empty{display:none;}
         <input type="range" min="0.2" max="3.5" step="0.05" value="2.23" id="rvb-tax" oninput="calcRentBuy();go()">
         <span class="sv" id="rvb-tax-v">2.23%</span></div>
       <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">State avg — adjust slider for your specific county. Also used in My Numbers.</div>
-
     </div>
-
-    <div>
-      <div id="rvb-costs"></div>
-      <div id="rvb-gap" style="margin-top:8px"></div>
+    <div class="card">
+      <div class="ctitle">Wealth comparison — renter vs owner</div>
+      <div class="cw" style="height:240px"><canvas id="rent-chart"></canvas></div>
+      <div class="hint">Dollars before inflation. The renter invests the down payment and whatever owning would have cost extra each month.</div>
     </div>
   </div>
-
-  <div class="card" style="margin-top:10px">
-    <div class="ctitle">Wealth comparison — renter vs owner</div>
-    <div class="cw" style="height:240px"><canvas id="rent-chart"></canvas></div>
-  </div>
-
   <div id="rvb-myth" style="margin-top:10px"></div>
-
-  <div id="rvb-verdict" style="margin-top:10px"></div>
-
-  <div class="card" id="rvb-breakdown" style="margin-top:10px"></div>
-
   <div id="rvb-txn-warn" style="margin-top:8px"></div>
-
+  <details class="card fold" id="rvb-more" style="margin-top:10px">
+    <summary class="ctitle">See the details — monthly costs, year 1, assumptions</summary>
+    <div id="rvb-costs"></div>
+    <div id="rvb-gap" style="margin-top:8px"></div>
+    <div id="rvb-breakdown" style="margin-top:10px"></div>
   <div style="font-size:10px;color:var(--mg);margin-top:10px;line-height:1.6">
     Assumes 30-year fixed mortgage at selected rate. Selling cost = about 7% of the sale price (commission, NJ realty transfer fee, closing) plus NJ's seller-paid "mansion tax" since July 2025: 1% on $1–2M homes, rising to 3.5% above $3.5M. Maintenance = 1% of value/yr ("1% rule" — actual varies by home age/condition). Insurance = 0.4%/yr. Property tax = state average effective rate — adjust slider for your specific county. Renter invests down payment from day 1 and monthly savings vs owning at selected return (7% = long-run stock market avg). This analysis assumes renter actually invests the difference — if spent instead, buying wins faster. Does not include the mortgage interest deduction (the SALT cap drops back to $10k above ~$600k income, so many surgeons gain little from itemizing) or rent increases over time (which favor buying in the long run).
   </div>
+  </details>
 </div>
-
 <details class="foot"><summary style="cursor:pointer;font-weight:600">How the numbers work</summary>Tax model: 2026 federal brackets and standard deduction (married filing jointly or single), SALT cap with high-income phase-down, New Jersey brackets (NJ excludes 401(k) but not 403(b)/457 deferrals), Social Security (6.2% to $184,500 per earner) and Medicare (1.45% + 0.9% above $250k joint / $200k single), dependent care FSA ($7,500) when paying childcare, child tax credit phase-out. Excludes NJ disability/family-leave payroll deductions and employer match. Estimates for education only — not tax or financial advice. Updated October 2026.</details>
 
 </div><!-- /shell -->
@@ -1211,7 +1206,7 @@ function tab(id){
     $('sl-yrs-left').value=MODE==='res'?$('yrs-left').value:0;
     calcLoans();
   }
-  if(id==='rent')calcRentBuy();
+  if(id==='rent')rvbSync();
   if(id==='true')calcTrue();
   if(id==='play')calcPlay();
   updateSumbar(getCosts());
@@ -1457,6 +1452,7 @@ function go(){
   var activePanel=document.querySelector('.panel.on');
   if(activePanel&&activePanel.id==='tab-paths'){calcMath();syncFISR();calcFI();}
   if(activePanel&&activePanel.id==='tab-true')calcTrue();
+  if(activePanel&&activePanel.id==='tab-rent')rvbSync();
   if(activePanel&&activePanel.id==='tab-play')calcPlay();
   $('tab-btn-loans').style.display=$('loans').checked||MODE==='res'?'':'none';
   updateSumbar(getCosts());
@@ -2272,15 +2268,30 @@ function setRVBState(){
   calcRentBuy();go();
 }
 function setDP(pct){
+  if(pct===15)pct=20;   // older saved plans: 15% (no PMI modeled) becomes conventional 20%
   curDP=pct;
-  [10,15,20].forEach(function(p){var btn=$('dp-'+p);if(btn)btn.classList.toggle('on',p===pct);});
+  [5,10,20].forEach(function(p){var btn=$('dp-'+p);if(btn)btn.classList.toggle('on',p===pct);});
   calcRentBuy();
+}
+// Rent vs Buy starts from My Numbers; changing price, rent, years or the down payment here means 'trying other numbers'
+function rvbTouch(){$('rvb-custom').checked=true;saveState();}
+function rvbSync(force){
+  if(force)$('rvb-custom').checked=false;
+  var c=getCosts(),mt=mortTerms(false);
+  if(!$('rvb-custom').checked){
+    $('rvb-price').value=Math.min(2500000,Math.max(600000,c.hp));
+    $('rvb-rent').value=Math.min(12000,Math.max(2000,+$('rent').value));
+    curDP=Math.round(mt.down*100);
+  }
+  var mine=fk(Math.min(2500000,Math.max(600000,c.hp)))+' home, '+fkPrecise(+$('rent').value)+'/mo rent, '+(c.houseOwned?'20% down':mt.lbl.replace('conventional, ',''));
+  $('rvb-src').innerHTML=$('rvb-custom').checked?'Trying other numbers. <a href="#" onclick="rvbSync(true);saveState();return false">↺ Back to my numbers</a> ('+mine+')':'From My Numbers: your '+mine+'. Change anything to try other numbers.';
+  setDP(curDP);
 }
 
 function calcRentBuy(){
   var price=+$('rvb-price').value;
   var downPct=curDP/100;
-  var mortRate=+$('rvb-rate').value/100;
+  var mortRate=(+$('rvb-rate').value+(curDP<20?PHYS.prem:0))/100;   // physician loans carry a small rate premium
   var rent=+$('rvb-rent').value;
   var years=+$('rvb-yrs').value;
   var apprRate=+$('rvb-appr').value/100;
@@ -2289,7 +2300,7 @@ function calcRentBuy(){
 
   $('rvb-price-v').textContent=fk(price);
   $('rvb-rate-v').textContent=(+$('rvb-rate').value).toFixed(2)+'%';
-  $('rvb-rent-v').textContent=fk(rent);
+  $('rvb-rent-v').textContent=fkPrecise(rent);
   $('rvb-yrs-v').textContent=years+' yr'+(years!==1?'s':'');
   $('rvb-appr-v').textContent=(+$('rvb-appr').value).toFixed(1)+'%';
   $('rvb-inv-v').textContent=(+$('rvb-inv').value).toFixed(1)+'%';
@@ -2341,20 +2352,20 @@ function calcRentBuy(){
     '<div class="g2">'+
     '<div class="card"><div class="ctitle" style="color:var(--g)">Renting</div>'+
     '<table class="tbl"><tr><th>Item</th><th>Monthly</th></tr>'+
-    '<tr><td>Rent</td><td>'+fk(rent)+'</td></tr><tr><td>Property tax</td><td>$0</td></tr>'+
+    '<tr><td>Rent</td><td>'+fkPrecise(rent)+'</td></tr><tr><td>Property tax</td><td>$0</td></tr>'+
     '<tr><td>Insurance</td><td>$0</td></tr><tr><td>Maintenance</td><td>$0</td></tr>'+
-    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fk(rent)+'</strong></td></tr></table>'+
+    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fkPrecise(rent)+'</strong></td></tr></table>'+
     '<div style="font-size:11px;color:var(--g);margin-top:8px">Down payment <strong>'+fk(downAmt)+'</strong> invested at '+(+$('rvb-inv').value).toFixed(1)+'%/yr</div></div>'+
     '<div class="card"><div class="ctitle" style="color:var(--b)">Buying</div>'+
     '<table class="tbl"><tr><th>Item</th><th>Monthly</th></tr>'+
-    '<tr><td>Mortgage P&amp;I</td><td>'+fk(mortPmt)+'</td></tr><tr><td>Property tax</td><td>'+fk(propTax)+'</td></tr>'+
-    '<tr><td>Insurance</td><td>'+fk(insur)+'</td></tr><tr><td>Maintenance (1%)</td><td>'+fk(maint)+'</td></tr>'+
-    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fk(ownerTotal)+'</strong></td></tr></table>'+
-    '<div style="font-size:11px;color:'+(gap>0?'var(--rd)':'var(--g)')+';margin-top:8px">Extra vs renting: <strong>'+gapSign+fk(gap)+'/mo</strong></div></div>'+
+    '<tr><td>Mortgage P&amp;I</td><td>'+fkPrecise(mortPmt)+'</td></tr><tr><td>Property tax</td><td>'+fkPrecise(propTax)+'</td></tr>'+
+    '<tr><td>Insurance</td><td>'+fkPrecise(insur)+'</td></tr><tr><td>Maintenance (1%)</td><td>'+fkPrecise(maint)+'</td></tr>'+
+    '<tr class="hl"><td><strong>Total</strong></td><td><strong>'+fkPrecise(ownerTotal)+'</strong></td></tr></table>'+
+    '<div style="font-size:11px;color:'+(gap>0?'var(--rd)':'var(--g)')+';margin-top:8px">Extra vs renting: <strong>'+gapSign+fkPrecise(gap)+'/mo</strong></div></div>'+
     '</div>';
 
   $('rvb-gap').innerHTML=gap>0?
-    '<div class="box box-a" style="text-align:center"><strong>Owner pays '+fk(gap)+'/mo more than renter — '+fk(gap*12)+'/yr</strong></div>':
+    '<div class="box box-a" style="text-align:center"><strong>Owner pays '+fkPrecise(gap)+'/mo more than renter — '+fk(gap*12)+'/yr</strong></div>':
     '<div class="box box-g" style="text-align:center"><strong>Buying is '+fk(-gap)+'/mo cheaper than renting — unusual for NJ, consider buying</strong></div>';
 
   if(typeof Chart!=='undefined'){
@@ -2384,7 +2395,9 @@ function calcRentBuy(){
     verdictBox='box-b';verdictTitle='color:var(--b)';
     verdictBody='At '+years+' years, buying wins by <strong>'+fk(-diff)+'</strong>. Breakeven was at '+beStr+'. Staying well beyond the breakeven year rewards the initial commitment.';
   }
-  $('rvb-verdict').innerHTML='<div class="box '+verdictBox+'"><div class="box-title" style="'+verdictTitle+'">'+
+  var dpLbl=curDP===20?'20% down':curDP+'% down (physician loan, +'+PHYS.prem+'%)';
+  verdictBody=fk(price)+' home, '+dpLbl+', vs '+fkPrecise(rent)+'/mo rent, staying '+years+' year'+(years!==1?'s':'')+'. '+(gap>0?'Owning costs about '+fkPrecise(gap)+'/mo more than renting at first. ':'Owning costs about '+fkPrecise(-gap)+'/mo less than renting at first. ')+verdictBody;
+  $('rvb-verdict').innerHTML='<div class="box '+verdictBox+'" style="margin-top:0"><div class="box-title" style="'+verdictTitle+'">'+
     (renterWins?'At '+years+' years, renting leads by '+fk(diff):'At '+years+' years, buying leads by '+fk(-diff))+
     '</div><div class="box-body">'+verdictBody+'</div></div>';
 
@@ -2409,7 +2422,7 @@ function calcRentBuy(){
   var beRent=Math.round((ownerNet)/12);
   var mythWin=ownerNet>renterGone;
   $('rvb-myth').innerHTML='<div class="card"><div class="ctitle">"Renting is throwing money away" — so is owning</div>'+
-    '<div style="font-size:11px;color:var(--mg);margin-bottom:8px;line-height:1.5">Both renters and owners pay money they never get back. Rent is the renter\'s. The owner\'s is interest, property tax, insurance, upkeep, buying and selling costs, and the return the down payment would have earned invested. Only principal and appreciation come back. Year 1, '+fk(price)+' home vs '+fk(rent)+'/mo rent, staying '+years+' yr'+(years!==1?'s':'')+':</div>'+
+    '<div style="font-size:11px;color:var(--mg);margin-bottom:8px;line-height:1.5">Both renters and owners pay money they never get back. Rent is the renter\'s. The owner\'s is interest, property tax, insurance, upkeep, buying and selling costs, and the return the down payment would have earned invested. Only principal and appreciation come back. Year 1, '+fk(price)+' home vs '+fkPrecise(rent)+'/mo rent, staying '+years+' yr'+(years!==1?'s':'')+':</div>'+
     '<div class="g2">'+
     '<table class="tbl"><tr><th>Renter — gone</th><th>Annual</th></tr>'+
     '<tr><td>Rent</td><td>'+fk(renterGone)+'</td></tr>'+
