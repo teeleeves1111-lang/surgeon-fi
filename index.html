@@ -928,6 +928,10 @@ details.how ol:empty{display:none;}
         <input type="range" min="2000" max="12000" step="250" value="7500" id="rvb-rent" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-rent-v">$7.5k</span></div>
 
+      <div class="sr"><label>Rent increase / yr (before inflation)</label>
+        <input type="range" min="0" max="6" step="0.5" value="4" id="rvb-rentg" oninput="rvbTouch();calcRentBuy()">
+        <span class="sv" id="rvb-rentg-v">4.0%</span></div>
+      <div class="hint" style="margin-top:-4px;margin-bottom:8px">Over decades, rents tend to rise about as fast as home prices — so the default matches appreciation.</div>
       <div class="sr"><label>Years in home</label>
         <input type="range" min="1" max="15" value="5" id="rvb-yrs" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-yrs-v">5 yrs</span></div>
@@ -2297,6 +2301,7 @@ function calcRentBuy(){
   var apprRate=+$('rvb-appr').value/100;
   var invReturn=+$('rvb-inv').value/100;
   var taxRate=+$('rvb-tax').value/100;
+  var rentG=(($('rvb-rentg')||{}).value!==undefined?+$('rvb-rentg').value:4)/100;
 
   $('rvb-price-v').textContent=fk(price);
   $('rvb-rate-v').textContent=(+$('rvb-rate').value).toFixed(2)+'%';
@@ -2305,6 +2310,7 @@ function calcRentBuy(){
   $('rvb-appr-v').textContent=(+$('rvb-appr').value).toFixed(1)+'%';
   $('rvb-inv-v').textContent=(+$('rvb-inv').value).toFixed(1)+'%';
   $('rvb-tax-v').textContent=(+$('rvb-tax').value).toFixed(2)+'%';
+  $('rvb-rentg-v').textContent=(rentG*100).toFixed(1)+'%';
 
   var loan=price*(1-downPct);
   var r=mortRate/12;
@@ -2319,21 +2325,28 @@ function calcRentBuy(){
   var renterMonthlyInv=Math.max(0,gap);
   var invR=invReturn/12;
 
-  var renterWealth=downAmt,loanBal=loan;
+  // Month by month for up to 30 years: rent rises each year; the owner's tax, insurance and upkeep rise with the home's value;
+  // whoever pays less that month invests the difference. Owner's wealth = equity after selling costs + anything the owner invested.
+  var renterWealth=downAmt,ownerSide=0,loanBal=loan;
   var labels=[],renterData=[],grossData=[],netData=[];
-  var breakeven=null;
-  for(var yr=0;yr<=years;yr++){
+  var breakeven=null,HORIZON=Math.max(years,30);
+  for(var yr=0;yr<=HORIZON;yr++){
     var homeVal=price*Math.pow(1+apprRate,yr);
     var grossEq=Math.max(0,homeVal-loanBal);
-    var netEq=Math.max(0,grossEq-saleCost(homeVal));
-    labels.push(yr===0?'Now':'Yr '+yr);
-    renterData.push(Math.round(renterWealth/1000));
-    grossData.push(Math.round(grossEq/1000));
-    netData.push(Math.round(netEq/1000));
-    if(!breakeven&&yr>0&&netEq>renterWealth) breakeven=yr;
-    if(yr<years){
+    var netEq=grossEq-saleCost(homeVal)+ownerSide;
+    if(yr<=years){
+      labels.push(yr===0?'Now':'Yr '+yr);
+      renterData.push(Math.round(renterWealth/1000));
+      grossData.push(Math.round((grossEq+ownerSide)/1000));
+      netData.push(Math.round(Math.max(0,netEq)/1000));
+    }
+    if(breakeven===null&&yr>0&&netEq>renterWealth) breakeven=yr;
+    if(yr<HORIZON){
+      var rentMo=rent*Math.pow(1+rentG,yr);
+      var ownMo=mortPmt+(propTax+insur+maint)*Math.pow(1+apprRate,yr);
       for(var m=0;m<12;m++){
-        renterWealth=renterWealth*(1+invR)+renterMonthlyInv;
+        renterWealth=renterWealth*(1+invR)+Math.max(0,ownMo-rentMo);
+        ownerSide=ownerSide*(1+invR)+Math.max(0,rentMo-ownMo);
         var interest=loanBal*r;
         loanBal=Math.max(0,loanBal-(mortPmt-interest));
       }
@@ -2372,31 +2385,25 @@ function calcRentBuy(){
     if(rentChrt) rentChrt.destroy();
     rentChrt=new Chart($('rent-chart'),{type:'line',data:{labels:labels,datasets:[
       {label:'Renter wealth',data:renterData,borderColor:'#1D6B52',backgroundColor:'rgba(29,107,82,0.08)',tension:.3,fill:true,pointRadius:0,borderWidth:2.5},
-      {label:'Owner gross equity',data:grossData,borderColor:'#2355A0',borderDash:[6,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
-      {label:'Owner net equity (after selling costs)',data:netData,borderColor:'#C0392B',borderDash:[3,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
+      {label:'Owner gross equity (+ anything invested)',data:grossData,borderColor:'#2355A0',borderDash:[6,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
+      {label:'Owner, after selling costs',data:netData,borderColor:'#C0392B',borderDash:[3,3],tension:.3,fill:false,pointRadius:0,borderWidth:1.5},
     ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}}},
       scales:{x:{grid:{display:false},ticks:{font:{size:10}}},
         y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return '$'+v+'k';},font:{size:10}}}}}});
   }
 
-  var beStr=breakeven?'year '+breakeven:'15+ years';
+  var beLine=breakeven?(breakeven<=years?'Buying pulled ahead in year '+breakeven+'.':'Buying pulls ahead only if you stay about <strong>'+breakeven+' years</strong>.'):'Buying doesn\'t pull ahead within 30 years at these assumptions.';
   var verdictBox,verdictTitle,verdictBody;
   if(renterWins){
     verdictBox='box-a';verdictTitle='color:var(--am)';
-    if(!breakeven){
-      verdictBody='Buying does not become financially superior within '+years+' years at these assumptions. The down payment ('+fk(downAmt)+') and monthly savings invested at '+(+$('rvb-inv').value).toFixed(1)+'% outpace home equity throughout the period. '+
-        'This is the common result in NJ — high taxes, high prices, and steep transaction costs make renting financially competitive for physicians who may move within 10 years.';
-    } else {
-      verdictBody='At '+years+' years, renting leads by <strong>'+fk(diff)+'</strong>. You would need to stay approximately <strong>'+beStr+'</strong> before buying becomes financially superior. '+
-        'This assumes the renter actually invests the monthly savings — if spent instead, buying wins faster.';
-    }
+    verdictBody=beLine+' Until then the renter comes out ahead — if the renter actually invests the down payment and the monthly difference. Spent instead, buying wins sooner.';
   } else {
     verdictBox='box-b';verdictTitle='color:var(--b)';
-    verdictBody='At '+years+' years, buying wins by <strong>'+fk(-diff)+'</strong>. Breakeven was at '+beStr+'. Staying well beyond the breakeven year rewards the initial commitment.';
+    verdictBody=beLine+' Staying longer rewards the commitment; selling early is what costs owners.';
   }
   var dpLbl=curDP===20?'20% down':curDP+'% down (physician loan, +'+PHYS.prem+'%)';
-  verdictBody=fk(price)+' home, '+dpLbl+', vs '+fkPrecise(rent)+'/mo rent, staying '+years+' year'+(years!==1?'s':'')+'. '+(gap>0?'Owning costs about '+fkPrecise(gap)+'/mo more than renting at first. ':'Owning costs about '+fkPrecise(-gap)+'/mo less than renting at first. ')+verdictBody;
+  verdictBody=fk(price)+' home, '+dpLbl+', vs '+fkPrecise(rent)+'/mo rent rising '+(rentG*100).toFixed(1)+'% a year, staying '+years+' year'+(years!==1?'s':'')+'. '+(gap>0?'Owning costs about '+fkPrecise(gap)+'/mo more than renting at first. ':'Owning costs about '+fkPrecise(-gap)+'/mo less than renting at first. ')+verdictBody;
   $('rvb-verdict').innerHTML='<div class="box '+verdictBox+'" style="margin-top:0"><div class="box-title" style="'+verdictTitle+'">'+
     (renterWins?'At '+years+' years, renting leads by '+fk(diff):'At '+years+' years, buying leads by '+fk(-diff))+
     '</div><div class="box-body">'+verdictBody+'</div></div>';
