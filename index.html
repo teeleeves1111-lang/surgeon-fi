@@ -468,6 +468,8 @@ details.how ol:empty{display:none;}
         <div id="waterfall"></div>
         <div class="g4" id="wf-metrics" style="margin-top:9px"></div>
       </div>
+      <div id="reality-msg"></div>
+      <div id="recon-msg"></div>
 
       <!-- ACTUAL NUMBERS -->
       <div class="card" id="act-card">
@@ -510,12 +512,10 @@ details.how ol:empty{display:none;}
       </div>
     </div>
   </div>
-  <div id="reality-msg"></div>
-  <div id="recon-msg"></div>
 <details class="box box-g pb-more" style="display:block"><summary class="box-title" style="color:var(--g);cursor:pointer">The real epiphany: it's not the 401k, it's the brokerage rate</summary><div class="box-body">Every young surgeon already knows to max the 401k/403(b) and backdoor Roth every year — that part is basically automatic and capped by law. Hospital-employed surgeons usually also have a <strong>457(b)</strong>, another <span class="L" data-k="k457">$24,500</span> pre-tax that many never use. Fewer know about <strong>cash balance / defined benefit plans</strong>, which some private groups offer and which can shelter a large additional amount pre-tax depending on age and group structure — worth asking your group's financial advisor or CPA about explicitly, since it isn't always volunteered. But the single biggest lever after that, the one actually within your control every single year, is your <strong>taxable brokerage savings rate</strong>. Tax-advantaged accounts are capped. The taxable brokerage does not. <strong>Pay yourself first, monthly, on autopilot</strong> — treat the taxable brokerage contribution like a bill that's due before lifestyle spending happens, and raise that automated amount every time pay increases or a big fixed cost ends. When daycare ends, when loans are paid off — redirect that exact amount the same month, before it gets absorbed.</div>
   </details>
   <div id="att-sens" style="display:none">
-    <div class="card"><div class="ctitle">If I change one thing — years sooner to work optional</div>
+    <div class="card"><div class="ctitle">If I change one thing — when work becomes optional</div>
       <div class="sens" id="sensitivity"></div></div>
   </div>
 </div>
@@ -1704,11 +1704,15 @@ function calcWaterfall(c){
   $('recon-msg').innerHTML=recon;
 
   // Work optional estimate
-  var rr=0.05,sa=startAge(),nwv=startNW();
+  var rr=realReturn(),sa=startAge(),nwv=startNW();
   var wfFI=retSpend(c)*25;
-  function coastAt(sav){var m=project(sa,nwv,sav,wfFI,rr,60);return m.coast!==null&&m.coast<retAge()?m.coast:null;}
-  var sav=effInvest(c);
-  var coastEst=coastAt(sav);
+  function coastAt(sav){var m=project(sa,nwv,sav,wfFI,rr,60);return m.coast!==null&&m.coast<retAge()?m.coast:null;}   // generic comparisons only (the 12% / 25% paths)
+  // Your own ages come from the shared engine: house plan, budget and all
+  var noPlan={raise:0,dcRedir:false,loanRedir:false,stepShare:0};
+  var Sauto=pbSim(c,Object.assign({brk:1e7},noPlan));   // every leftover dollar invested, each year (capped at the cash you have)
+  var Sfloor=pbSim(c,Object.assign({brk:0},noPlan));    // only the retirement accounts
+  var coastEst=c.actual?pbFlat(c).coast:Sauto.coast;
+  var auto10=Math.round(Sauto.savAt(10)/c.gross*100);
   var coast25=coastAt(c.gross*0.25),coast12=coastAt(c.gross*0.12);
   var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>age '+retAge()+' or later</strong>';
   var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(retAge()-coast25):null);
@@ -1730,14 +1734,22 @@ function calcWaterfall(c){
     // Estimate mode: show the room to save honestly, next to what happens if only the retirement accounts get funded
     var rothNeed=c.hh==='couple'?2*LIM.ira:LIM.ira;
     var floorSav=c.deferrals+rothNeed+c.emp;
-    var floorAge=coastAt(floorSav),floorSR=Math.round(floorSav/c.gross*100);
+    var floorAge=Sfloor.coast,floorSR=Math.round(Sfloor.savAt(10)/c.gross*100);
     if(c.cashLeft<rothNeed){
       var payAge=coastAt(c.deferrals+c.emp+Math.min(0,c.cashLeft));
       msg='box-r|'+(c.cashLeft<0?'Spending is more than take-home: short '+fk(-c.cashLeft)+' a year':'Almost nothing left after spending')+'|Your payroll retirement plans still get funded ('+fk(c.deferrals+c.emp)+'/yr), but after the app\'s estimated spending '+(c.cashLeft<0?'you\'re <strong>'+fk(-c.cashLeft)+' a year short</strong> — that gap lands on credit cards, savings or bonuses':'only <strong>'+fk(c.cashLeft)+'</strong> is left — not even enough for the backdoor Roths')+'. At this rate work becomes optional at <strong>'+(payAge?'age '+payAge:retAge()+' or later')+'</strong>. '+
         'Fix the gap before adding fixed costs: the biggest items above are where to look'+(c.kidsCost>0?' (childcare ends — plan for that money)':'')+(c.buyYr>0?'; and buying the house will add '+fk(Math.max(0,c.ownHousing-c.rentEst))+'/yr on top of today\'s rent':'')+'. <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
+    } else if(pbOpts(c).buying){
+      // Buying later: today's leftover is spoken for by the down payment fund, then by the higher cost of owning
+      var HB=pbOpts(c),after=Math.max(0,Math.round(c.cashLeft-HB.houseExtra-rothNeed));
+      var same=coastEst===floorAge||(coastEst&&floorAge&&Math.abs(coastEst-floorAge)<=1);
+      msg='box-a|Room to save today: '+c.srPct+'% — but the house plan needs it|After the app\'s estimated spending about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> is left over, on top of '+fk(c.deferrals+c.emp)+' going into retirement plans through payroll. '+
+        'Until you buy in year '+c.buyYr+', the down payment fund takes about <strong>'+fk(HB.dpYr)+' a year</strong>; after that, owning costs about '+fk(HB.houseExtra)+' a year more than your rent, leaving about <strong>'+fk(after)+' a year</strong> for the brokerage. '+
+        'Invested automatically, work becomes optional at '+coastAge+' (saving '+auto10+'% in year 10). '+(same?'If it drifts into spending, the answer barely changes — <strong>the house, not automation, sets your timeline</strong>. The down payment card below shows a later or smaller option.':'If it drifts into spending and only the retirement accounts get funded, work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>.')+
+        ' <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
     } else msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> of cash is left over, on top of '+fk(c.deferrals+c.emp)+' going into retirement plans through payroll. '+
-      'If that is automated into savings, work becomes optional at '+coastAge+'. '+
-      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income), work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
+      'If that is automated into savings, work becomes optional at '+coastAge+(Math.abs(auto10-c.srPct)>=1?' (saving '+auto10+'% in year 10'+(c.buyYr>0?', after the house':'')+')':'')+'. '+
+      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income'+(c.buyYr>0?' in year 10':'')+'), work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
       'The difference is whether the leftover is automated on day one. <em>Turn on "Find my real savings rate" to see what you actually save.</em>';
   }
 
@@ -1753,19 +1765,19 @@ function calcWaterfall(c){
   var parts=msg.split('|');
   $('reality-msg').innerHTML='<div class="box '+parts[0]+'"><div class="box-title" style="color:'+(parts[0]==='box-g'?'var(--g)':parts[0]==='box-a'?'var(--am)':'var(--rd)')+'">'+parts[1]+'</div><div class="box-body">'+parts[2]+'</div></div>'+dpWarning;
 
-  // Attending sensitivity
+  // Attending sensitivity — same engine as every tab: start from 'if nothing changes', change one thing
   if(MODE==='att'){
-    var curSR=displaySR;
-    var base=coastAt(c.gross*curSR/100);
-    var sens=[20,25,30,35].filter(function(x){return x>curSR;}).map(function(sr){
-      var c2=coastAt(c.gross*sr/100);
-      return{l:'Increase to '+sr+'% savings',delta:base&&c2?base-c2:null};
-    }).filter(function(x){return x.delta>0;});
-    if(c.def457===0&&c.planType==='403b'){var d457=base&&coastAt(c.gross*curSR/100+LIM.k457)?base-coastAt(c.gross*curSR/100+LIM.k457):null;if(d457>0)sens.push({l:'Start the 457(b) (+$24.5k/yr)',delta:d457});}
-    if(c.kidsCost>0){var dk=base&&coastAt(c.gross*curSR/100+c.kidsCost)?base-coastAt(c.gross*curSR/100+c.kidsCost):null;if(dk>0)sens.push({l:'Redirect childcare/school money ('+fk(c.kidsCost)+'/yr) when it ends',delta:dk});}
-    if(c.hh==='couple'&&c.pinc===0){var dp=base&&coastAt(c.gross*curSR/100+60000)?base-coastAt(c.gross*curSR/100+60000):null;if(dp>0)sens.push({l:'Partner income ($150k → ~$60k saved)',delta:dp});}
+    var F0=pbFlat(c),b10=F0.savAt(10)/c.gross,baseAge=F0.coast||retAge();
+    var gain=function(m){return m.coast?baseAge-m.coast:null;},ageOf={};
+    var g0=gain;gain=function(m){var d=g0(m);if(d>0)ageOf[d+'_'+m.coast]=m.coast;return d>0?{d:d,age:m.coast}:null;};
+    var sens=[20,25,30,35].filter(function(x){return x>Math.round(b10*100);}).map(function(sr){
+      return{l:'Save '+sr+'% in year 10 (about '+fk((sr/100-b10)*c.gross)+'/yr more, every year)',delta:gain(pbFlat(c,Math.round((sr/100-b10)*c.gross)))};
+    }).filter(function(x){return x.delta;});
+    if(c.def457===0&&c.planType==='403b'){var d457=gain(pbFlat(c,LIM.k457));if(d457)sens.push({l:'Start the 457(b) (+'+$L(LIM.k457)+'/yr)',delta:d457});}
+    if(c.kidsCost>0&&c.childcareEst>0){var dk=gain(pbSim(c,{raise:0,dcRedir:true,loanRedir:false,stepShare:0}));if(dk)sens.push({l:'Send childcare money to the brokerage when it ends',delta:dk});}
+    if(c.hh==='couple'&&c.pinc===0){var dp=gain(pbFlat(c,60000));if(dp)sens.push({l:'Partner income ($150k → ~$60k saved)',delta:dp});}
     $('sensitivity').innerHTML=sens.length?sens.map(function(s){
-      return '<div class="sens-item"><div class="sens-l">'+s.l+'</div><div class="sens-v">−'+s.delta+' yr'+(s.delta!==1?'s':'')+'</div></div>';
+      return '<div class="sens-item"><div class="sens-l">'+s.l+'</div><div class="sens-v">Age '+s.delta.age+(F0.coast?' (−'+s.delta.d+' yr'+(s.delta.d!==1?'s':'')+')':'')+'</div></div>';
     }).join(''):'<div style="font-size:12px;color:var(--mg)">Already on a strong path. Stay consistent.</div>';
   }
 }
@@ -2002,13 +2014,13 @@ function calcFI(){
     'Social Security at 70 (~$30–50k/yr for a surgeon) not included — reduces portfolio needed in late retirement.</td></tr>';
 
   if(MODE==='att'){
-    var curSR2=effSR(c);
-    var base=calcTL(curSR2);
+    var P0=pbFlat(c),p10=P0.savAt(10)/c.gross,pBase=P0.coast||retAge();
     $('fi-sensitivity').innerHTML=[20,25,30,35].map(function(testSR){
-      var t=calcTL(testSR);
-      var delta=base.coast&&t.coast?base.coast-t.coast:null;
-      return testSR>curSR2&&delta!==null&&delta>0?
-        '<div class="sens-item"><div class="sens-l">Savings rate: <strong>'+testSR+'%</strong></div>'+
+      if(testSR<=Math.round(p10*100))return '';
+      var t=pbFlat(c,Math.round((testSR/100-p10)*c.gross));
+      var delta=t.coast?pBase-t.coast:null;
+      return delta!==null&&delta>0?
+        '<div class="sens-item"><div class="sens-l">Saving <strong>'+testSR+'%</strong> in year 10</div>'+
         '<div class="sens-v">Work optional at '+t.coast+' (−'+delta+' yrs)</div></div>':'';
     }).join('')||'<div style="font-size:12px;color:var(--mg)">Already at or above these rates.</div>';
     $('fi-sens').style.display='block';
