@@ -2216,17 +2216,14 @@ function calcTrue(){
   var grossNeeded=annual/(1-marg);
   var pctTake=c.takeHome>0?annual/c.takeHome:0;
 
-  // Simulation: with vs without the cost
-  var rr=0.05,sa=startAge(),nw0=startNW();
-  var base=effInvest(c);
-  var fiBase=retSpend(c)*25;
-  var fiWith=fiBase+(ret?annual*retPct*25:0);
+  // Same engine as every other tab: 'without it' is the shared 'if nothing changes' path; 'with it' pays the cost each year it lasts
+  var sa=startAge(),nw0=startNW(),rr=realReturn();
   var dur=perm?99:yrsV;
-  function run(withCost,target){
-    var m=project(sa,nw0,function(i){return base-(withCost&&i<dur?annual:0);},target,rr,60);
-    return{coast:m.coast!==null&&m.coast<retAge()?m.coast:null,fi:m.fi,nw20:m.series[20]};
-  }
-  var A0=run(false,fiBase),A1=run(true,fiWith);
+  var fiAdd=ret?annual*retPct*25:0;
+  var S0=pbFlat(c),S1=pbSim(c,{raise:0,dcRedir:false,loanRedir:false,stepShare:0,extra:function(i){return i<dur?-annual:0;},fiAdd:fiAdd});
+  var fiBase=S0.fiNum,fiWith=S1.fiNum;
+  var A0={coast:S0.coast,fi:S0.fi,nw20:S0.series[20]},A1={coast:S1.coast,fi:S1.fi,nw20:S1.series[20]};
+  var base=S0.savAt(0),pc=function(x){var v=Math.round(x/c.gross*100);return v<0?'−'+(-v):v;};
   var lost20=A0.nw20-A1.nw20;
   var paid=annual*Math.min(perm?20:yrsV,20);
   var fiDelay=A0.fi&&A1.fi?A1.fi-A0.fi:(A0.fi&&!A1.fi?'60+':null);
@@ -2247,12 +2244,14 @@ function calcTrue(){
     'Income can fall — reimbursement cuts, a job change, less call, disability. Fixed costs can\'t. Decide them with the real numbers before they lock in.</div></div>';
 
   $('tc-tbl').innerHTML='<tr><th></th><th>Without it</th><th>With it</th></tr>'+
-    '<tr><td>Saved per year</td><td>'+fk(base)+'</td><td>'+fk(base-annual)+(base-annual<0?' (deficit)':'')+'</td></tr>'+
+    (function(){var hf=pbOpts(c).dpYr,n0=S0.savAt(0)+hf,n1=S1.savAt(0)+hf;   // the house fund is saving too, as on the Playbook
+      return '<tr><td>Saving now'+(hf>0?'<br><span style="font-size:10px;color:var(--mg)">including the house fund</span>':'')+'</td><td>'+fk(n0)+' ('+pc(n0)+'%)</td><td>'+fk(n1)+' ('+pc(n1)+'%)'+(n1<0?' — deficit':'')+'</td></tr>';})()+
+    '<tr><td>Saving in year 10</td><td>'+fk(S0.savAt(10))+' ('+pc(S0.savAt(10))+'%)</td><td>'+fk(S1.savAt(10))+' ('+pc(S1.savAt(10))+'%)'+(S1.savAt(10)<0?' — deficit':'')+'</td></tr>'+
     '<tr><td>Net worth in 20 years</td><td>'+fk(A0.nw20)+'</td><td>'+fk(A1.nw20)+'</td></tr>'+
     '<tr><td>FI number</td><td>'+fk(fiBase)+'</td><td>'+fk(fiWith)+'</td></tr>'+
     '<tr class="hl-b"><td>Work optional at</td><td>'+(A0.coast||'not before '+retAge())+'</td><td>'+(A1.coast||'not before '+retAge())+'</td></tr>'+
     '<tr class="hl"><td>Full FI at</td><td>'+(A0.fi||'—')+'</td><td>'+(A1.fi||'never')+'</td></tr>'+
-    '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">Starting from age '+sa+', net worth '+fk(nw0)+', saving '+fk(base)+'/yr ('+effSR(c)+'% — '+(c.actual?'your actual rate':'estimate from My Numbers')+'). Retirement spending from the Paths & Retirement tab ('+fk(fiBase/25)+'/yr). 5% real return; amounts in today\'s dollars.</td></tr>';
+    '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">"Without it" is the same path as the other tabs: starting at age '+sa+' with net worth '+fk(nw0)+', today\'s saving, your house plan and costs as they are, no raises. Retirement spending from the Paths & Retirement tab ('+fk(retSpend(c))+'/yr). '+Math.round(rr*100)+'% real return; amounts in today\'s dollars.</td></tr>';
 }
 
 // ── RENT VS BUY ────────────────────────────────────────────────────
@@ -2478,7 +2477,8 @@ function realReturn(){var e=document.getElementById('fi-rr');return e?(+e.value|
 function pbSim(c,o){
   // o: {brk, raise, dcEnd, dcRedir, dcShare, loanEnd, loanRedir, taxAdv, stepYr, stepMo, stepShare}; missing fields come from the playbook inputs
   o=Object.assign({},pbOpts(c).opts,o);
-  var sa=startAge(),nw0=startNW(),rr=realReturn(),fiNum=retSpend(c)*25;
+  var sa=startAge(),nw0=startNW(),rr=realReturn(),fiNum=retSpend(c)*25+(o.fiAdd||0);
+  var xtra=function(y){return typeof o.extra==='function'?o.extra(y):(o.extra||0);};
   var dcMo=c.kidsCost>0?Math.round(c.childcareEst/12):0;
   var loanMo=Math.round(c.loanPay/12);
   function brkAt(y){ // monthly brokerage in plan year y (0-based)
@@ -2502,9 +2502,9 @@ function pbSim(c,o){
     if(o.capped&&!o.uncapped){ // estimate mode: you can only invest cash you have; a deficit comes out of savings
       var want=wantAt(y),have=cashAt(y);
       if(want>have+600&&capYr===null&&brkAt(y)>0)capYr=y;
-      return o.taxAdv-(o.cashOut||0)+Math.min(want,have)+(o.extra||0);
+      return o.taxAdv-(o.cashOut||0)+Math.min(want,have)+xtra(y);
     }
-    return o.taxAdv+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0)+(o.extra||0);
+    return o.taxAdv+12*brkAt(y)-(o.shortAt?o.shortAt(y):(o.short||0))-(o.dpLater&&y===o.buyYr?o.dpLater*(1+rr):0)+xtra(y);
   }
   var m=project(sa,nw0-(o.dpNow||0),sav,fiNum,rr,60);
   if(m.coast!==null&&m.coast>=retAge())m.coast=null;
