@@ -2464,7 +2464,7 @@ function pbSim(c,o){
     if(o.loanRedir&&loanMo>0&&o.loanEnd!==null&&y>=o.loanEnd)m+=loanMo;
     return m;
   }
-  var m=project(sa,nw0,function(y){return o.taxAdv+12*brkAt(y);},fiNum,rr,60);
+  var m=project(sa,nw0,function(y){return o.taxAdv+12*brkAt(y)-(o.short||0);},fiNum,rr,60);
   if(m.coast!==null&&m.coast>=retAge())m.coast=null;
   m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;
   return m;
@@ -2505,7 +2505,7 @@ function calcPlay(){
 
   var goalMet=plan.coast!==null&&plan.coast<=goal;
   $('pb-big').innerHTML=[
-    {l:'Saving now',v:Math.round((taxAdv+12*brk)/c.gross*100)+'%',s:fk(taxAdv+12*brk)+'/yr incl. '+fkPrecise(brk)+'/mo brokerage',c:(taxAdv+12*brk)/c.gross>=0.2?'good':(taxAdv+12*brk)/c.gross>=0.12?'warn':'bad'},
+    (function(){var sv=taxAdv+12*brk-opts.short;return {l:'Saving now',v:Math.round(sv/c.gross*100)+'%',s:fk(sv)+'/yr incl. '+fkPrecise(brk)+'/mo brokerage'+(opts.short>0?' · after the '+fk(opts.short)+' gap':''),c:sv/c.gross>=0.2?'good':sv/c.gross>=0.12?'warn':'bad'};})(),
     {l:'Work optional — with this plan',v:plan.coast?'Age '+plan.coast:'Not before '+retAge(),s:'If nothing changes: '+(flat.coast?'age '+flat.coast:'not before '+retAge()),c:goalMet?'good':plan.coast?'warn':'bad'},
     {l:'Full retirement — with this plan',v:plan.fi?'Age '+plan.fi:'Not reached',s:'If nothing changes: '+(flat.fi?'age '+flat.fi:'not reached'),c:plan.fi&&plan.fi<=60?'good':plan.fi&&plan.fi<=65?'warn':'bad'},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
@@ -2514,11 +2514,19 @@ function calcPlay(){
   var out='<table class="tbl"><tr><th></th><th>Work optional</th><th>Full retirement</th></tr>'+
     '<tr><td>Brokerage stays at '+fkPrecise(brk)+'/mo forever</td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
     '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr></table>';
-  if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Work becomes optional at '+plan.coast+'. The single most important thing now is that the raises and redirects actually happen — set them up as automatic transfers.</div></div>';
+  var PO=pbOpts(c),short=PO.short,room=PO.room;
+  var cutNow=room===null?0:Math.max(0,12*brk-room);           // brokerage beyond the cash the budget leaves
+  var cut10=cutNow+12*raise*10;                                 // yearly raises come out of spending (pay held flat after inflation)
+  if(short>0) out+='<div class="pb-flag a" style="margin-top:8px"><div><b>First close the gap: you\'re about '+fk(short)+' a year short.</b> After the app\'s estimated spending, take-home doesn\'t cover '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+', so the ages above already count '+fk(short)+' a year less saved. See move 1.</div></div>';
+  else if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Work becomes optional at '+plan.coast+'. The single most important thing now is that the raises and redirects actually happen — set them up as automatic transfers.</div></div>';
   else out+='<div class="pb-flag a" style="margin-top:8px"><div><b>To be work-optional by '+goal+':</b> '+
     (needRaise!==null?'raise your brokerage by <strong>'+fkPrecise(needRaise)+'/mo every year</strong> instead of '+fkPrecise(raise)+'. ':'no realistic yearly raise gets there from this start — ')+
     (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
     'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
+  if(cut10>0||cutNow>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> '+
+    (cutNow>0?'A '+fkPrecise(brk)+'/mo brokerage transfer is about '+fk(cutNow)+' a year more than your budget leaves, so it means spending that much less from the start. ':'')+
+    (raise>0?'Each yearly raise of '+fkPrecise(raise)+'/mo also comes out of spending, because the app holds your pay flat after inflation: by year 10 you\'d be spending about <strong>'+fk(cut10)+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.':'')+
+    '</div>';
   out+='<div class="hint" style="margin-top:6px">For reference: a steady '+(needLevel!==null?fkPrecise(needLevel):'—')+'/mo from '+yr1+' makes you work-optional at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.</div>';
   $('pb-outcome').innerHTML=out;
 
@@ -2821,15 +2829,18 @@ function pbOpts(c){
   var hasDC=c.kidsCost>0&&c.childcareEst>0,hasLoan=c.loanPay>0;
   var loanEnd=hasLoan?(c.pslf?(c.pslfYrsLeft||0):10):null;
   var brk=+$('pb-brk').value;
+  // Estimate mode: if spending + Roth/HSA is more than take-home, that gap is real today — the plan saves that much less
+  var short=c.actual?0:Math.max(0,Math.round(roth+hsa-c.cashLeft));
+  var room=c.actual?null:Math.max(0,Math.round(c.cashLeft-roth-hsa)); // cash a year left for the brokerage
   var tp=c.taxParams,tp2={};for(var k in tp)tp2[k]=tp[k];tp2.sal=tp.sal+10000;
   var marg=(taxCalc(tp2).total-taxCalc(tp).total)/10000;
-  return {taxAdv:taxAdv,brk:brk,marg:marg,opts:{brk:brk,raise:+$('pb-raise').value,dcEnd:+$('pb-dcend').value,dcRedir:$('pb-dcredir').checked&&hasDC,dcShare:+$('pb-dcshare').value/100,
+  return {taxAdv:taxAdv,brk:brk,marg:marg,short:short,room:room,opts:{short:short,brk:brk,raise:+$('pb-raise').value,dcEnd:+$('pb-dcend').value,dcRedir:$('pb-dcredir').checked&&hasDC,dcShare:+$('pb-dcshare').value/100,
     loanEnd:loanEnd,loanRedir:$('pb-loanredir').checked&&hasLoan&&!c.pslf,taxAdv:taxAdv,
     stepYr:+$('pb-stepyr').value,stepMo:Math.round((+$('pb-stepamt').value)*(1-marg)/12),stepShare:+$('pb-stepshare').value/100}};
 }
 function updateSumbar(c){
   var P=pbOpts(c),plan=pbSim(c,P.opts),flat=pbSim(c,Object.assign({},P.opts,{raise:0,dcRedir:false,loanRedir:false,stepShare:0}));
-  var sr=Math.round((P.taxAdv+12*P.brk)/c.gross*100);
+  var sr=Math.round((P.taxAdv+12*P.brk-P.short)/c.gross*100);
   $('sumbar').style.display=CUR_TAB==='play'?'none':'flex';
   $('sumbar').innerHTML='<div class="sb-i"><span class="sb-l">Saving now</span><b>'+sr+'%</b></div>'+
     '<div class="sb-i"><span class="sb-l">Work optional</span><b>'+(flat.coast||retAge()+'+')+' → '+(plan.coast||retAge()+'+')+'</b></div>'+
