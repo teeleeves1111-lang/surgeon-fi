@@ -595,6 +595,8 @@ details.how ol:empty{display:none;}
       <div class="sr"><label>I want to be work-optional by age</label>
         <input type="range" min="42" max="64" value="50" id="pb-goal" oninput="$('pbgoal-set').checked=true;go()"><input type="checkbox" id="pbgoal-set" style="display:none">
         <span class="sv" id="pb-goal-v">50</span></div>
+      <div class="hint" id="pb-goal-help" style="margin:-2px 0 2px"></div>
+      <details class="how" id="pb-goal-how" style="margin:0 0 8px"><summary id="pb-goal-how-t">How to pick the age</summary><div id="pb-goal-how-body"></div></details>
       <div class="sr"><label>Brokerage I invest now / month</label>
         <input type="range" min="0" max="15000" step="250" value="0" id="pb-brk" oninput="go()">
         <span class="sv" id="pb-brk-v">$0</span></div>
@@ -2864,6 +2866,33 @@ function calcPlay(){
   function solve(fn){var lo=0,hi=40000;if(!fn(hi))return null;for(var k=0;k<30;k++){var mid=(lo+hi)/2;if(fn(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;}
   var needLevel=solve(function(m){var r=pbSim(c,{uncapped:true,brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,mortRedir:false,kidRedir:false,taxAdv:taxAdv,stepShare:0});return r.coast!==null&&r.coast<=goal;});
   var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{uncapped:true,brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,kidRedir:opts.kidRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
+  // ── Picking the goal age: the usual targets on this household's engine, its own dates, and deciding together ──
+  (function(){
+    var F0=pbFlat(c),b10=F0.savAt(RY())/c.gross,gapG=c.actual?0:pbOpts(c).short;
+    var at=function(r){var m=r<=b10?F0:pbFlat(c,Math.round((r-b10)*c.gross));return (m.coast?'work optional at '+m.coast:'work optional not before '+retAge())+(m.fi?', full retirement at '+m.fi:'');};
+    var needPct=needLevel!==null?Math.round((taxAdv+12*needLevel)/c.gross*100):null;
+    $('pb-goal-help').innerHTML=gapG>0?'First close the '+fk(gapG)+'/yr gap — until spending fits take-home, no age is realistic. '+(MODE==='att'?'See "How to get out" below.':'Start with the top moves above.'):
+      'Not sure? The usual target is <strong>20% of gross</strong>, all accounts counted, for a full career; <strong>25–30%</strong> to stop working in your 50s. For you: '+
+      [0.20,0.25,0.30].map(function(r){return '<strong>'+Math.round(r*100)+'%</strong> → '+at(r);}).join('; ')+'.'+(Math.round(b10*100)>=20?' You\'re already at '+Math.round(b10*100)+'%.':'')+
+      (needPct!==null?' Age '+goal+' takes about '+needPct+'% from now.':' Age '+goal+' isn\'t reachable from this start — try a later age.');
+    var cur=+$('age').value,dates=[];
+    if(c.colOn&&c.colIn.length)dates.push('your last child finishes college around <strong>'+(cur+c.colEnd)+'</strong>');
+    else if(c.nPriv>0)dates.push('private school ends around <strong>'+(cur+c.privEnd)+'</strong>');
+    if(c.loansOn&&c.lb>0&&c.pslf&&c.pslfYrsLeft>0)dates.push('PSLF forgives your loans around <strong>'+(cur+c.pslfYrsLeft)+'</strong>');
+    if(c.houseOwned&&c.mortMo>0)dates.push('the mortgage is paid off around <strong>'+(cur+c.mortYrs)+'</strong>');
+    var H=[
+      ['Work optional, not retired','Pick the age you want the <em>choice</em> — to drop call, go part-time, or leave a bad job. Many surgeons keep operating after that; the difference is that they choose to.'],
+      ['Anchor it to your own dates',(dates.length?'For you, '+dates.join('; ')+'. ':'')+'Medicare starts at 65 (before that you need your own health insurance); Social Security can start from 62 to 70, bigger the longer you wait; leave a job in or after the year you turn 55 and that plan\'s 401(k)/403(b) opens without penalty. A goal after the last big bill ends is easier to reach.'],
+      ['Be honest about the work','Operating and call get harder with age, and an injury, a group sale or burnout can end a career early. Choose an age that leaves room for that, not the last year you think you could manage.'],
+      ['Test it here','Move the slider: the brokerage amount and "Where this plan gets you" show what it costs. If that\'s more than the budget leaves, the choice is a later age or a smaller fixed cost — usually the house.']];
+    if(couple)H=H.concat([
+      ['Decide it together','Each of you writes down the age you\'d want the choice and what you\'d do with it — then compare. Talk about what the money buys, not percentages. Set the slider to the age you agree on.'],
+      ['Pay yourselves first, then spend freely','Savings move automatically on payday; what\'s left is yours to spend without a line-by-line budget or arguments over small purchases. Give each of you a set personal amount every month that the other doesn\'t question.'],
+      ['Decide the big fixed costs together','House, private school, childcare, college, cars — with the True Cost tab open. They decide your savings rate far more than everyday spending does.'],
+      ['Review it once a year','Both of you can see every account. Sit down each January, check the age, and raise the transfer together. Mark the milestones — the first $100k, the first $1M. If you keep disagreeing, one session with a flat-fee planner gives you a neutral referee.']]);
+    $('pb-goal-how-t').textContent=couple?'How to pick the age — together':'How to pick the age';
+    $('pb-goal-how-body').innerHTML=H.map(function(x){return '<div style="margin-top:6px;line-height:1.6"><strong>'+x[0]+'.</strong> '+x[1]+'</div>';}).join('');
+  })();
   var sa=plan.sa,yr1=MODE==='res'?'your first attending year (age '+sa+')':'today (age '+sa+')';
   var spend=retSpend(c);
 
@@ -2985,14 +3014,7 @@ function calcPlay(){
       'Set up an automatic investment every payday into total-market index funds — US and international stocks. Hold your bonds in the 403(b)/401(k), where they\'re sheltered from tax.',
       'Turn on dividend reinvestment.',
       'Put a reminder in your calendar every January and every raise to increase the amount. Never sell in a downturn.'];
-      if(couple)L=L.concat([
-      '§Getting your partner on board',
-      'Talk about what the money buys, not percentages: the age when work becomes optional, and the freedom to drop call, go part-time or leave a bad job. Open this plan together and agree on the work-optional age you\'re aiming for.',
-      'Pay yourselves first, then spend freely. Savings move automatically on payday; whatever is left is yours to spend without a line-by-line budget or arguments over small purchases.',
-      'Give each of you a set personal amount every month that the other doesn\'t question.',
-      'Decide the big fixed costs together — house, private school, childcare, cars — with the True Cost tab open. They decide your savings rate far more than everyday spending does.',
-      'Make it a joint plan: both of you can see every account, and you sit down once a year in January to review it and raise the transfer together. Mark the milestones — the first $100k, the first $1M.',
-      'If you keep disagreeing, one session with a flat-fee planner gives you a neutral referee.']);
+      if(couple)L=L.concat(['§Getting your partner on board','See "How to pick the age — together" under Your goal, above: choose the age together first, and the monthly number follows.']);
       return L;
     }
     return null;
@@ -3333,7 +3355,7 @@ function calcPlay(){
   if(c.childcareEst>0)moves.push({p:50,t:'Use the dependent care FSA',d:'Pays '+$L(LIM.dcfsa)+' of childcare with pre-tax money — about $3,000+ a year saved.'});
   if(hosp&&c.def401===0||(!hosp&&c.def401===0))moves.push({p:99,t:'Max the '+(hosp?'403(b)':'401(k)'),d:$L(LIM.k401)+'/yr pre-tax, from your first paycheck.'});
   var G=pbOpts(c);   // one gap figure everywhere: spending + Roth/HSA + house fund vs take-home
-  if(G.short>0)moves.push({p:101,t:'Close the gap: you\'re about '+fk(G.short)+' a year short',d:'Take-home doesn\'t cover the app\'s estimated spending'+(c.cashLeft<0?' (that alone is '+fk(-c.cashLeft)+' over)':'')+' plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(G.dpYr>0?' and the house fund':'')+'. '+(G.dpYr>0?'A later or smaller house closes it fastest. ':'')+'Look at the biggest lines on My Numbers before adding any new fixed cost.'+(sqPeak>0?' It grows before it shrinks: school and college add up to '+fk(sqPeak)+' a year more than today in the years ahead.':'')+' My Playbook → "How to get out" shows when costs that end close it.'});
+  if(G.short>0)moves.push({p:101,t:'Close the gap: you\'re about '+fk(G.short)+' a year short',d:'Take-home doesn\'t cover the app\'s estimated spending'+(c.cashLeft<0?' (that alone is '+fk(-c.cashLeft)+' over)':'')+' plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(G.dpYr>0?' and the house fund':'')+'. '+(G.dpYr>0?'A later or smaller house closes it fastest. ':'')+'Look at the biggest lines on My Numbers before adding any new fixed cost.'+(sqPeak>0?' It grows before it shrinks: school and college add up to '+fk(sqPeak)+' a year more than today in the years ahead.':'')+(MODE==='att'?' My Playbook → "How to get out" shows when costs that end close it.':'')});
   moves.sort(function(a,b){return b.p-a.p;});
   $('pb-top3').innerHTML=moves.slice(0,3).map(function(m,i){return '<div class="pb-move"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t" style="font-size:13px">'+m.t+'</div><div class="pb-d">'+m.d+'</div></div></div>';}).join('');
 }
