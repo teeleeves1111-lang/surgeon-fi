@@ -679,6 +679,11 @@ details.how ol:empty{display:none;}
     <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Size fixed costs to guaranteed pay.</strong> Bonuses can shrink or vanish with reimbursement cuts, a bad year, or a job change. The mortgage and tuition don't. If the house only works with the bonus, it's too much house.</div></div>
   </details>
 
+  <details class="card pb-more" id="pb-stuck-card" style="display:none">
+    <summary class="ctitle" id="pb-stuck-title">Already locked into big fixed costs? How to get out</summary>
+    <div id="pb-stuck"></div>
+  </details>
+
   <details class="card pb-more" id="pb-pre-card" style="display:none">
     <summary class="ctitle" id="pb-pre-title">The last years before you retire</summary>
     <div id="pb-pre"></div>
@@ -1885,16 +1890,19 @@ function calcWaterfall(c){
     var F0=pbFlat(c),b10=F0.savAt(RY())/c.gross,baseAge=F0.coast||retAge();
     var gain=function(m){return m.coast?baseAge-m.coast:null;},ageOf={};
     var g0=gain;gain=function(m){var d=g0(m);if(d>0)ageOf[d+'_'+m.coast]=m.coast;return d>0?{d:d,age:m.coast}:null;};
-    var sens=[20,25,30,35].filter(function(x){return x>Math.round(b10*100);}).map(function(sr){
+    // Every $1,000 a month — the lesson, on this household's own engine
+    var sens=[1000,2000].map(function(m){
+      return{l:'Save '+fkPrecise(m)+'/mo more, starting now ('+Math.round(b10*100)+'% → '+Math.round((b10+12*m/c.gross)*100)+'% of gross in year '+RY()+')',delta:gain(pbFlat(c,12*m))};
+    }).filter(function(x){return x.delta;}).concat([20,25,30,35].filter(function(x){return x>Math.round(b10*100);}).map(function(sr){
       return{l:'Save '+sr+'% in year '+RY()+' (about '+fk((sr/100-b10)*c.gross)+'/yr more, every year)',delta:gain(pbFlat(c,Math.round((sr/100-b10)*c.gross)))};
-    }).filter(function(x){return x.delta;});
+    }).filter(function(x){return x.delta;}));
     if(c.def457===0&&c.planType==='403b'){var d457=gain(pbFlat(c,LIM.k457));if(d457)sens.push({l:'Start the 457(b) (+'+$L(LIM.k457)+'/yr)',delta:d457});}
     if(c.kidsCost>0&&c.childcareEst>0){var dk=gain(pbSim(c,{raise:0,dcRedir:true,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}));if(dk)sens.push({l:'Send childcare money to the brokerage when it ends',delta:dk});}
     if(c.nPriv>0&&c.A.kids===null){var dsch=gain(pbSim(c,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:true,stepShare:0}));if(dsch)sens.push({l:'Send the private-school money to the brokerage when school ends',delta:dsch});}
     if(c.hh==='couple'&&c.pinc===0){var dp=gain(pbFlat(c,60000));if(dp)sens.push({l:'Partner income ($150k → ~$60k saved)',delta:dp});}
     $('sensitivity').innerHTML=sens.length?sens.map(function(s){
       return '<div class="sens-item"><div class="sens-l">'+s.l+'</div><div class="sens-v">Age '+s.delta.age+(F0.coast?' (−'+s.delta.d+' yr'+(s.delta.d!==1?'s':'')+')':'')+'</div></div>';
-    }).join(''):'<div style="font-size:12px;color:var(--mg)">Already on a strong path. Stay consistent.</div>';
+    }).join(''):'<div style="font-size:12px;color:var(--mg)">'+(F0.coast?'Already on a strong path. Stay consistent.':'No single change here makes work optional before '+retAge()+'. My Playbook → "How to get out and save" shows what each $1,000 a month does to full retirement.')+'</div>';
   }
 }
 
@@ -3050,6 +3058,59 @@ function calcPlay(){
     [130000,160000,200000,250000].concat([spend]).filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;}).map(function(v){
       var me=v===spend;return '<tr'+(me?' class="hl"':'')+'><td>'+fk(v)+'/yr'+(me?' (you)':'')+'</td><td>'+fk(v*25)+'</td>'+fnAges.map(function(a){return '<td>'+fk(callTarget(a,v*25,0.05))+'</td>';}).join('')+'</tr>';}).join('')+'</table>'+
     '<div class="hint" style="margin-top:6px">"Work optional" (some call it FU money) = saved enough that you could stop saving and still reach your full number by '+retAge()+'. Your paycheck then only has to cover today\'s bills, so you can leave a bad job, go part-time, or pay for call coverage. The amount needed rises with age because the money has less time to grow.</div>';
+
+  // ── Locked into big fixed costs: the subscription lesson, on this household's own engine ──
+  var stuckOn=MODE==='att';
+  $('pb-stuck-card').style.display=stuckOn?'block':'none';
+  if(stuckOn){
+    var fxPct=Math.round(fixedMo/th*100);
+    $('pb-stuck-title').textContent=fxPct>45?'Fixed costs are '+fxPct+'% of take-home — how to get out and save':'Locked into big fixed costs? How to get out and save';
+    var S0=pbFlat(c),S1=pbFlat(c,12000),S2=pbFlat(c,24000);
+    var sr10=function(m){return Math.round(m.savAt(RY())/c.gross*100)+'%';};
+    var wo=function(m){return m.coast?'age '+m.coast:retAge()+' or later';},fr=function(m){return m.fi?'age '+m.fi:'not reached';};
+    var sRow=function(l,m,hl){return '<tr'+(hl?' class="hl"':'')+'><td>'+l+'</td><td>'+sr10(m)+'</td><td>'+wo(m)+'</td><td>'+fr(m)+'</td></tr>';};
+    // Costs that end on their own — and what keeping them going (to the brokerage) is worth
+    var ends=[];
+    if(hasDC)ends.push('Childcare, in about '+dcEnd+' year'+(dcEnd!==1?'s':'')+': '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo');
+    if(c.nPriv>0)ends.push('Private school, in '+c.privEnd+' year'+(c.privEnd!==1?'s':'')+': about '+fkPrecise(c.schoolEst/12)+'/mo'+(c.colOn?' (college may take it first)':''));
+    if(hasLoan&&!c.pslf)ends.push('Student loans, in about '+loanEnd+' years: '+fkPrecise(c.loanPay/12)+'/mo');
+    if(c.houseOwned&&c.mortMo>0)ends.push('The mortgage, in '+c.mortYrs+' years: '+fkPrecise(c.mortMo)+'/mo (property tax and upkeep keep going)');
+    var SR=pbSim(c,{raise:0,dcRedir:hasDC,loanRedir:hasLoan&&!c.pslf,mortRedir:c.houseOwned&&c.mortMo>0,kidRedir:c.nPriv>0&&c.A.kids===null,stepShare:0});
+    var redirGain=S0.coast&&SR.coast?S0.coast-SR.coast:(!S0.coast&&SR.coast?retAge()-SR.coast:0);
+    var mv=[];
+    mv.push(['When a cost ends, keep paying it — to yourself',ends.length?
+      'These end on their own: <ul style="margin:4px 0 4px;padding-left:16px">'+ends.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>The month each one ends, add the same amount to the brokerage transfer, before spending finds it.'+(redirGain>0?' Doing that with all of them makes work optional at <strong>age '+SR.coast+'</strong> instead of '+wo(S0)+' (saving '+sr10(SR)+' vs '+sr10(S0)+' in year '+RY()+').':'')
+      :'Childcare, school, loans and car payments all end someday. The month one ends, add the same amount to the brokerage transfer, before spending finds it.']);
+    mv.push(['Bank half of every raise and bonus','You never had the money, so you won\'t miss it — and spending still grows. '+(raise>0?'Your plan already raises the brokerage by '+fkPrecise(raise)+'/mo every year.':'Your plan has no yearly raise yet — set one in "Your goal and your brokerage plan."')]);
+    mv.push(['Add no new subscriptions','No car upgrade, second home or club until the walk-away fund below is built. Price anything new on the True Cost tab first: every $1,000/month of permanent cost takes about '+fk(12000/(1-0.46))+' a year of salary.']);
+    var cut=[];
+    if(c.childcareEst>0)cut.push('the dependent care FSA ('+$L(LIM.dcfsa)+' of childcare pre-tax — a nanny has to be paid on the books to use it)');
+    if(c.houseOwned)cut.push('a property tax appeal if your assessment is above what the house would sell for (file by April 1 in most NJ towns)');
+    if(c.houseOwned&&c.mortMo>0)cut.push('refinancing if rates fall about a point below yours, or a recast after a lump-sum payment');
+    cut.push('insurance quotes every couple of years');
+    mv.push(['Lower what you already pay','Check '+cut.join('; ')+'.']);
+    if(c.nPriv>0)mv.push(['Private school by stage','A strong public district for the early grades and private later, if it matters to you, can free six figures. Price it on True Cost.']);
+    if(c.houseOwned&&c.housingCost/c.gross>0.28)mv.push(['If the house is the problem','Housing is '+Math.round(c.housingCost/c.gross*100)+'% of gross. Selling costs about 6–8% of the price once; keeping it costs '+fk(c.housingCost)+' every year. Run "Keep or sell my home" on the Rent vs Buy tab before deciding either way.']);
+    var walk=Math.round(12*fixedMo/1000)*1000;
+    var bridgeY=Math.max(0,60-retAge());
+    var ms=[
+      ['Emergency fund — '+fk(efTarget)+' in cash','Three months of spending, in high-yield savings. Not invested.'],
+      ['Walk-away fund — '+fk(walk)+' in the brokerage','One year of your fixed costs. It\'s what lets you leave a bad job, take a gap between jobs, or pay a malpractice tail without selling the house.'],
+      [bridgeY>0?'Bridge fund — about '+fk(spend*bridgeY)+' by '+retAge():'Bridge fund — only if you stop before 59½',(bridgeY>0?'You plan to stop at '+retAge()+', before the retirement accounts open at 59½: about '+bridgeY+' year'+(bridgeY!==1?'s':'')+' of spending at '+fk(spend)+'/yr. ':'About '+fk(spend)+' for each year before 59½. ')+'The brokerage and the 457(b) (no early-withdrawal penalty) pay those years; so can the 401(k)/403(b) of the job you leave in or after the year you turn 55.'],
+      ['Then keep going','Past these, the brokerage is what decides when work becomes optional — see "Where this plan gets you."']
+    ];
+    $('pb-stuck').innerHTML=
+      '<div style="font-size:11px;line-height:1.6;color:#444">Every fixed cost is a subscription: it bills monthly, renews automatically, raises its price every year, and charges you whether you use it or not. You probably can\'t cancel the big ones today. You can stop adding new ones, and when one ends, keep paying it — to yourself.</div>'+
+      '<div class="subhd" style="margin-top:10px">What each $1,000 a month is worth to you</div>'+
+      '<table class="tbl"><tr><th>If you save</th><th>Saving in year '+RY()+'</th><th>Work optional</th><th>Full retirement</th></tr>'+
+        sRow('What you save today',S0,true)+sRow('+$1,000/mo',S1)+sRow('+$2,000/mo',S2)+'</table>'+
+      '<div class="hint" style="margin-top:4px">Same budget, nothing else changed, every extra dollar invested from now on. A dollar you stop spending counts twice: it\'s invested, and it\'s a dollar you won\'t need in retirement — these ages count only the first.</div>'+
+      '<div class="subhd" style="margin-top:10px">How to get out</div>'+
+      mv.map(function(x){return '<div style="margin-top:6px;font-size:11px;line-height:1.6;color:#444"><strong>'+x[0]+'.</strong> '+x[1]+'</div>';}).join('')+
+      '<div class="subhd" style="margin-top:10px">Brokerage milestones, in order</div>'+
+      ms.map(function(x,i){return '<div style="margin-top:6px;font-size:11px;line-height:1.6;color:#444"><strong>'+(i+1)+'. '+x[0]+'.</strong> '+x[1]+'</div>';}).join('')+
+      '<div class="hint" style="margin-top:8px">Invest it in the same three index funds as everything else; in the brokerage, stock index funds are the tax-efficient part, so keep bonds in the 401(k)/403(b). These ages leave out Social Security — for a surgeon about $45,000–50,000 a year at 67 in today\'s dollars, more for a couple. Counting it would move full retirement roughly 1–5 years earlier, most for those who would otherwise retire late.</div>';
+  }
 
   // ── Pre-retirement: from 50, or inside 15 years of full retirement ──
   var preOn=MODE==='att'&&(sa>=50||retAge()-sa<=15),ytrP=Math.max(0,retAge()-sa);

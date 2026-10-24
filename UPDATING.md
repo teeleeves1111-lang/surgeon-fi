@@ -17,6 +17,7 @@ Everything is in the block marked `ANNUAL UPDATE` near the top of the script.
 | NJ treatment of HSA contributions (taxed as of 2026; a bill to conform is pending) | HSA step text in `calcPlay()` | NJ Division of Taxation |
 | Catch-up limits (`catch50`, `catch6063`) and the Roth-catch-up wage threshold ($150,000 in 2026, in the `catch-hint` text and the Playbook step) | `var LIM=`, `catch-hint`, `calcPlay()` | IRS cost-of-living announcement (Oct/Nov) |
 | Pre-retirement card facts: ACA subsidy rules (enhanced credits expired after 2025), Social Security ages, RMD ages; college costs (College Board, published each fall) and the NJ 529 deduction income limit | `calcPlay()` — `pb-pre` and `pb-col` text | healthcare.gov / Congress; ssa.gov; IRS; College Board Trends in College Pricing; NJ Division of Taxation |
+| Fixed-costs card facts: Social Security max benefit at 67 (~$45–50k/yr; $4,152/mo max at FRA in 2026), NJ property tax appeal deadline (April 1 in most towns) | `calcPlay()` — `pb-stuck` text | ssa.gov; NJ Division of Taxation |
 | Gift tax annual exclusion and lifetime exemption (`giftExcl`, `giftLife`) | `var LIM=` | IRS cost-of-living announcement (Oct/Nov) |
 | Physician mortgage rate premium over conventional | `var PHYS=` | Quotes from physician-loan lenders |
 | Mortgage rate and property tax defaults | Rent vs Buy sliders `rvb-rate`, `rvb-tax` | Freddie Mac PMMS; NJ property tax averages |
