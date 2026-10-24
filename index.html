@@ -256,6 +256,50 @@ details.how ol:empty{display:none;}
   .hdr{background:#1D6B52!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .pb-n,.pb-flag,.tbl th{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
+
+/* ── Foldable input sections on My Numbers: open on desktop; on phones folded, with a live one-line summary ── */
+details.nsec>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:8px;}
+details.nsec>summary::-webkit-details-marker{display:none;}
+details.nsec>summary::after{content:'▸';color:var(--accent);font-size:12px;margin-left:auto;}
+details.nsec[open]>summary::after{content:'▾';}
+.nsec-sum{display:none;font-size:11px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--dk);margin-left:auto;text-align:right;line-height:1.35;}
+details.nsec:not([open])>summary .nsec-sum{display:block;}
+details.nsec:not([open])>summary::after{margin-left:0;}
+
+/* ── Phones: readable text (nothing under 12px), answer before inputs, long hints behind a tap ── */
+@media(max-width:500px){
+  body{font-size:15px;}
+  [style*="font-size:8px"],[style*="font-size:9px"]{font-size:12px!important;}
+  [style*="font-size:10px"]{font-size:13px!important;}
+  [style*="font-size:11px"]{font-size:14px!important;}
+  [style*="font-size:12px"]{font-size:15px!important;}
+  [style*="font-size:13px"]{font-size:15px!important;}
+  .tag,.ms-lbl,.ms-sub,#sumbar .sb-l{font-size:12px;}
+  .ctitle,.subhd,.ml,.ms,.tbl th,.foot,.sal-r,.mbtn span,.fu-lbl,.wfamt,.wfp,.pb-amt small,.nr label small{font-size:12.5px;}
+  .hint{font-size:13px;}
+  .hdr p,.box-body,.oop-detail,.oop-amt,.tbl,.sens-l,.pb-d,.pb-flag,.fu p,details.how,details.how>summary,details.how .how-h,.wfl,.ms-age,.ms-dot,.pb-n,.oop-n{font-size:14px;}
+  .sr label,.trow label:first-child,.nr label,.nr .nin span,.tab,.ptab,.btn,.box-title,.oop-title,.pb-t,.pb-flag b,.pb-amt,.sv,.sr select,#setup .q>label,#setup .ql,#setup .chip,#setup .row,#sumbar{font-size:15px;}
+  #sumbar b,.sens-v{font-size:16px;}
+  .sr label{width:42%;min-width:0;}
+  .sv{min-width:56px;}
+  .wfl{width:42%;min-width:0;}
+  .tbl th,.tbl td{padding:6px 5px;}
+  .nsec-sum{font-size:13px;max-width:62%;}
+  /* waterfall: label on its own line above each bar */
+  #waterfall .wfr{flex-wrap:wrap;gap:2px 6px;margin-bottom:9px;}
+  #waterfall .wfl{width:100%;text-align:left;}
+  #waterfall .wfl br{display:none;}
+  #waterfall .wfl span{margin-left:6px;}
+  #waterfall .wfp{flex:0 0 38px;font-size:13px;}
+  #waterfall .wfamt{font-size:13px;}
+  /* My Numbers: the answer first, then the inputs */
+  #tab-reality>.g2>div:last-child{display:contents;}
+  #reality-msg{order:-3;}
+  #wf-card{order:-2;}
+  #recon-msg,#act-card{order:1;}
+  /* long hints under inputs: two lines, tap to read the rest */
+  #tab-reality .card .hint:not(.open){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;}
+}
 </style>
 </head>
 <body>
@@ -358,7 +402,7 @@ details.how ol:empty{display:none;}
       <div class="trow" id="pdef-row" style="display:none"><label>Partner maxes their own 401(k)/403(b)</label>
         <label class="tog"><input type="checkbox" id="pdef" checked onchange="go()"><span class="tsl"></span></label></div>
 
-      <div class="subhd">Retirement plan at work</div>
+      <details class="nsec" id="sec-ret" open><summary class="subhd nsec-s"><span class="nsec-t">Retirement plan at work</span><span class="nsec-sum" id="sum-ret"></span></summary>
       <div class="sr"><label>Employer</label>
         <select id="plan-type" onchange="go()">
           <option value="403b" selected>Hospital / academic — 403(b)</option>
@@ -376,7 +420,8 @@ details.how ol:empty{display:none;}
         <span class="sv" id="emp-v">None</span></div>
       <div class="hint">Most hospital plans add 3–6% — check your contract. Counts as savings (IRS caps it at <span class="L" data-k="compCap">$360,000</span> of salary).</div>
 
-      <div class="subhd">Housing</div>
+            </details>
+<details class="nsec" id="sec-house" open><summary class="subhd nsec-s"><span class="nsec-t">Housing</span><span class="nsec-sum" id="sum-house"></span></summary>
       <div class="trow"><label>Buying / own a home</label>
         <label class="tog"><input type="checkbox" id="house" checked onchange="go()"><span class="tsl"></span></label></div>
       <div id="house-opts" class="sub-opts" style="display:block">
@@ -423,7 +468,8 @@ details.how ol:empty{display:none;}
           <span class="sv" id="rent-v">$5,500</span></div>
       </div>
 
-      <div class="subhd">Children</div>
+            </details>
+<details class="nsec" id="sec-kids" open><summary class="subhd nsec-s"><span class="nsec-t">Children</span><span class="nsec-sum" id="sum-kids"></span></summary>
       <div class="trow"><label>Children</label>
         <label class="tog"><input type="checkbox" id="kids" onchange="go()"><span class="tsl"></span></label></div>
       <div id="kids-opts" class="sub-opts" style="display:none">
@@ -473,7 +519,8 @@ details.how ol:empty{display:none;}
         </div>
       </div>
 
-      <div class="subhd">Debt &amp; cars</div>
+            </details>
+<details class="nsec" id="sec-debt" open><summary class="subhd nsec-s"><span class="nsec-t">Debt &amp; cars</span><span class="nsec-sum" id="sum-debt"></span></summary>
       <div class="trow"><label>Student loans</label>
         <label class="tog"><input type="checkbox" id="loans" checked onchange="go()"><span class="tsl"></span></label></div>
       <div id="loans-opts" class="sub-opts">
@@ -506,10 +553,11 @@ details.how ol:empty{display:none;}
         </select>
       </div>
       <div class="hint">Each car's payment or lease, plus insurance, gas and upkeep.</div>
+      </details>
     </div>
 
     <div>
-      <div class="card">
+      <div class="card" id="wf-card">
         <div class="ctitle">Salary waterfall — <span id="wf-title">year 1 attending (estimates)</span></div>
         <div id="waterfall"></div>
         <div class="g4" id="wf-metrics" style="margin-top:9px"></div>
@@ -1308,6 +1356,26 @@ function setPath(n){
 }
 
 // ── SHARED COSTS ──────────────────────────────────────────────────
+// ── One-line summaries for the folded input sections on My Numbers ──
+function secSummaries(){
+  var on=function(id){return $(id)&&$(id).checked;},v=function(id){return +$(id).value;};
+  var hosp=$('plan-type').value==='403b',r=[(hosp?'403(b)':'401(k)')+(on('def401')?' maxed':' not maxed')];
+  if(hosp)r.push(on('def457')?'457(b) maxed':'no 457(b)');
+  if(v('emp')>0)r.push('employer '+v('emp')+'%');
+  $('sum-ret').textContent=r.join(' · ');
+  var h;
+  if(!on('house'))h='Renting '+fkPrecise(v('rent'))+'/mo';
+  else if(on('house-owned'))h='Own '+fk(v('hp'))+(on('mort-set')?' · '+fk(v('mort-bal'))+' left at '+(+$('mort-rate').value)+'%':'');
+  else h='Buying '+fk(v('hp'))+(v('buy-yr')>0?' in year '+v('buy-yr'):' now');
+  $('sum-house').textContent=h;
+  var k='None';
+  if(on('kids')){var nk=v('nk'),nd=Math.min(v('nday'),nk),np=Math.min(v('npriv'),nk-nd);
+    k=nk+' child'+(nk!==1?'ren':'')+(nd?' · '+nd+' in daycare':'')+(np?' · '+np+' private':'')+(on('col-on')?' · college '+fk(v('col-amt'))+'/yr':'');}
+  $('sum-kids').textContent=k;
+  var car=$('car-cost').options[$('car-cost').selectedIndex];
+  $('sum-debt').textContent=(on('loans')&&v('lb')>0?fk(v('lb'))+' loans'+(on('pslf')?' (PSLF)':''):'No loans')+' · '+(car?car.textContent.split(' — ')[0]:'')+(v('famsup')>0?' · family '+fkPrecise(v('famsup'))+'/mo':'');
+}
+document.addEventListener('click',function(e){var h=e.target.closest('#tab-reality .card .hint');if(h&&window.matchMedia&&matchMedia('(max-width:500px)').matches)h.classList.toggle('open');});
 // ── Per-child timing: one value per child, kept as a comma list in a hidden input (saved with everything else) ──
 // College: -4 = not counted, -3..-1 = in college now (year 4..2), 0 = starts this year, N = starts in N years.
 // Private school: years until that child finishes 12th grade.
@@ -1593,6 +1661,7 @@ function go(){
       'Private colleges average $45k tuition plus room and board; in-state public about $12k plus room and board. 529 money pays first (in today\'s dollars, along with any yearly 529 saving) — leave it out of net worth above.';
   }
   $('save529-opts').style.display=$('save529').checked?'block':'none';
+  try{secSummaries();}catch(e){}
   $('ps529-v').textContent=fkPrecise(+$('ps529').value);
   $('loans-opts').style.display=$('loans').checked?'block':'none';
   $('lb-v').textContent=fk(+$('lb').value);
@@ -1910,7 +1979,7 @@ function calcWaterfall(c){
     if(c.cashLeft<rothNeed){
       var payAge=coastAt(c.payRet+c.emp+Math.min(0,c.cashLeft));
       msg='box-r|'+(c.cashLeft<0?'Spending is more than take-home: short '+fk(-c.cashLeft)+' a year':'Almost nothing left after spending')+'|Your payroll retirement plans still get funded ('+fk(c.payRet+c.emp)+'/yr), but after the app\'s estimated spending '+(c.cashLeft<0?'you\'re <strong>'+fk(-c.cashLeft)+' a year short</strong> — that gap lands on credit cards, savings or bonuses':'only <strong>'+fk(c.cashLeft)+'</strong> is left — not even enough for the backdoor Roths')+'. At this rate work becomes optional at <strong>'+(payAge?'age '+payAge:retAge()+' or later')+'</strong>. '+
-        'Fix the gap before adding fixed costs: the biggest items above are where to look'+(c.childcareEst>0?' (childcare ends — plan for that money)':c.nPriv>0||c.colOn?' (school and college end — plan for that money)':'')+(c.buyYr>0?'; and buying the house will add '+fk(Math.max(0,c.ownHousing-c.rentEst))+'/yr on top of today\'s rent':'')+'. <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
+        'Fix the gap before adding fixed costs: the biggest items in the waterfall are where to look'+(c.childcareEst>0?' (childcare ends — plan for that money)':c.nPriv>0||c.colOn?' (school and college end — plan for that money)':'')+(c.buyYr>0?'; and buying the house will add '+fk(Math.max(0,c.ownHousing-c.rentEst))+'/yr on top of today\'s rent':'')+'. <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
     } else if(pbOpts(c).buying){
       // Buying later: today's leftover is spoken for by the down payment fund, then by the higher cost of owning
       var HB=pbOpts(c),after=Math.max(0,Math.round(c.cashLeft-HB.houseExtra-rothNeed));
@@ -3508,6 +3577,7 @@ function resetState(){
 var _hadState=false;try{_hadState=!!localStorage.getItem(STATE_KEY)||/plan=/.test(location.hash)||!!localStorage.getItem('surgeonFI.setupSeen');}catch(e){}
 restoreState();
 go();
+if(window.matchMedia&&matchMedia('(max-width:500px)').matches)document.querySelectorAll('details.nsec').forEach(function(d){d.open=false;});   // phones: sections start folded, with their one-line summary
 if(!_hadState)openSetup();
 </script>
 </body>
