@@ -1970,6 +1970,16 @@ function calcWaterfall(c){
   var Sfloor=pbSim(c,Object.assign({brk:0},noPlan));    // only the retirement accounts
   var coastEst=c.actual?pbFlat(c).coast:Sauto.coast;
   var auto10=Math.round(Sauto.savAt(RY())/c.gross*100);
+  var Splan=pbSim(c,pbOpts(c).opts),plan10=Math.round(Splan.savAt(RY())/c.gross*100),pRaise=+$('pb-raise').value,pBrk=+$('pb-brk').value;
+  var SplanAll=pbSim(c,Object.assign({},pbOpts(c).opts,{brk:1e7})),all10=Math.round(SplanAll.savAt(RY())/c.gross*100);   // same plan, every leftover dollar invested
+  var planAge=Splan.coast?'age <strong>'+Splan.coast+'</strong>':'<strong>age '+retAge()+' or later</strong>';
+  var planDesc=pBrk>0?'a '+fkPrecise(pBrk)+'/mo brokerage transfer'+(pRaise>0?' raised '+fkPrecise(pRaise)+'/mo every year':''):'an automatic brokerage transfer that starts small and rises '+fkPrecise(pRaise)+'/mo every year';
+  // Nobody invests every leftover dollar: lead with the plan, show "all of it" as the ceiling
+  function realLine(floorTxt){
+    if(pRaise===0&&pBrk===0)return 'Invested automatically, work becomes optional at '+coastAge+' (saving '+auto10+'% in year '+RY()+'). If it drifts into spending, '+floorTxt+'. ';
+    return 'Nobody invests all of it — new expenses come up. On the Playbook plan ('+planDesc+'), work becomes optional at '+planAge+' (saving '+plan10+'% in year '+RY()+'). '+
+      (SplanAll.coast&&SplanAll.coast<(Splan.coast||99)?'Investing every leftover dollar would make it '+SplanAll.coast+' ('+all10+'%); letting it all drift into spending, ':'Letting it all drift into spending: ')+floorTxt+'. ';
+  }
   var coast25=coastAt(c.gross*0.25),coast12=coastAt(c.gross*0.12);
   var coastAge=coastEst?'age <strong>'+coastEst+'</strong>':'<strong>age '+retAge()+' or later</strong>';
   var extraVsIdeal=(coastEst&&coast25&&coastEst>coast25)?(coastEst-coast25):(!coastEst&&coast25?(retAge()-coast25):null);
@@ -2002,12 +2012,10 @@ function calcWaterfall(c){
       var same=coastEst===floorAge||(coastEst&&floorAge&&Math.abs(coastEst-floorAge)<=1);
       msg='box-a|Room to save today: '+c.srPct+'% — but the house plan needs it|After the app\'s estimated spending about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> is left over, on top of '+fk(c.payRet+c.emp)+' going into retirement plans through payroll. '+
         'Until you buy in year '+c.buyYr+', the down payment fund takes about <strong>'+fk(HB.dpYr)+' a year</strong>; after that, owning costs about '+fk(HB.houseExtra)+' a year more than your rent, leaving about <strong>'+fk(after)+' a year</strong> for the brokerage. '+
-        'Invested automatically, work becomes optional at '+coastAge+' (saving '+auto10+'% in year '+RY()+'). '+(same?'If it drifts into spending, the answer barely changes — <strong>the house, not automation, sets your timeline</strong>. The down payment card below shows a later or smaller option.':'If it drifts into spending and only the retirement accounts get funded, work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>.')+
+        (same?'Invested automatically, work becomes optional at '+coastAge+' (saving '+auto10+'% in year '+RY()+'). If it drifts into spending, the answer barely changes — <strong>the house, not automation, sets your timeline</strong>. The down payment card below shows a later or smaller option.':realLine((floorAge?'age '+floorAge:retAge()+' or later')))+
         ' <em>Turn on "Find my real savings rate" to check against your real numbers.</em>';
     } else msg='box-b|Room to save: '+c.srPct+'% — if you actually invest it|After the app\'s estimated spending, about <strong>'+fk(Math.max(0,c.cashLeft))+' a year</strong> of cash is left over, on top of '+fk(c.payRet+c.emp)+' going into retirement plans through payroll. '+
-      'If that is automated into savings, work becomes optional at '+coastAge+(Math.abs(auto10-c.srPct)>=1?' (saving '+auto10+'% in year '+RY()+''+(c.buyYr>0?', after the house':'')+')':'')+'. '+
-      'If it drifts into spending instead — the usual outcome — and only the retirement accounts get funded ('+floorSR+'% of income'+(c.buyYr>0?' in year '+RY()+'':'')+'), work becomes optional at <strong>'+(floorAge?'age '+floorAge:retAge()+' or later')+'</strong>. '+
-      'The difference is whether the leftover is automated on day one. '+(c.colOn&&c.colStart>0?'College starts in '+c.colStart+' year'+(c.colStart!==1?'s':'')+' and will take part of this — up to '+fk(Math.max.apply(null,[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25].map(c.colAt)))+' a year; the ages above already count it. ':'')+'<em>Turn on "Find my real savings rate" to see what you actually save.</em>';
+      realLine((floorAge?'age '+floorAge:retAge()+' or later')+' ('+floorSR+'%)')+(c.colOn&&c.colStart>0?'College starts in '+c.colStart+' year'+(c.colStart!==1?'s':'')+' and will take part of this — up to '+fk(Math.max.apply(null,[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25].map(c.colAt)))+' a year; the ages above already count it. ':'')+'<em>Turn on "Find my real savings rate" to see what you actually save.</em>';
   }
 
   // Down payment: three ways to buy, and what a forced early sale costs
@@ -3424,10 +3432,11 @@ function calcPlay(){
   if(sqFund>0&&!c.actual&&pbOpts(c).short===0)moves.push({p:94,t:'Set aside '+fk(sqFund)+' for the '+(c.colOn?'college':'school')+' years',d:'From year '+(sqFirst+1)+' to '+(sqLast+1)+', school and college cost up to '+fk(sqPeak)+' a year more than today — more than the '+fk(roomYr)+' your budget leaves. Put about '+fkPrecise(sqMo)+'/mo into a separate account (high-yield savings, short-term Treasuries'+(c.colOn?', or the 529':'')+') starting now, so those years don\'t eat your retirement savings or land on a credit card.'});
   var roomMo=Math.max(0,Math.round((roomYr/12-sqMo)/50)*50);
   var GMafter=GM.buying?Math.max(0,Math.round((GM.opts.cashFree(GM.opts.buyYr)-GM.opts.cashOut)/12/50)*50-sqMo):roomMo;   // leftover once the home is bought
-  if(brk===0&&!c.actual&&GM.short===0&&GM.buying&&GMafter>roomMo+500&&GMafter>=1000){
-    // Buying later: the down payment fund takes most of the leftover until you buy; after that, much more is free. Invest whatever is left each year.
-    var xA=pbSim(c,{brk:1e7,raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}),xF0=pbFlat(c);
-    moves.push({p:91,t:'Invest what your budget leaves — automatically',d:'After the app\'s estimated spending'+(sqMo>0?' and the college fund':'')+', about '+fkPrecise(roomMo)+'/mo is left while the down payment fund fills, and about '+fkPrecise(GMafter)+'/mo once you own (year '+GM.opts.buyYr+'). Make it an automatic brokerage transfer on payday, and raise it the month you close. On your numbers, that makes work optional '+(xA.coast?'at '+xA.coast:'not before '+retAge())+(xF0.coast?' instead of '+xF0.coast:'')+', with full retirement at '+(xA.fi||'—')+' instead of '+(xF0.fi||'—')+'.'});}
+  var leftAfter=GM.buying&&GMafter>roomMo+500?GMafter:0;   // buying later: the leftover jumps once you own
+  if(brk===0&&!c.actual&&GM.short===0&&raise>0&&Math.max(roomMo,leftAfter)>=1000){
+    // Realistic headline: nobody invests every leftover dollar — new expenses take part of it. The plan is a transfer that starts small and rises every year.
+    var xA=pbSim(c,Object.assign({},opts,{brk:1e7})),xF0=pbFlat(c),pS=Math.round(plan.savAt(RY())/c.gross*100);
+    moves.push({p:91,t:'Automate the brokerage — start small, raise it '+fkPrecise(raise)+'/mo every year',d:'Your budget leaves about '+fkPrecise(roomMo)+'/mo'+(leftAfter?' now and about '+fkPrecise(leftAfter)+'/mo once you own (year '+GM.opts.buyYr+')':'')+', but new expenses always claim part of it. Set up an automatic transfer on payday before they do, and raise it every January and with every pay raise. On your numbers that makes work optional '+(plan.coast?'at '+plan.coast:'not before '+retAge())+' (saving '+pS+'% in year '+RY()+')'+(xF0.coast!==plan.coast?' instead of '+(xF0.coast||retAge()+' or later'):'')+'.'+(xA.coast&&xA.coast<(plan.coast||99)?' Every extra dollar moves it toward '+xA.coast+' — the age if all of it were invested.':'')});}
   else if(brk===0&&!c.actual&&roomMo>=1000){var xR=pbSim(c,{brk:roomMo,raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}),xF=pbFlat(c);
     moves.push({p:91,t:'Invest the '+fkPrecise(roomMo)+'/mo your budget leaves — automatically',d:'After the app\'s estimated spending'+(sqMo>0?' and the college fund':'')+', about '+fkPrecise(roomMo)+'/mo is left and not going anywhere. Make it an automatic brokerage transfer on payday — or start with half and raise it every quarter. On your numbers, that alone makes work optional '+(xR.coast?'at '+xR.coast:'not before '+retAge())+(xF.coast?' instead of '+xF.coast:'')+', with full retirement at '+(xR.fi||'—')+' instead of '+(xF.fi||'—')+'.'});}
   else if(!c.actual&&pbOpts(c).short>0){}   // short budget: 'Close the gap' comes first; no brokerage move until there's room
