@@ -227,6 +227,12 @@ details.pb-more[open]>summary{margin-bottom:9px;}
 #sumbar .sb-i{display:flex;flex-direction:column;line-height:1.2;}
 #sumbar .sb-l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--mg);}
 .sr .sv{cursor:pointer;border-bottom:1px dotted var(--mg);}
+#pb-checkin .ck{border:1px solid var(--bdr);border-radius:9px;padding:10px 12px;background:var(--bg);}
+#pb-checkin table{width:100%;border-collapse:collapse;margin-top:6px;}
+#pb-checkin td,#pb-checkin th{padding:5px 6px;border-top:1px solid var(--bdr);text-align:right;font-size:14px;}
+#pb-checkin td:first-child,#pb-checkin th:first-child{text-align:left;}
+#pb-checkin th{font-weight:600;color:var(--mg);border-top:none;}
+#pb-backup.warn{color:var(--dk);background:#fdf6e3;border:1px solid #ecd9a8;border-radius:8px;padding:8px 10px;}
 #modeoffer{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;overflow-y:auto;padding:16px 10px;}
 #modeoffer .sheet{background:var(--card);max-width:520px;margin:40px auto 0;border-radius:14px;padding:18px;}
 #modeoffer h2{font-size:18px;margin-bottom:6px;}
@@ -645,12 +651,14 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <div style="font-size:11px;color:var(--mg);margin-top:2px" id="pb-sub"></div>
       </div>
       <div class="no-print" style="display:flex;gap:6px">
-        <button class="btn" onclick="window.print()">🖨 Print / save PDF</button>
-        <button class="btn ghost" onclick="copyPlanLink(this)">🔗 Copy my plan link</button>
+        <button class="btn" onclick="ckSave(true);window.print()">🖨 Print / save PDF</button>
+        <button class="btn ghost" onclick="ckSave(true);copyPlanLink(this)">🔗 Copy my plan link</button>
         <button class="btn ghost" onclick="if(confirmReset())resetState()">Reset</button>
       </div>
     </div>
-    <div class="hint no-print" style="margin:8px 0 0">Built from My Numbers — change anything there or below and this updates. Saved privately on this device only. Use <strong>Copy my plan link</strong> to open it elsewhere. Come back each year and update it.</div>
+    <div class="hint no-print" style="margin:8px 0 0">Built from My Numbers — change anything there or below and this updates. Come back each year, and whenever something big changes (a new job, a house, a child, school), and save a check-in.</div>
+    <div class="hint no-print" id="pb-backup" style="margin:6px 0 0"></div>
+    <div id="pb-checkin" style="margin-top:10px"></div>
   </div>
 
   <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
@@ -3027,6 +3035,7 @@ function calcPlay(){
   else if(c.actual&&raise>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> Each yearly raise of '+fkPrecise(raise)+'/mo comes out of spending, because the app holds your pay flat after inflation: by year '+RY()+' you\'d be spending about <strong>'+fk(12*raise*RY())+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.</div>';
   out+='<div class="hint" style="margin-top:6px">'+(needLevel!==null?'For reference: a steady '+fkPrecise(needLevel)+'/mo from '+yr1+' makes you work-optional at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.':'For reference: no steady brokerage amount from '+yr1+' makes you work-optional by '+goal+'. Try a later goal age or lower retirement spending.')+'</div>';
   $('pb-outcome').innerHTML=out;
+  renderCheckin(c);
 
   // Steps
   var mo=function(a){return fkPrecise(a/12)+'<small>'+fk(a)+'/yr</small>';};
@@ -3563,6 +3572,59 @@ document.addEventListener('click',function(e){
 });
 
 // ── SAVE / RESTORE INPUTS (this browser only) ─────────────────────
+// ── CHECK-INS: a dated record of the plan, so a return visit shows what changed ──
+var CK_KEY='surgeonFI.checkins',LINK_KEY='surgeonFI.linkAt';
+function ckLoad(){try{var a=JSON.parse(localStorage.getItem(CK_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function ckStore(a){try{localStorage.setItem(CK_KEY,JSON.stringify(a.slice(-40)));}catch(e){}}
+function ckToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function ckDate(s){var p=s.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]+' '+(+p[2])+', '+p[0];}
+function ckNow(c){
+  var P=pbOpts(c),plan=pbSim(c,P.opts);
+  return {d:ckToday(),m:MODE,age:startAge(),coast:plan.coast||null,fi:plan.fi||null,sr:Math.round(plan.savAt(RY())/c.gross*100),ry:RY(),
+    nw:Math.round(startNW()),brk:+$('pb-brk').value,raise:+$('pb-raise').value,gross:Math.round(c.gross),act:!!c.actual};
+}
+function ckSave(quiet){
+  var c=getCosts(),n=ckNow(c),a=ckLoad().filter(function(x){return !(x.d===n.d&&x.m===n.m);});   // one per day per mode: the latest wins
+  a.push(n);ckStore(a);renderCheckin(c);
+  if(!quiet){var b=$('ck-btn');if(b){b.textContent='✓ Check-in saved';}}
+}
+function ckMerge(list){if(!Array.isArray(list))return;var a=ckLoad();list.forEach(function(x){if(x&&x.d&&!a.some(function(y){return y.d===x.d&&y.m===x.m;}))a.push(x);});a.sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0;});ckStore(a);}
+function renderCheckin(c){
+  var box=$('pb-checkin');if(!box)return;
+  var mine=ckLoad().filter(function(x){return x.m===MODE;}),today=ckToday();
+  var prev=mine.filter(function(x){return x.d<today;}),last=prev[prev.length-1],savedToday=mine.some(function(x){return x.d===today;});
+  var btn='<button class="btn ghost no-print" id="ck-btn" style="margin-top:8px" onclick="ckSave()">'+(savedToday?'✓ Check-in saved today — update it':'Save today\'s check-in')+'</button>';
+  var ageTxt=function(a){return a?String(a):'not by '+retAge();};
+  if(!last){
+    box.innerHTML='<div class="ck"><b>Check-ins</b><div class="hint" style="margin-top:4px">'+(savedToday?'Today\'s plan is saved. Next time you open the app — next year, or when something big changes — this box shows what moved since today.':'Save a check-in to record today\'s ages and savings. Next time you come back, this box shows what changed since then.')+'</div>'+btn+'</div>';
+    renderBackup();return;
+  }
+  var n=ckNow(c);
+  var yrsAgo=Math.max(0,Math.round((new Date(today)-new Date(last.d))/3.156e10*10)/10);
+  var moved=(last.coast&&n.coast)?last.coast-n.coast:null;
+  // later in life the same age is fewer years away, so compare ages, not years-from-now
+  var verdict=moved===null?(n.coast&&!last.coast?'Work is now optional at '+n.coast+' — before, it wasn\'t before '+retAge()+'.':(!n.coast&&last.coast?'Work is no longer optional before '+retAge()+' — it was '+last.coast+'.':'Still not work-optional before '+retAge()+'.')):
+    moved>0?'<b style="color:var(--g)">Work optional moved '+moved+' year'+(moved!==1?'s':'')+' sooner.</b>':moved<0?'<b style="color:var(--rd)">Work optional moved '+(-moved)+' year'+(moved!==-1?'s':'')+' later.</b>':'<b>Same work-optional age as last time.</b>';
+  var why=[];
+  if(n.brk!==last.brk)why.push('brokerage transfer '+fkPrecise(last.brk)+' → '+fkPrecise(n.brk)+'/mo');
+  if(n.raise!==last.raise)why.push('yearly raise '+fkPrecise(last.raise)+' → '+fkPrecise(n.raise)+'/mo');
+  if(Math.abs(n.gross-last.gross)>=10000)why.push('income '+fk(last.gross)+' → '+fk(n.gross));
+  if(n.act!==last.act)why.push(n.act?'now using your real savings':'now using estimates');
+  var row=function(l,a,b){return '<tr><td>'+l+'</td><td>'+a+'</td><td><b>'+b+'</b></td></tr>';};
+  var hist=prev.length>1?'<details class="how no-print" style="margin-top:6px"><summary>All check-ins ('+mine.length+')</summary><table><tr><th>Date</th><th>Work optional</th><th>Saving, yr 10</th><th>Net worth</th></tr>'+
+    mine.slice().reverse().map(function(x){return '<tr><td>'+ckDate(x.d)+'</td><td>'+ageTxt(x.coast)+'</td><td>'+x.sr+'%</td><td>'+fk(x.nw)+'</td></tr>';}).join('')+'</table></details>':'';
+  box.innerHTML='<div class="ck"><b>Since your check-in on '+ckDate(last.d)+'</b>'+(yrsAgo>=0.1?' <span style="color:var(--mg)">('+(yrsAgo>=1?yrsAgo+' year'+(yrsAgo!==1?'s':''):Math.round(yrsAgo*12)+' month'+(Math.round(yrsAgo*12)!==1?'s':''))+' ago)</span>':'')+
+    '<table><tr><th></th><th>Then</th><th>Now</th></tr>'+row('Work optional',ageTxt(last.coast),ageTxt(n.coast))+row('Full retirement',last.fi||'—',n.fi||'—')+row('Saving in year '+n.ry,last.sr+'%',n.sr+'%')+row('Net worth',fk(last.nw),fk(n.nw))+row('Brokerage transfer',fkPrecise(last.brk)+'/mo',fkPrecise(n.brk)+'/mo')+'</table>'+
+    '<div class="hint" style="margin-top:6px;color:var(--dk)">'+verdict+(why.length?' What changed: '+why.join('; ')+'.':'')+'</div>'+btn+hist+'</div>';
+  renderBackup();
+}
+function renderBackup(){
+  var el=$('pb-backup');if(!el)return;var at=null;try{at=localStorage.getItem(LINK_KEY);}catch(e){}
+  var stale=!at||(new Date(ckToday())-new Date(at))>3.156e10;
+  el.className='hint no-print'+(stale?' warn':'');
+  el.innerHTML=stale?'<b>Keep a backup.</b> Your numbers and check-ins live only in this browser — a new phone or a cleared browser erases them. Tap <strong>Copy my plan link</strong> and email it to yourself; opening that link restores everything.':
+    'Backup link copied '+ckDate(at)+'. Copy a fresh one after big changes — the newest link has everything, including your check-ins.';
+}
 var STATE_KEY='surgeonFI.v1',MODES_KEY='surgeonFI.modes',restoring=false,DEFAULTS=null;
 function modesLoad(){try{return JSON.parse(localStorage.getItem(MODES_KEY)||'{}')||{};}catch(e){return {};}}
 function modesSave(o){try{localStorage.setItem(MODES_KEY,JSON.stringify(o));}catch(e){}}
@@ -3610,7 +3672,7 @@ function restoreState(){
   var st=null;
   try{
     var m=location.hash.match(/plan=([^&]+)/);
-    if(m){st=JSON.parse(atob(decodeURIComponent(m[1])));history.replaceState(null,'',location.pathname);}
+    if(m){var raw=atob(decodeURIComponent(m[1]));try{st=JSON.parse(decodeURIComponent(escape(raw)));}catch(e2){st=JSON.parse(raw);}history.replaceState(null,'',location.pathname);if(st&&st.ci)ckMerge(st.ci);}
   }catch(e){st=null;}
   if(!st){try{st=JSON.parse(localStorage.getItem(STATE_KEY)||'null');}catch(e){}}
   if(!st||!st.v)return;
@@ -3626,8 +3688,9 @@ function restoreState(){
 }
 function stateObj(){var st={mode:MODE,dp:curDP,tab:CUR_TAB,v:{},ftf:ftfLoad()};document.querySelectorAll('.shell input[id], .shell select[id]').forEach(function(el){st.v[el.id]=el.type==='checkbox'?el.checked:el.value;});return st;}
 function copyPlanLink(btn){
-  var url=location.origin+location.pathname+'#plan='+encodeURIComponent(btoa(JSON.stringify(stateObj())));
-  var done=function(){var t=btn.textContent;btn.textContent='✓ Link copied';setTimeout(function(){btn.textContent=t;},2000);};
+  var st=stateObj();st.ci=ckLoad();
+  var url=location.origin+location.pathname+'#plan='+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(st)))));
+  var done=function(){var t=btn.textContent;btn.textContent='✓ Link copied';setTimeout(function(){btn.textContent=t;},2000);try{localStorage.setItem(LINK_KEY,ckToday());}catch(e){}renderBackup();};
   try{navigator.clipboard.writeText(url).then(done,function(){window.prompt('Copy your plan link:',url);});}
   catch(e){window.prompt('Copy your plan link:',url);}
 }
