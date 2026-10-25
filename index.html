@@ -515,8 +515,9 @@ details.nsec:not([open])>summary::after{margin-left:0;}
           <label class="tog"><input type="checkbox" id="col-on" onchange="go()"><span class="tsl"></span></label></div>
         <div id="col-opts" class="sub-opts" style="display:none">
           <div class="sr"><label>Per child per year</label>
-            <input type="range" min="10000" max="100000" step="5000" value="60000" id="col-amt" oninput="go()">
-            <span class="sv" id="col-amt-v">$60k</span></div>
+            <input type="range" min="10000" max="120000" step="5000" value="90000" id="col-amt" oninput="go()">
+            <span class="sv" id="col-amt-v">$90k</span></div>
+          <div class="hint" style="margin:0 0 4px">All-in: tuition, fees, housing and food. Selective private colleges run about $90–105k a year; the average private is about $61k, in-state public about $26k.</div>
           <div class="hint" style="margin:2px 0 2px">Where each child is with college:</div>
           <div id="col-kids-ui"></div>
           <input type="range" min="0" max="18" value="10" id="col-start" style="display:none"><span id="col-start-v" style="display:none"></span>
@@ -3273,7 +3274,7 @@ function calcPlay(){
     mv.push(['When a cost ends, keep paying it — to yourself',(endsHtml?'These end on their own:'+endsHtml:'Childcare, school, college, loans and car payments all end someday. ')+'The month each one ends, add the same amount to '+(gap>0?'closing the gap, then to ':'')+'the brokerage, before spending finds it.'+colNote+
       (gap===0&&redirGain?' Doing that with all of them makes work optional at <strong>age '+SR.coast+'</strong> instead of '+wo(S0)+' (saving '+sr10(SR)+' vs '+sr10(S0)+' in year '+RY()+').':'')]);
     if(c.colOn&&c.colIn.length){
-      mv.push(['College is the big bill you can still change','At '+fk(c.colAmt)+' a year per child, each year of an in-state public school (about $12k tuition plus room and board) instead saves tens of thousands. Merit aid is where surgeons\' children get discounts — need-based aid rarely applies. A student can also borrow $5,500–7,500 a year in federal loans in their own name. Price each choice on True Cost before the next acceptance letter.']);
+      mv.push(['College is the big bill you can still change','At '+fk(c.colAmt)+' a year per child, each year at an in-state public school (about $26k all-in) instead saves tens of thousands. Merit aid is where surgeons\' children get discounts — need-based aid rarely applies. A student can also borrow $5,500–7,500 a year in federal loans in their own name. Price each choice on True Cost before the next acceptance letter.']);
     }
     mv.push(['Bank half of every raise and bonus',gap>0?'Toward the gap until it\'s closed, then to the brokerage.':'You never had the money, so you won\'t miss it — and spending still grows. '+(raise>0?'Your plan already raises the brokerage by '+fkPrecise(raise)+'/mo every year.':'Your plan has no yearly raise yet — set one in "Your goal and your brokerage plan."')]);
     mv.push(['Add no new subscriptions','No car upgrade, second home or club until '+(gap>0?'the gap is closed and ':'')+'the walk-away fund below is built. Price anything new on the True Cost tab first: every $1,000/month of permanent cost takes about '+fk(12000/(1-0.46))+' a year of salary.']);
@@ -3324,7 +3325,7 @@ function calcPlay(){
   $('pb-col-card').style.display=c.nk>0?'block':'none';
   if(c.nk>0){
     var col=[
-      '<strong>What it costs (2025–26 averages):</strong> $45,000 a year in tuition and fees at a private college and $11,950 in-state public, before room and board. The most selective schools run far higher. A surgeon\'s income usually means no need-based aid — merit aid is where discounts come from.',
+      '<strong>What it costs, all-in:</strong> a selective private college now runs about $90,000–$105,000 a year for tuition, fees, housing and food — 16 schools are over $100,000 for 2026–27. National averages are lower: about $61,000 at private colleges and $26,000 in-state public (2025–26). A surgeon\'s income usually means no need-based aid — merit aid is where discounts come from.',
       '<strong>Retirement first.</strong> Max the retirement plans and Roths before large 529 deposits. Your kids can borrow for college; you can\'t borrow for retirement.',
       '<strong>The 529:</strong> grows tax-free when spent on school. New Jersey\'s 529 deduction only applies to incomes up to $200,000, so use any state\'s low-cost plan with index funds. '+(c.save529On?'You\'re putting '+fk(c.save529Amt/c.nk)+' a year per child into it.':'Turn on "Saving for 529" on My Numbers to include it in your budget.'),
       '<strong>Grandparents can help a lot:</strong> each can put in five years of gift exclusions at once — '+$L(LIM.giftExcl*5)+' per child, '+$L(LIM.giftExcl*10)+' from a couple — with no gift tax.',
