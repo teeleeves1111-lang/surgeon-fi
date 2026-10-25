@@ -227,6 +227,11 @@ details.pb-more[open]>summary{margin-bottom:9px;}
 #sumbar .sb-i{display:flex;flex-direction:column;line-height:1.2;}
 #sumbar .sb-l{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--mg);}
 .sr .sv{cursor:pointer;border-bottom:1px dotted var(--mg);}
+#modeoffer{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;overflow-y:auto;padding:16px 10px;}
+#modeoffer .sheet{background:var(--card);max-width:520px;margin:40px auto 0;border-radius:14px;padding:18px;}
+#modeoffer h2{font-size:18px;margin-bottom:6px;}
+#modeoffer p{font-size:15px;line-height:1.5;color:var(--dk);margin:6px 0;}
+#modeoffer .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
 #setup{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;overflow-y:auto;padding:16px 10px;}
 #setup .sheet{background:var(--card);max-width:520px;margin:0 auto;border-radius:14px;padding:16px;}
 #setup h2{font-size:17px;margin-bottom:4px;}
@@ -323,9 +328,9 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 
 <!-- MODE -->
 <div class="mode-bar">
-  <button class="mbtn on res" id="btn-res" onclick="setMode('res')">🏥 Resident
+  <button class="mbtn on res" id="btn-res" onclick="switchMode('res')">🏥 Resident
     <span>Planning for attending life</span></button>
-  <button class="mbtn" id="btn-att" onclick="setMode('att')">👨‍⚕️ Attending
+  <button class="mbtn" id="btn-att" onclick="switchMode('att')">👨‍⚕️ Attending
     <span>In practice</span></button>
 </div>
 
@@ -1159,6 +1164,12 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 <details class="foot"><summary style="cursor:pointer;font-weight:600">How the numbers work</summary>Tax model: 2026 federal brackets and standard deduction (married filing jointly or single), SALT cap with high-income phase-down, New Jersey brackets (NJ excludes 401(k) but not 403(b)/457 deferrals), Social Security (6.2% to $184,500 per earner) and Medicare (1.45% + 0.9% above $250k joint / $200k single), dependent care FSA ($7,500) when paying childcare, child tax credit phase-out. Excludes NJ disability/family-leave payroll deductions and employer match. Estimates for education only — not tax or financial advice. Updated October 2026.</details>
 
 </div><!-- /shell -->
+<div id="modeoffer" class="no-print"><div class="sheet">
+  <h2>Start your attending plan</h2>
+  <p id="mo-body"></p>
+  <div class="btns"><button class="btn" onclick="modeOfferPick('carry')">Start from my resident numbers</button><button class="btn ghost" onclick="modeOfferPick('fresh')">Start fresh</button><button class="btn ghost" onclick="modeOfferPick('cancel')">Cancel</button></div>
+  <p style="font-size:13px;color:var(--mg)">Your resident numbers stay saved — tap Resident any time to go back to them.</p>
+</div></div>
 <div id="setup"><div class="sheet">
   <h2>Quick setup</h2>
   <div style="font-size:12px;color:var(--mg)">Eight quick questions. You can change anything later. Your answers stay on this device.</div>
@@ -1328,13 +1339,6 @@ function setMode(m){
   $('att-sens').style.display=m==='att'?'block':'none';
   $('fi-sens').style.display=m==='att'?'block':'none';
   $('inp-title').textContent=m==='res'?'Your situation':'Your current situation';
-  if(m==='att'&&+$('nw').value<-100000){
-    $('nw').value=150000;
-    if(!$('house').checked) $('house').checked=true;
-  }
-  if(m==='res'&&+$('nw').value>200000){
-    $('nw').value=-260000;
-  }
   go();
   syncFISR();
 }
@@ -3529,6 +3533,7 @@ document.addEventListener('click',function(e){
 });
 function applySetup(){
   var stage=chipVal('stage');
+  if(stage!==MODE){var M0=modesLoad();M0[MODE]=stateObj();modesSave(M0);}
   setMode(stage);
   $('age').max=stage==='att'?64:55;$('age').value=+$('su-age').value||30;
   if(stage==='res')$('yrs-left').value=$('su-yrs').value;
@@ -3558,12 +3563,48 @@ document.addEventListener('click',function(e){
 });
 
 // ── SAVE / RESTORE INPUTS (this browser only) ─────────────────────
-var STATE_KEY='surgeonFI.v1',restoring=false;
+var STATE_KEY='surgeonFI.v1',MODES_KEY='surgeonFI.modes',restoring=false,DEFAULTS=null;
+function modesLoad(){try{return JSON.parse(localStorage.getItem(MODES_KEY)||'{}')||{};}catch(e){return {};}}
+function modesSave(o){try{localStorage.setItem(MODES_KEY,JSON.stringify(o));}catch(e){}}
 function saveState(){
   if(restoring)return;
   try{
-    localStorage.setItem(STATE_KEY,JSON.stringify(stateObj()));
+    var st=stateObj();
+    localStorage.setItem(STATE_KEY,JSON.stringify(st));
+    var M=modesLoad();M[MODE]=st;modesSave(M);   // each mode keeps its own numbers
   }catch(e){}
+}
+function applyValues(v){
+  Object.keys(v).forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    var x=v[id];if(id==='car-cost'&&x==='33600')x='48000'; // old 'two luxury leases' value
+    if(el.type==='range'){if(+x>+el.max)el.max=x;if(+x<+el.min)el.min=x;}   // a limit set by another input isn't restored yet; go() re-applies it
+    if(el.type==='checkbox')el.checked=!!x;else el.value=x;
+  });
+  $('sal-override').style.display=v['sal-override-on']?'inline-block':'none';
+}
+// Resident ↔ Attending: each keeps its own numbers. Resident → Attending the first time offers to carry the resident plan forward; never the other way.
+function switchMode(m){
+  if(m===MODE)return;
+  var M=modesLoad();M[MODE]=stateObj();modesSave(M);
+  if(M[m]&&M[m].v){restoring=true;setMode(m);applyValues(M[m].v);restoring=false;go();saveState();return;}
+  if(m==='att'){
+    var yl=+$('yrs-left').value||0;
+    $('mo-body').innerHTML='Use your household, kids, home plan, loans and specialty as they are now, '+(yl>0?'with your age moved ahead '+yl+' year'+(yl!==1?'s':'')+' to when you finish training':'with your age as it is')+'. Check your net worth and salary once you\'re there. Or start fresh with typical attending numbers.';
+    $('modeoffer').style.display='block';return;
+  }
+  // Attending → Resident with nothing saved: resident defaults, not the attending's numbers
+  restoring=true;setMode('res');applyValues(DEFAULTS);restoring=false;go();saveState();
+}
+function modeOfferPick(k){
+  $('modeoffer').style.display='none';
+  if(k==='cancel')return;
+  var yl=+$('yrs-left').value||0,age=+$('age').value;
+  restoring=true;
+  if(k==='fresh'){applyValues(DEFAULTS);setMode('att');$('age').value=Math.max(33,age+yl);$('nw').value=0;}
+  else{setMode('att');$('age').value=Math.min(+$('age').max,age+yl);}
+  $('pyrs-set').checked=false;
+  restoring=false;go();saveState();
 }
 function restoreState(){
   var st=null;
@@ -3576,13 +3617,7 @@ function restoreState(){
   restoring=true;
   try{
     if(st.mode==='att')setMode('att');
-    Object.keys(st.v).forEach(function(id){
-      var el=document.getElementById(id);if(!el)return;
-      var v=st.v[id];if(id==='car-cost'&&v==='33600')v='48000'; // old 'two luxury leases' value
-      if(el.type==='range'){if(+v>+el.max)el.max=v;if(+v<+el.min)el.min=v;}   // a limit set by another input (private school ≤ children − daycare) isn't restored yet; go() re-applies it
-      if(el.type==='checkbox')el.checked=!!v;else el.value=v;
-    });
-    if(st.v['sal-override-on'])$('sal-override').style.display='inline-block';
+    applyValues(st.v);
     if(st.dp)setDP(st.dp);
     if(st.ftf&&m)try{localStorage.setItem(FTF_KEY,JSON.stringify(st.ftf));}catch(e){}
   }catch(e){}
@@ -3600,12 +3635,13 @@ function confirmReset(){var b=document.activeElement;if(b&&b.dataset.armed){retu
 window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
 window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
 function resetState(){
-  try{localStorage.removeItem(STATE_KEY);}catch(e){}
+  try{localStorage.removeItem(STATE_KEY);localStorage.removeItem(MODES_KEY);}catch(e){}
   location.reload();
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
 var _hadState=false;try{_hadState=!!localStorage.getItem(STATE_KEY)||/plan=/.test(location.hash)||!!localStorage.getItem('surgeonFI.setupSeen');}catch(e){}
+DEFAULTS=stateObj().v;   // the app's starting numbers (resident), before anything saved is restored
 restoreState();
 go();
 if(window.matchMedia&&matchMedia('(max-width:500px)').matches)document.querySelectorAll('details.nsec').forEach(function(d){d.open=false;});   // phones: sections start folded, with their one-line summary
