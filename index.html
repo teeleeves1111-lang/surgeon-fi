@@ -300,6 +300,22 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   /* long hints under inputs: two lines, tap to read the rest */
   #tab-reality .card .hint:not(.open){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;}
 }
+/* ── Laptops and projectors: same readable type scale as phones (nothing under 12px); layout unchanged ── */
+@media screen and (min-width:501px){
+  body{font-size:15px;}
+  [style*="font-size:8px"],[style*="font-size:9px"]{font-size:12px!important;}
+  [style*="font-size:10px"]{font-size:13px!important;}
+  [style*="font-size:11px"]{font-size:14px!important;}
+  [style*="font-size:12px"],[style*="font-size:12.5px"]{font-size:15px!important;}
+  [style*="font-size:13px"]{font-size:15px!important;}
+  .tag,.ms-lbl,.ms-sub,#sumbar .sb-l{font-size:12px;}
+  .ctitle,.subhd,.ml,.ms,.tbl th,.foot,.sal-r,.mbtn span,.fu-lbl,.wfamt,.wfp,.pb-amt small,.nr label small{font-size:13px;}
+  .hint,.nsec-sum{font-size:13px;}
+  .hdr p,.box-body,.oop-detail,.oop-amt,.tbl,.sens-l,.pb-d,.pb-flag,.fu p,details.how,details.how>summary,details.how .how-h,.wfl,.ms-age,.ms-dot,.pb-n,.oop-n{font-size:14px;}
+  .sr label,.trow label:first-child,.nr label,.nr .nin span,.tab,.ptab,.btn,.box-title,.oop-title,.pb-t,.pb-flag b,.pb-amt,.sv,.sr select,#setup .q>label,#setup .ql,#setup .chip,#setup .row,#sumbar{font-size:15px;}
+  #sumbar b,.sens-v{font-size:16px;}
+  .hdr h1{font-size:20px;}
+}
 </style>
 </head>
 <body>
@@ -3407,7 +3423,12 @@ function calcPlay(){
   var sqMo=sqFund>0?Math.round(sqFund/Math.max(1,sqFirst)/12/50)*50:0;
   if(sqFund>0&&!c.actual&&pbOpts(c).short===0)moves.push({p:94,t:'Set aside '+fk(sqFund)+' for the '+(c.colOn?'college':'school')+' years',d:'From year '+(sqFirst+1)+' to '+(sqLast+1)+', school and college cost up to '+fk(sqPeak)+' a year more than today — more than the '+fk(roomYr)+' your budget leaves. Put about '+fkPrecise(sqMo)+'/mo into a separate account (high-yield savings, short-term Treasuries'+(c.colOn?', or the 529':'')+') starting now, so those years don\'t eat your retirement savings or land on a credit card.'});
   var roomMo=Math.max(0,Math.round((roomYr/12-sqMo)/50)*50);
-  if(brk===0&&!c.actual&&roomMo>=1000){var xR=pbSim(c,{brk:roomMo,raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}),xF=pbFlat(c);
+  var GMafter=GM.buying?Math.max(0,Math.round((GM.opts.cashFree(GM.opts.buyYr)-GM.opts.cashOut)/12/50)*50-sqMo):roomMo;   // leftover once the home is bought
+  if(brk===0&&!c.actual&&GM.short===0&&GM.buying&&GMafter>roomMo+500&&GMafter>=1000){
+    // Buying later: the down payment fund takes most of the leftover until you buy; after that, much more is free. Invest whatever is left each year.
+    var xA=pbSim(c,{brk:1e7,raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}),xF0=pbFlat(c);
+    moves.push({p:91,t:'Invest what your budget leaves — automatically',d:'After the app\'s estimated spending'+(sqMo>0?' and the college fund':'')+', about '+fkPrecise(roomMo)+'/mo is left while the down payment fund fills, and about '+fkPrecise(GMafter)+'/mo once you own (year '+GM.opts.buyYr+'). Make it an automatic brokerage transfer on payday, and raise it the month you close. On your numbers, that makes work optional '+(xA.coast?'at '+xA.coast:'not before '+retAge())+(xF0.coast?' instead of '+xF0.coast:'')+', with full retirement at '+(xA.fi||'—')+' instead of '+(xF0.fi||'—')+'.'});}
+  else if(brk===0&&!c.actual&&roomMo>=1000){var xR=pbSim(c,{brk:roomMo,raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}),xF=pbFlat(c);
     moves.push({p:91,t:'Invest the '+fkPrecise(roomMo)+'/mo your budget leaves — automatically',d:'After the app\'s estimated spending'+(sqMo>0?' and the college fund':'')+', about '+fkPrecise(roomMo)+'/mo is left and not going anywhere. Make it an automatic brokerage transfer on payday — or start with half and raise it every quarter. On your numbers, that alone makes work optional '+(xR.coast?'at '+xR.coast:'not before '+retAge())+(xF.coast?' instead of '+xF.coast:'')+', with full retirement at '+(xR.fi||'—')+' instead of '+(xF.fi||'—')+'.'});}
   else if(!c.actual&&pbOpts(c).short>0){}   // short budget: 'Close the gap' comes first; no brokerage move until there's room
   else if(brk===0)moves.push({p:90,t:'Start an automatic brokerage transfer — even '+fkPrecise(Math.max(250,needRaise||500))+'/mo',d:'It\'s the only account with no limit, and it\'s what makes you work-optional. Start small, but start, and raise it every year.'});
