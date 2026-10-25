@@ -210,6 +210,15 @@ details.fold[open]>summary{margin-bottom:8px;}
 .pb-flag b{font-size:12px;}
 .pb-flag.r{background:var(--lrd);border-color:var(--rd);} .pb-flag.a{background:var(--lam);border-color:var(--am);} .pb-flag.g{background:var(--lg);border-color:var(--g);} .pb-flag.b{background:var(--lb);border-color:var(--b);}
 .pb-big{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.pb-big .pb-ladder{grid-column:1/-1;background:var(--card);border:1px solid var(--accent);border-radius:9px;padding:10px 12px;font-size:15px;line-height:1.45;text-align:left;}
+.pb-big .pb-ladder b{color:var(--accent);}
+details.pb-full{margin:12px 0;}
+details.pb-full>summary{list-style:none;cursor:pointer;background:var(--card);border:1px solid var(--accent);border-radius:10px;padding:12px 14px;font-weight:700;font-size:16px;color:var(--accent);}
+details.pb-full>summary::-webkit-details-marker{display:none;}
+details.pb-full>summary::before{content:'▸ ';}
+details.pb-full[open]>summary::before{content:'▾ ';}
+details.pb-full>summary span{display:block;font-weight:400;font-size:13px;color:var(--mg);margin-top:3px;}
+details.pb-full[open]>summary{margin-bottom:10px;}
 .pb-big .met{text-align:center;}
 .btn{padding:8px 14px;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-family:var(--font);}
 .btn.ghost{background:var(--card);color:var(--accent);}
@@ -650,23 +659,22 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <div style="font-size:15px;font-weight:700" id="pb-title">Your financial playbook</div>
         <div style="font-size:11px;color:var(--mg);margin-top:2px" id="pb-sub"></div>
       </div>
-      <div class="no-print" style="display:flex;gap:6px">
-        <button class="btn" onclick="ckSave(true);window.print()">🖨 Print / save PDF</button>
-        <button class="btn ghost" onclick="ckSave(true);copyPlanLink(this)">🔗 Copy my plan link</button>
-        <button class="btn ghost" onclick="if(confirmReset())resetState()">Reset</button>
-      </div>
+      <button class="btn ghost no-print" style="padding:5px 10px" onclick="document.getElementById('pb-save').scrollIntoView({behavior:'smooth'})">Save / print ↓</button>
     </div>
-    <div class="hint no-print" style="margin:8px 0 0">Built from My Numbers — change anything there or below and this updates. Come back each year, and whenever something big changes (a new job, a house, a child, school), and save a check-in.</div>
-    <div class="hint no-print" id="pb-backup" style="margin:6px 0 0"></div>
-    <div id="pb-checkin" style="margin-top:10px"></div>
   </div>
+  <div id="pb-ck-top"></div>
 
   <div class="pb-big" id="pb-big" style="margin-bottom:10px"></div>
   <div class="card pb-top"><div class="ctitle" style="color:var(--accent)">Your top three moves</div><div id="pb-top3"></div></div>
+  <div class="card" id="pb-flags-card">
+    <div class="ctitle">What to watch in your situation</div>
+    <div id="pb-flags"></div>
+  </div>
   <div class="card"><div class="ctitle"><span id="ftf-title">First things first — before you invest a dollar</span> <span id="ftf-prog" style="float:right;color:var(--accent);text-transform:none;letter-spacing:0"></span></div>
     <div class="hint">Tap an item to see why and how. Tick it off when it's done — this device remembers.</div>
     <div id="pb-basics"></div></div>
 
+  <details class="pb-full" id="pb-full"><summary>Your full plan<span>Change the plan, your goal age and settings · the monthly autopilot, in order · your brokerage year by year</span></summary><div class="pb-full-in">
   <div class="g2">
     <div class="card no-print">
       <div class="ctitle">Your goal and your brokerage plan</div>
@@ -738,12 +746,9 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div style="overflow-x:auto"><table class="tbl" id="pb-ramp"></table></div>
   </details>
 
-  <div class="card" id="pb-flags-card">
-    <div class="ctitle">What to watch in your situation</div>
-    <div id="pb-flags"></div>
-  </div>
+  </div></details>
 
-  <div class="ctitle" style="margin:16px 2px 6px">The playbook — tap a section to open</div>
+  <div class="ctitle" style="margin:16px 2px 6px">Reference — tap a section to open</div>
   <details class="card pb-more">
     <summary class="ctitle" id="pb-chk-title">Timeline</summary>
     <div id="pb-chk"></div>
@@ -829,6 +834,17 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="hint" style="margin-top:6px">Online: whitecoatinvestor.com · bogleheads.org/wiki · studentaid.gov (loans and PSLF)</div>
   </details>
 
+  <div class="card" id="pb-save">
+    <div class="ctitle">Save, print, come back</div>
+    <div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn" onclick="ckSave(true);window.print()">🖨 Print / save PDF</button>
+      <button class="btn ghost" onclick="ckSave(true);copyPlanLink(this)">🔗 Copy my plan link</button>
+      <button class="btn ghost" onclick="if(confirmReset())resetState()">Reset</button>
+    </div>
+    <div class="hint no-print" id="pb-backup" style="margin:8px 0 0"></div>
+    <div class="hint no-print" style="margin:6px 0 0">Built from My Numbers — change anything there and this updates. Come back each year, and whenever something big changes (a new job, a house, a child, school), and save a check-in.</div>
+    <div id="pb-ck-bottom" style="margin-top:10px"></div>
+  </div>
   <div class="box box-g"><div class="box-body" style="font-size:12px;text-align:center">Financial independence isn't about being rich. It's about having enough — so your time belongs to you.</div></div>
   <div class="hint">Figures current for <span class="data-yr">2026</span> tax year · last reviewed <span id="pb-reviewed"></span>. Assumptions: 5% real return, amounts in today's dollars, salary held flat in real terms, retirement spending from the Paths & Retirement tab. Social Security and employer contributions are not included — both make the picture better. Education only, not individual financial advice.</div>
 </div>
@@ -2896,6 +2912,12 @@ function calcRentBuy(){
 // ── MY PLAYBOOK ───────────────────────────────────────────────────
 // The one 'if nothing changes' path every tab uses: today's saving, the house paid for, no raises or redirects.
 // extra = $/yr more (or less) saved every year — what the 'What if' slider moves.
+function pbLadder(c,plan,opts){   // the one thing to do, in dollars: what goes into the brokerage in years 1, 5 and 10
+  if(opts.short>0)return '<div class="pb-ladder"><b>First, close the gap:</b> spending is about '+fk(opts.short)+' a year more than take-home allows. Until that\'s fixed there\'s nothing to invest — see your top move below.</div>';
+  var y=[1,5,RY()].filter(function(v,k,a){return a.indexOf(v)===k;}),v=y.map(function(k){return brkMoY(c,plan,k);});
+  if(v.every(function(x){return !x;}))return '<div class="pb-ladder"><b>Your one number:</b> start an automatic brokerage transfer — any amount — and raise it every year. That account, not the 401(k), decides when work becomes optional.</div>';
+  return '<div class="pb-ladder"><b>Your one number — into a brokerage account each month:</b> '+y.map(function(k,n){return fkPrecise(v[n]||0)+' in year '+k;}).join(' → ')+'. On top of the 401(k)/403(b) and Roths. Automate it, and raise it with every raise and every cost that ends.</div>';
+}
 function brkMoY(c,m,y){var s=m.savAt(y);if(s<0)return null;return Math.max(0,Math.round((s-pbOpts(c).taxAdv)/12/50)*50);}
 function brkTxt(c,m,y){var b=brkMoY(c,m,y);return b===null?'a deficit':fkPrecise(b)+'/mo';}
 function pbFlat(c,extra){return pbSim(c,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0,extra:extra||0});}
@@ -3018,9 +3040,9 @@ function calcPlay(){
   var srNow=pct(sav0),sr10=pct(plan.savAt(RY()));
   var ageTxt=function(m){return m.coast?'Age '+m.coast:'Not before '+retAge();};
   $('pb-big').innerHTML=[
-    {l:'If nothing changes — brokerage stays at '+fkPrecise(brk)+'/mo',v:ageTxt(flat),s:'work optional · full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'<br>'+(brk>0?'your retirement accounts + this transfer':'your retirement accounts only'),c:flat.coast?'warn':'bad'},
-    {l:'With this plan — brokerage reaching '+brkTxt(c,plan,RY())+' by year '+RY(),v:ageTxt(plan),s:'work optional · full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'<br>the yearly raises'+(opts.dcRedir?', childcare':'')+(opts.loanRedir?', loans':'')+' and anything else you set below',c:goalMet&&!(opts.short>0)?'good':plan.coast?'warn':'bad'},
-  ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
+    {l:'If nothing changes',v:ageTxt(flat),s:'work optional · full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'<br>'+(brk>0?'retirement accounts + '+fkPrecise(brk)+'/mo brokerage':'retirement accounts only, no brokerage'),c:flat.coast?'warn':'bad'},
+    {l:'With this plan',v:ageTxt(plan),s:'work optional · full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'<br>brokerage '+brkTxt(c,plan,RY())+' by year '+RY()+(opts.dcRedir||opts.loanRedir?' (incl. '+(opts.dcRedir?'childcare':'')+(opts.dcRedir&&opts.loanRedir?' + ':'')+(opts.loanRedir?'loans':'')+' redirected)':''),c:goalMet&&!(opts.short>0)?'good':plan.coast?'warn':'bad'},
+  ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('')+pbLadder(c,plan,opts);
 
   // Outcome
   var planCut=plan.capYr!==null?pbSim(c,Object.assign({},opts,{uncapped:true})):null;
@@ -3589,7 +3611,7 @@ function ckToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 function ckDate(s){var p=s.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]+' '+(+p[2])+', '+p[0];}
 function ckNow(c){
   var P=pbOpts(c),plan=pbSim(c,P.opts);
-  return {d:ckToday(),m:MODE,age:startAge(),coast:plan.coast||null,fi:plan.fi||null,sr:Math.round(plan.savAt(RY())/c.gross*100),ry:RY(),
+  return {d:ckToday(),m:MODE,age:startAge(),coast:plan.coast||null,fi:plan.fi||null,sr:Math.round(plan.savAt(RY())/c.gross*100),bk:brkMoY(c,plan,RY()),ry:RY(),
     nw:Math.round(startNW()),brk:+$('pb-brk').value,raise:+$('pb-raise').value,gross:Math.round(c.gross),act:!!c.actual};
 }
 function ckSave(quiet){
@@ -3599,9 +3621,9 @@ function ckSave(quiet){
 }
 function ckMerge(list){if(!Array.isArray(list))return;var a=ckLoad();list.forEach(function(x){if(x&&x.d&&!a.some(function(y){return y.d===x.d&&y.m===x.m;}))a.push(x);});a.sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0;});ckStore(a);}
 function renderCheckin(c){
-  var box=$('pb-checkin');if(!box)return;
   var mine=ckLoad().filter(function(x){return x.m===MODE;}),today=ckToday();
   var prev=mine.filter(function(x){return x.d<today;}),last=prev[prev.length-1],savedToday=mine.some(function(x){return x.d===today;});
+  var box=last?$('pb-ck-top'):$('pb-ck-bottom'),other=last?$('pb-ck-bottom'):$('pb-ck-top');if(!box)return;other.innerHTML='';box.style.marginBottom=last?'10px':'';
   var btn='<button class="btn ghost no-print" id="ck-btn" style="margin-top:8px" onclick="ckSave()">'+(savedToday?'✓ Check-in saved today — update it':'Save today\'s check-in')+'</button>';
   var ageTxt=function(a){return a?String(a):'not by '+retAge();};
   if(!last){
@@ -3620,10 +3642,10 @@ function renderCheckin(c){
   if(Math.abs(n.gross-last.gross)>=10000)why.push('income '+fk(last.gross)+' → '+fk(n.gross));
   if(n.act!==last.act)why.push(n.act?'now using your real savings':'now using estimates');
   var row=function(l,a,b){return '<tr><td>'+l+'</td><td>'+a+'</td><td><b>'+b+'</b></td></tr>';};
-  var hist=prev.length>1?'<details class="how no-print" style="margin-top:6px"><summary>All check-ins ('+mine.length+')</summary><table><tr><th>Date</th><th>Work optional</th><th>Saving, yr 10</th><th>Net worth</th></tr>'+
-    mine.slice().reverse().map(function(x){return '<tr><td>'+ckDate(x.d)+'</td><td>'+ageTxt(x.coast)+'</td><td>'+x.sr+'%</td><td>'+fk(x.nw)+'</td></tr>';}).join('')+'</table></details>':'';
+  var hist=prev.length>1?'<details class="how no-print" style="margin-top:6px"><summary>All check-ins ('+mine.length+')</summary><table><tr><th>Date</th><th>Work optional</th><th>Brokerage, yr 10</th><th>Net worth</th></tr>'+
+    mine.slice().reverse().map(function(x){return '<tr><td>'+ckDate(x.d)+'</td><td>'+ageTxt(x.coast)+'</td><td>'+(x.bk!=null?fkPrecise(x.bk)+'/mo':x.sr+'%')+'</td><td>'+fk(x.nw)+'</td></tr>';}).join('')+'</table></details>':'';
   box.innerHTML='<div class="ck"><b>Since your check-in on '+ckDate(last.d)+'</b>'+(yrsAgo>=0.1?' <span style="color:var(--mg)">('+(yrsAgo>=1?yrsAgo+' year'+(yrsAgo!==1?'s':''):Math.round(yrsAgo*12)+' month'+(Math.round(yrsAgo*12)!==1?'s':''))+' ago)</span>':'')+
-    '<table><tr><th></th><th>Then</th><th>Now</th></tr>'+row('Work optional',ageTxt(last.coast),ageTxt(n.coast))+row('Full retirement',last.fi||'—',n.fi||'—')+row('Saving in year '+n.ry,last.sr+'%',n.sr+'%')+row('Net worth',fk(last.nw),fk(n.nw))+row('Brokerage transfer',fkPrecise(last.brk)+'/mo',fkPrecise(n.brk)+'/mo')+'</table>'+
+    '<table><tr><th></th><th>Then</th><th>Now</th></tr>'+row('Work optional',ageTxt(last.coast),ageTxt(n.coast))+row('Full retirement',last.fi||'—',n.fi||'—')+row('Brokerage by year '+n.ry,last.bk!=null?fkPrecise(last.bk)+'/mo':'—',n.bk!=null?fkPrecise(n.bk)+'/mo':'—')+row('Net worth',fk(last.nw),fk(n.nw))+row('Brokerage transfer now',fkPrecise(last.brk)+'/mo',fkPrecise(n.brk)+'/mo')+'</table>'+
     '<div class="hint" style="margin-top:6px;color:var(--dk)">'+verdict+(why.length?' What changed: '+why.join('; ')+'.':'')+'</div>'+btn+hist+'</div>';
   renderBackup();
 }
@@ -3704,8 +3726,8 @@ function copyPlanLink(btn){
   catch(e){window.prompt('Copy your plan link:',url);}
 }
 function confirmReset(){var b=document.activeElement;if(b&&b.dataset.armed){return true;}if(b){b.dataset.armed='1';b.textContent='Tap again to clear';setTimeout(function(){delete b.dataset.armed;b.textContent='Reset';},3000);}return false;}
-window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
-window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
+window.addEventListener('beforeprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d, details.pb-full').forEach(function(d){d.dataset.wasOpen=d.open?'1':'';d.open=true;});});
+window.addEventListener('afterprint',function(){document.querySelectorAll('details.pb-more, details.how, details.ftf-d, details.pb-full').forEach(function(d){d.open=d.dataset.wasOpen==='1';});});
 function resetState(){
   try{localStorage.removeItem(STATE_KEY);localStorage.removeItem(MODES_KEY);}catch(e){}
   location.reload();
