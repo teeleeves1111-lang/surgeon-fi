@@ -3739,7 +3739,12 @@ function aiFacts(c){
   if(P.short>0)calc.push('Spending is about '+fkPrecise(P.short)+'/yr more than take-home pay allows — a shortfall right now.');
   calc.push('Savings rate: about '+sr+'% of gross household income, counting payroll retirement saving, the employer contribution and any automatic brokerage transfer. Rule of thumb for my goal: '+g.sr+'%+.');
   if(P.buying&&P.dpYr>0)calc.push('Saving toward the down payment and closing: about '+fkPrecise(P.dpYr)+'/yr until I buy (cash, not counted in the savings rate).');
-  if(P.room>0)calc.push('About '+fkPrecise(P.room)+'/yr of take-home isn\'t assigned to spending or investing. The calculator does not count it as saved, because cash that isn\'t invested automatically usually gets spent.');
+  var rothA=c.actual?c.rothAmt:(c.hh==='couple'?2*LIM.ira:LIM.ira),hsaA=$('pb-hdhp').checked?(c.hh==='couple'||c.nk>0?LIM.hsaFam:4400):0,parts=[];
+  if(c.payRet>0)parts.push(fkPrecise(c.payRet)+' through payroll ('+[c.def401?(c.planType==='403b'?'403(b)':'401(k)'):'',c.def457?'457(b)':'',c.defP?'partner\'s plan':'',c.catchNow?'catch-up':''].filter(Boolean).join(', ')+')');
+  if(c.emp>0)parts.push(fkPrecise(c.emp)+' employer contribution');if(rothA>0)parts.push(fkPrecise(rothA)+' backdoor Roth IRA'+(rothA>LIM.ira?'s':''));if(hsaA>0)parts.push(fkPrecise(hsaA)+' HSA');if(P.brk>0)parts.push(fkPrecise(12*P.brk)+' automatic brokerage transfer');
+  if(parts.length)calc.push('What the savings rate counts, per year: '+parts.join('; ')+(P.short>0?' — though the shortfall above means not all of it can actually happen.':'.'));
+  var unas=P.room===null?0:Math.max(0,P.room-12*P.brk);
+  if(unas>0)calc.push('About '+fkPrecise(unas)+'/yr of take-home isn\'t assigned to spending or investing. The calculator does not count it as saved, because cash that isn\'t invested automatically usually gets spent.');
   var b1=brkMoY(c,plan,1),bR=brkMoY(c,plan,RY());
   calc.push('Brokerage investing in my plan: '+(b1===null?'none — a deficit':fkPrecise(b1)+'/mo')+' in year 1'+(RY()>1?', '+(bR===null?'a deficit':fkPrecise(bR)+'/mo')+' by year '+RY():'')+', on top of retirement accounts.');
   if(c.colOn&&c.colIn.length){var cs=c.colIn.map(function(a){return a<=0?'now':'in '+a+' yr'+(a!==1?'s':'');});calc.push('College is already built into these projections: '+fkPrecise(c.colAmt)+'/yr per child for 4 years, starting '+cs.join(', ')+', paid from 529s first (balance '+fkPrecise(c.col529)+') and then from cash flow.');}
