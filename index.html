@@ -443,7 +443,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
       </div>
 
       <div class="sr"><label>Current net worth</label>
-        <input type="range" min="-1000000" max="3000000" step="25000" value="-260000" id="nw" oninput="go()">
+        <input type="range" min="-1000000" max="10000000" step="25000" value="-260000" id="nw" oninput="go()">
         <span class="sv" id="nw-v">−$260k</span></div>
       <div class="hint" style="margin-top:-4px">Retirement accounts, brokerage and cash, minus student loans and other debts. Leave out your home and its mortgage — housing is set below.</div>
 
@@ -3703,7 +3703,9 @@ function aiAutoStage(){if(MODE==='res')return 'early';var a=startAge();if(a>=55|
 function aiStage(){var v=$('ai-stage').value;return v==='early'||v==='mid'||v==='late'?v:aiAutoStage();}
 function aiList(id){var v=$(id).value;return v?v.split(','):[];}
 function aiCtx(c){return {dis:$('ai-dis').value,life:$('ai-life').value,pslf10:$('ai-pslf10').value,dep:c.hh==='couple'&&c.pinc<c.s.sal||c.nk>0};}
-function aiGuards(c){var st=aiStage();return AI_G.all.slice(0,3).concat(AI_G[st]).concat(AI_G.all.slice(3));}
+var AI_SR_LATE={k:'sr',t:'This close to stopping, judge the plan by my portfolio against what I\'ll spend, not by my savings rate.',w:'A few more years of saving matter less now than the size of the pot and the first years\' returns.'};
+function aiAll(st){return st==='late'?AI_G.all.map(function(g){return g.k==='sr'?AI_SR_LATE:g;}):AI_G.all;}
+function aiGuards(c){var st=aiStage(),A=aiAll(st);return A.slice(0,3).concat(AI_G[st]).concat(A.slice(3));}
 function aiQs(c){var st=aiStage();return AI_Q.filter(function(q){return (q.s==='all'||q.s.split(' ').indexOf(st)>=0)&&(!q.show||q.show(c));});}
 function aiAns(v){return v==='yes'?'yes':v==='no'?'no':v==='unsure'?'not sure':v==='maybe'?'probably':'not answered';}
 
@@ -3728,7 +3730,7 @@ function aiFacts(c){
   if(c.cars>0)me.push('Cars: about '+fkPrecise(c.cars)+'/yr.');
   if(c.famCost>0)me.push('Supporting family: '+fkPrecise(c.famCost)+'/yr.');
   me.push('Own-occupation disability insurance: '+aiAns(x.dis)+'. Term life insurance: '+aiAns(x.life)+'.');
-  var ga=+$('pb-goal').value;me.push('Planned full retirement age: '+ra+'.'+(ga>startAge()&&ga<ra?' Goal age for work to be optional: '+ga+'.':''));
+  var ga=+$('pb-goal').value;me.push('Planned full retirement age: '+ra+'.'+(ga>startAge()&&ga<ra&&$('ai-goal').value!=='career'?' Goal age for work to be optional: '+ga+'.':''));
   var g=AI_GOALS[$('ai-goal').value]||AI_GOALS.fu;
   me.push('My goal: '+g.n.replace('{RA}',ra)+'.');
 
@@ -3740,6 +3742,8 @@ function aiFacts(c){
   if(P.room>0)calc.push('About '+fkPrecise(P.room)+'/yr of take-home isn\'t assigned to spending or investing. The calculator does not count it as saved, because cash that isn\'t invested automatically usually gets spent.');
   var b1=brkMoY(c,plan,1),bR=brkMoY(c,plan,RY());
   calc.push('Brokerage investing in my plan: '+(b1===null?'none — a deficit':fkPrecise(b1)+'/mo')+' in year 1'+(RY()>1?', '+(bR===null?'a deficit':fkPrecise(bR)+'/mo')+' by year '+RY():'')+', on top of retirement accounts.');
+  if(c.colOn&&c.colIn.length){var cs=c.colIn.map(function(a){return a<=0?'now':'in '+a+' yr'+(a!==1?'s':'');});calc.push('College is already built into these projections: '+fkPrecise(c.colAmt)+'/yr per child for 4 years, starting '+cs.join(', ')+', paid from 529s first (balance '+fkPrecise(c.col529)+') and then from cash flow.');}
+  calc.push('"Work optional" below means: saved enough that I could stop saving entirely and still retire at '+ra+'.');
   calc.push('If nothing changes: work optional '+(flat.coast?'at '+flat.coast:'not before '+ra)+', full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'.');
   if(plan.coast!==flat.coast||plan.fi!==flat.fi)calc.push('Following my plan (raises and freed-up costs invested): work optional '+(plan.coast?'at '+plan.coast:'not before '+ra)+', full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'.');
   calc.push('Retirement spending assumed: '+fkPrecise(retSpend(c))+'/yr in today\'s dollars, so the target portfolio is about '+fkPrecise(plan.fiNum)+' (25×, the 4% rule). Returns assumed: '+Math.round(realReturn()*1000)/10+'% after inflation.');
@@ -3783,7 +3787,7 @@ function calcAI(){
   var off=aiList('ai-off'),gs=aiGuards(c),stN={early:'Early career',mid:'Mid career',late:'Late career'}[st];
   var row=function(gd){var flag=gd.hot?gd.hot(c,x):'',on=off.indexOf(gd.k)<0;
     return '<label class="gr'+(on?'':' off')+(flag&&on?' hot':'')+'"><input type="checkbox" data-k="'+gd.k+'"'+(on?' checked':'')+' onchange="aiToggle(this)"><span><span class="gr-t">'+gd.t+'</span><span class="gr-why">'+gd.w+'</span>'+(flag?'<span class="gr-flag">⚠ '+flag+'</span>':'')+'</span></label>';};
-  $('ai-guards').innerHTML='<div class="gr-sh">'+stN+'</div>'+AI_G[st].map(row).join('')+'<div class="gr-sh">Every time</div>'+AI_G.all.map(row).join('');
+  $('ai-guards').innerHTML='<div class="gr-sh">'+stN+'</div>'+AI_G[st].map(row).join('')+'<div class="gr-sh">Every time</div>'+aiAll(st).map(row).join('');
   // Question menu for this stage
   var qs=aiList('ai-qs');
   $('ai-qmenu').innerHTML=aiQs(c).map(function(q){return '<button class="aichip'+(qs.indexOf(q.k)>=0?' on':'')+'" data-q="'+q.k+'" onclick="aiQ(this)">'+q.t+'</button>';}).join('');
