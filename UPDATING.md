@@ -20,6 +20,7 @@ Everything is in the block marked `ANNUAL UPDATE` near the top of the script.
 | Fixed-costs card facts: Social Security max benefit at 67 (~$45–50k/yr; $4,152/mo max at FRA in 2026), NJ property tax appeal deadline (April 1 in most towns) | `calcPlay()` — `pb-stuck` text | ssa.gov; NJ Division of Taxation |
 | Gift tax annual exclusion and lifetime exemption (`giftExcl`, `giftLife`) | `var LIM=` | IRS cost-of-living announcement (Oct/Nov) |
 | Physician mortgage rate premium over conventional | `var PHYS=` | Quotes from physician-loan lenders |
+| Ask AI tab: the guardrails and question menu (`AI_G`, `AI_Q`) and the savings-rate targets per goal (`AI_GOALS`) — reread them so they still match current rules (PSLF, Medicare, Social Security) | `var AI_G=`, `var AI_Q=`, `var AI_GOALS=` | studentaid.gov; ssa.gov; medicare.gov |
 | Mortgage rate and property tax defaults | Rent vs Buy sliders `rvb-rate`, `rvb-tax` | Freddie Mac PMMS; NJ property tax averages |
 | Childcare cost hint, living-cost estimates | `daymo` slider hint, `var EST=` | Local daycare rates; household spending |
 

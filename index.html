@@ -258,6 +258,26 @@ details.pb-more[open]>summary{margin-bottom:9px;}
 #setup input[type=number],#setup select{font-size:15px;padding:8px 9px;border-radius:8px;border:1px solid var(--bdr);font-family:var(--font);width:100%;max-width:240px;}
 #setup .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:12px;color:var(--mg);}
 #setup .row input{max-width:130px;}
+#tab-ai .aichips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px;}
+#tab-ai .aichip{padding:8px 12px;border-radius:18px;border:1px solid var(--bdr);background:var(--bg);font-size:13px;cursor:pointer;font-family:var(--font);color:var(--dk);text-align:left;line-height:1.3;}
+#tab-ai .aichip.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+#tab-ai .aiq{margin:12px 0 4px;padding-top:10px;border-top:1px solid var(--bdr);}
+#tab-ai .aiq.first{border-top:none;padding-top:0;margin-top:4px;}
+#tab-ai .aiql{display:block;font-weight:600;font-size:13px;margin-bottom:2px;}
+#tab-ai .gr{display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--bdr);font-size:13px;line-height:1.45;cursor:pointer;}
+#tab-ai .gr:first-child{border-top:none;}
+#tab-ai .gr input{margin-top:3px;accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;}
+#tab-ai .gr.off .gr-t{color:var(--mg);text-decoration:line-through;}
+#tab-ai .gr-why{color:var(--mg);font-size:12px;display:block;margin-top:1px;}
+#tab-ai .gr.hot{background:var(--lam);margin:0 -8px;padding:8px;border-radius:6px;border-top-color:transparent;}
+#tab-ai .gr-flag{display:block;color:var(--am);font-size:12px;font-weight:600;margin-top:2px;}
+#tab-ai .gr-sh{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mg);margin:10px 0 2px;}
+#ai-prompt{white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:10px;max-height:340px;overflow:auto;color:var(--dk);margin:8px 0;}
+#ai-free{width:100%;font-size:15px;padding:9px;border-radius:8px;border:1px solid var(--bdr);font-family:var(--font);margin-top:8px;}
+#tab-ai .ai-links a{color:var(--accent);font-weight:600;margin-right:14px;text-decoration:none;}
+#tab-ai .ai-goal{font-size:13px;line-height:1.5;margin-top:8px;padding:9px 10px;border-radius:8px;background:var(--lg);}
+#tab-ai .ai-goal.warn{background:var(--lam);}
+#tab-ai ol.ai-steps{font-size:13px;line-height:1.6;padding-left:18px;margin:6px 0;}
 @media(max-width:500px){.hdr-note,#hdr-sub{display:none;}.hdr{padding:11px 13px;}}
 details.how{margin-top:5px;font-size:11px;color:#444;}
 details.how>summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:11px;list-style:none;}
@@ -391,6 +411,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   <button class="tab" data-t="rent" onclick="tab('rent')">🏠 Rent vs Buy</button>
   <button class="tab" data-t="true" onclick="tab('true')">💸 True Cost</button>
   <button class="tab" data-t="loans" id="tab-btn-loans" onclick="tab('loans')">🎓 Loans</button>
+  <button class="tab" data-t="ai" onclick="tab('ai')">🤖 Ask AI</button>
 </div>
 
 <div id="sumbar" class="no-print" onclick="tab('play')"></div>
@@ -1185,6 +1206,70 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   </div>
   </details>
 </div>
+<!-- ═══ TAB: ASK AI — a prompt builder, so AI questions the plan instead of agreeing with it ═══ -->
+<div id="tab-ai" class="panel">
+  <input type="hidden" id="ai-stage" value="auto"><input type="hidden" id="ai-goal" value="fu">
+  <input type="hidden" id="ai-dis" value=""><input type="hidden" id="ai-life" value=""><input type="hidden" id="ai-pslf10" value="">
+  <input type="hidden" id="ai-off" value=""><input type="hidden" id="ai-qs" value="weak">
+  <div class="card" style="border:2px solid var(--accent)">
+    <div class="ctitle" style="color:var(--accent)">Ask AI — and make it push back</div>
+    <div style="font-size:13px;line-height:1.55">AI will build a plan around whatever you bring it: the house next year, the new car, "my loans will be no problem." Ask it "can I afford this?" and it usually says yes. This page turns your numbers into a prompt that tells the AI to question your plan the way an experienced surgeon would. The math comes from this app, not from the AI.</div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">1 · Where you are, and what you want</div>
+    <div class="aiq first"><span class="aiql">Career stage</span>
+      <div class="aichips" data-ai="stage"><button class="aichip" data-v="early">Early — resident or first few years</button><button class="aichip" data-v="mid">Mid career</button><button class="aichip" data-v="late">Late — stopping within about 10 years</button></div>
+      <div class="hint" id="ai-stage-hint"></div></div>
+    <div class="aiq"><span class="aiql">What are you aiming for?</span>
+      <div class="aichips" data-ai="goal"><button class="aichip" data-v="fu">Work optional early — keep working by choice</button><button class="aichip" data-v="early">Retire early</button><button class="aichip" data-v="career">A full career</button></div>
+      <div id="ai-goal-out"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">2 · A few things My Numbers doesn't ask</div>
+    <div class="aiq first"><span class="aiql">Own-occupation disability insurance?</span>
+      <div class="aichips" data-ai="dis"><button class="aichip" data-v="yes">Yes</button><button class="aichip" data-v="no">No</button><button class="aichip" data-v="unsure">Not sure</button></div></div>
+    <div class="aiq" id="ai-life-q"><span class="aiql">Term life insurance?</span>
+      <div class="aichips" data-ai="life"><button class="aichip" data-v="yes">Yes</button><button class="aichip" data-v="no">No</button><button class="aichip" data-v="unsure">Not sure</button></div></div>
+    <div class="aiq" id="ai-pslf-q"><span class="aiql">Will you stay at a nonprofit or government employer until you have 10 years of PSLF payments?</span>
+      <div class="aichips" data-ai="pslf10"><button class="aichip" data-v="yes">Yes</button><button class="aichip" data-v="maybe">Probably</button><button class="aichip" data-v="unsure">Not sure</button></div></div>
+    <div class="hint" style="margin-top:8px">Salary, household, kids, home and loans come from <a href="#" style="color:var(--accent);font-weight:600" onclick="tab('reality');return false">My Numbers</a>. Change them there.</div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">3 · What the AI has to cover</div>
+    <div class="hint" style="margin-bottom:4px">The questions an experienced surgeon would ask before agreeing to your plan. Uncheck any you disagree with — just do it on purpose.</div>
+    <div id="ai-guards"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">4 · What do you want to ask?</div>
+    <div class="aichips" id="ai-qmenu"></div>
+    <input type="text" id="ai-free" placeholder="Or type your own question" oninput="calcAI()">
+  </div>
+
+  <div class="card">
+    <div class="ctitle">5 · Paste it into any AI</div>
+    <button class="btn" style="width:100%;padding:12px;font-size:15px" onclick="aiCopy(this,'full')">📋 Copy for AI</button>
+    <div class="hint" style="margin-top:8px"><b>Privacy:</b> the prompt has your numbers but no names, employers or account numbers. Keep it that way when you add details.</div>
+    <div class="hint ai-links" style="margin-top:6px">Then open <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a><a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a><a href="https://gemini.google.com/app" target="_blank" rel="noopener">Gemini</a> and paste.</div>
+    <details class="how"><summary>See the prompt</summary><div id="ai-prompt"></div></details>
+    <div class="box box-b" style="margin-bottom:0"><div class="box-body"><strong>When it answers:</strong> "Are you sure?" just invites it to flip. Ask something specific instead — "What's the strongest case against buying now?" or "What happens to this plan if I can't operate for a year?" And if it suddenly agrees with you after you push back, ask what new fact changed its mind.</div></div>
+  </div>
+
+  <details class="card fold" id="ai-setup">
+    <summary class="ctitle">An adviser that remembers — set it up once (optional)</summary>
+    <div style="font-size:13px;line-height:1.55;margin-top:6px">A pasted prompt is strongest in the first answer. Ten messages later, if you keep pushing, the AI drifts back to agreeing. Claude and ChatGPT <b>Projects</b> and Gemini <b>Gems</b> keep standing instructions and a file of your numbers behind every conversation, so it's still skeptical in year three. Some of these need a paid plan.</div>
+    <ol class="ai-steps">
+      <li>Create a new Project (Claude, ChatGPT) or Gem (Gemini).</li>
+      <li>Copy the instructions below and paste them into its instructions.</li>
+      <li>Download your numbers and add the file to it.</li>
+      <li>When something big changes — a new job, a raise, a house — update My Numbers, download again and replace the file.</li>
+    </ol>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="aiCopy(this,'instr')">Copy instructions</button><button class="btn ghost" onclick="aiDownload()">Download my numbers</button></div>
+  </details>
+</div>
 <details class="foot"><summary style="cursor:pointer;font-weight:600">How the numbers work</summary>Tax model: 2026 federal brackets and standard deduction (married filing jointly or single), SALT cap with high-income phase-down, New Jersey brackets (NJ excludes 401(k) but not 403(b)/457 deferrals), Social Security (6.2% to $184,500 per earner) and Medicare (1.45% + 0.9% above $250k joint / $200k single), dependent care FSA ($7,500) when paying childcare, child tax credit phase-out. Excludes NJ disability/family-leave payroll deductions and employer match. Estimates for education only — not tax or financial advice. Updated October 2026.</details>
 
 </div><!-- /shell -->
@@ -1196,7 +1281,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 </div></div>
 <div id="setup"><div class="sheet">
   <h2>Quick setup</h2>
-  <div style="font-size:12px;color:var(--mg)">Eight quick questions. You can change anything later. Your answers stay on this device.</div>
+  <div style="font-size:12px;color:var(--mg)">Nine quick questions. You can change anything later. Your answers stay on this device.</div>
   <div class="q"><span class="ql">Where are you?</span><div class="chips" data-q="stage"><button class="chip on" data-v="res">Resident / fellow</button><button class="chip" data-v="att">Attending</button></div>
     <div class="row" id="su-yrs-row">Years of training left <select id="su-yrs" style="max-width:90px"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div></div>
   <div class="q"><label for="su-age">Your age</label><input type="number" id="su-age" value="30" min="24" max="64"></div>
@@ -1215,6 +1300,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="chips" data-q="pslf" style="margin-top:6px"><button class="chip on" data-v="no">Private practice / not PSLF</button><button class="chip" data-v="yes">Nonprofit — going for PSLF</button></div></div>
   <div class="q"><span class="ql">Employer</span><div class="chips" data-q="emp"><button class="chip on" data-v="403b">Hospital / academic</button><button class="chip" data-v="401k">Private group</button></div>
     <div class="row">Employer retirement contribution, % of salary (if known) <input type="number" id="su-emp" value="0" step="0.5" min="0" max="10" style="max-width:80px"></div></div>
+  <div class="q"><span class="ql">What are you aiming for?</span><div class="chips" data-q="goal"><button class="chip on" data-v="fu">Work optional early</button><button class="chip" data-v="early">Retire early</button><button class="chip" data-v="career">A full career</button></div></div>
   <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="flex:1;padding:11px" onclick="applySetup()">Show my plan →</button><button class="btn ghost" onclick="closeSetup()">Skip</button></div>
 </div></div>
 
@@ -1384,6 +1470,7 @@ function tab(id){
   if(id==='rent')rvbSync();
   if(id==='true')calcTrue();
   if(id==='play')calcPlay();
+  if(id==='ai')calcAI();
   updateSumbar(getCosts());
   saveState();
 }
@@ -1736,6 +1823,7 @@ function go(){
   if(activePanel&&activePanel.id==='tab-true')calcTrue();
   if(activePanel&&activePanel.id==='tab-rent')rvbSync();
   if(activePanel&&activePanel.id==='tab-play')calcPlay();
+  if(activePanel&&activePanel.id==='tab-ai')calcAI();
   $('tab-btn-loans').style.display=$('loans').checked||MODE==='res'?'':'none';
   updateSumbar(getCosts());
   saveState();
@@ -3554,6 +3642,170 @@ function updateSumbar(c){
     '<div style="font-size:10px;color:var(--accent);font-weight:600">'+(CUR_TAB==='play'?'today → plan':'plan ›')+'</div>';
 }
 
+// ── ASK AI ────────────────────────────────────────────────────────
+// Builds a prompt from the app's own numbers plus 'guardrails': the questions an experienced surgeon would ask.
+// The math stays here; the AI is told to treat it as fact and to question assumptions, not to agree.
+var AI_G={
+  all:[
+    {k:'clarify',t:'Ask me up to five clarifying questions before you give a plan, and wait for my answers.',w:'A confident plan built on a wrong assumption is worse than none.'},
+    {k:'assume',t:'Question anything I treat as a given — job security, PSLF, future raises, "I can afford it" — and tell me what happens if it turns out wrong.',w:'What you take for granted is where plans break.'},
+    {k:'sr',t:'Judge the plan by my savings rate, not my income, and tell me whether it reaches what my goal needs.',w:'Savings rate decides when work becomes optional. Salary only matters through it.'},
+    {k:'hold',t:'If I push back, don\'t simply agree. Change your view only for a new fact or a better argument, and say which one.',w:'AI tends to fold when you sound unhappy with its answer.'},
+    {k:'against',t:'End with "The strongest case against this plan" — the best argument a thoughtful skeptic would make.',w:'Makes it argue the other side instead of cheering you on.'}
+  ],
+  early:[
+    {k:'ins',t:'Before any big purchase, check that I have own-occupation disability insurance and, if anyone depends on my income, term life insurance.',w:'Your future income is your biggest asset, and it isn\'t insured until you insure it.',
+      hot:function(c,x){return x.dis!=='yes'?(x.dis==='no'?'You said you don\'t have disability insurance.':x.dis==='unsure'?'You\'re not sure about disability insurance.':'Disability insurance isn\'t confirmed — answer it above.'):(x.dep&&x.life!=='yes'?'Someone depends on your income and term life isn\'t confirmed.':'');}},
+    {k:'house',t:'If I\'m buying a home in the next three years, ask whether I should: the full cost of owning versus renting, how long I\'ll stay, and what it does to my savings rate.',w:'Buying too much house too early is the most common expensive mistake.',
+      hot:function(c){return c.houseOn&&!c.houseOwned&&c.buyYr<=2?'Your plan buys a '+fk(c.hp)+' home '+(c.buyYr===0?'now':'in '+c.buyYr+' year'+(c.buyYr!==1?'s':''))+'.':'';}},
+    {k:'pslf',t:'Test my student loan plan. If I\'m counting on PSLF, check it survives a move to private practice; if not, compare refinancing and paying off fast.',w:'PSLF only pays off with 10 years at a qualifying employer.',
+      hot:function(c,x){if(!c.loansOn||!c.lb)return '';if(c.pslf&&c.planType==='401k')return 'PSLF is on, but your employer is set to a private group — private practice doesn\'t qualify.';return c.pslf&&x.pslf10!=='yes'?'PSLF is on, and staying 10 years isn\'t certain.':'';}},
+    {k:'creep',t:'Check whether the plan lets spending rise with the attending salary. Push me to live close to resident level for the first two or three years.',w:'Lifestyle creep is how high earners end up behind.'}
+  ],
+  mid:[
+    {k:'stop',t:'Test whether the plan survives if I have to stop operating five years earlier than I plan — injury, burnout, or a buyout.',w:'Surgeons don\'t always get to choose when they stop.'},
+    {k:'college',t:'Weigh college and private school against retirement saving, and tell me which should come first.',w:'You can borrow for college. You can\'t borrow for retirement.',
+      hot:function(c){return c.nk>0&&(c.colOn||c.nPriv>0)?'Your plan pays for '+(c.nPriv>0?'private school':'')+(c.nPriv>0&&c.colOn?' and ':'')+(c.colOn?'college':'')+'.':'';}},
+    {k:'cover',t:'If anyone depends on my income, check that my term life and disability coverage still fit my income and family.',w:'Coverage bought at 32 rarely fits at 45.',
+      hot:function(c,x){return x.dep&&(x.life!=='yes'||x.dis!=='yes')?'Someone depends on your income and coverage isn\'t confirmed.':'';}},
+    {k:'track',t:'Tell me plainly whether my savings are on track for my age and goal, using the numbers below.',w:'Most attendings don\'t know their real savings rate, and most overestimate it.'}
+  ],
+  late:[
+    {k:'wd',t:'Lay out a withdrawal order and a cash and bond buffer, so a crash in the first years doesn\'t force me to sell stocks.',w:'A bad market in the first five years of retirement does the most damage.'},
+    {k:'roth',t:'Look at Roth conversions in the low-income years between stopping work and required minimum distributions, watching the IRMAA Medicare surcharges.',w:'Those gap years are a one-time tax opportunity.'},
+    {k:'ss',t:'Work through Social Security timing with me, including what my spouse would get if I die first.',w:'Claiming age is one of the few big choices you can\'t undo.'},
+    {k:'health',t:'Plan health insurance from the day I stop working until Medicare at 65, with realistic costs.',w:'Coverage before Medicare is often the biggest surprise expense.',
+      hot:function(){return retAge()<65?'Your plan stops work at '+retAge()+', before Medicare.':'';}},
+    {k:'under',t:'Check whether I\'m at risk of spending too little, and tell me what I can safely spend each year.',w:'Late in the game, underspending is as real a risk as running out.'}
+  ]
+};
+var AI_Q=[
+  {k:'weak',t:'Find the weaknesses in my plan.',s:'all'},
+  {k:'house',t:'Can I afford this house — and should I buy it now?',s:'early',show:function(c){return c.houseOn&&!c.houseOwned;}},
+  {k:'pslf',t:'Should I stay on PSLF or refinance my loans?',s:'early',show:function(c){return c.loansOn&&c.lb>0;}},
+  {k:'brk',t:'How much should I invest in a brokerage account each month, and when should it go up?',s:'early mid'},
+  {k:'ins',t:'What insurance do I need, and how much?',s:'early mid'},
+  {k:'first',t:'What should I do with money in my first 90 days as an attending?',s:'early',show:function(){return MODE==='res'||pracYrs()<=1;}},
+  {k:'track',t:'Am I on track for my goal?',s:'mid'},
+  {k:'col',t:'College or retirement — which comes first?',s:'mid',show:function(c){return c.nk>0;}},
+  {k:'stop',t:'What happens if I can\'t keep working until my planned age?',s:'mid late'},
+  {k:'mort',t:'Should I pay down my mortgage or invest the money?',s:'mid late',show:function(c){return c.houseOwned&&c.loanAmt>0;}},
+  {k:'wd',t:'How should I withdraw money in my first five years of retirement?',s:'late'},
+  {k:'roth',t:'Should I do Roth conversions, and how much each year?',s:'late'},
+  {k:'ss',t:'When should I claim Social Security?',s:'late'},
+  {k:'health',t:'How do I cover health insurance before Medicare?',s:'late'},
+  {k:'spend',t:'How much can I safely spend each year?',s:'late'}
+];
+var AI_GOALS={fu:{n:'Work optional early — financially independent soon, then keep working by choice',sr:30,lbl:'work optional early'},
+  early:{n:'Retire early, before about 55',sr:35,lbl:'retiring early'},
+  career:{n:'A full career, retiring around '+'{RA}',sr:20,lbl:'a full career'}};
+function aiAutoStage(){if(MODE==='res')return 'early';var a=startAge();if(a>=55||retAge()-a<=10)return 'late';return pracYrs()<=3?'early':'mid';}
+function aiStage(){var v=$('ai-stage').value;return v==='early'||v==='mid'||v==='late'?v:aiAutoStage();}
+function aiList(id){var v=$(id).value;return v?v.split(','):[];}
+function aiCtx(c){return {dis:$('ai-dis').value,life:$('ai-life').value,pslf10:$('ai-pslf10').value,dep:c.hh==='couple'&&c.pinc<c.s.sal||c.nk>0};}
+function aiGuards(c){var st=aiStage();return AI_G.all.slice(0,3).concat(AI_G[st]).concat(AI_G.all.slice(3));}
+function aiQs(c){var st=aiStage();return AI_Q.filter(function(q){return (q.s==='all'||q.s.split(' ').indexOf(st)>=0)&&(!q.show||q.show(c));});}
+function aiAns(v){return v==='yes'?'yes':v==='no'?'no':v==='unsure'?'not sure':v==='maybe'?'probably':'not answered';}
+
+// What the AI is told about the person — and what this app has already worked out
+function aiFacts(c){
+  var P=pbOpts(c),plan=pbSim(c,P.opts),flat=pbFlat(c),x=aiCtx(c),me=[],calc=[],ra=retAge();
+  var age=+$('age').value;
+  if(MODE==='res'){var yl=+$('yrs-left').value;me.push('Stage: surgical resident or fellow, age '+age+(yl>0?', '+yl+' year'+(yl!==1?'s':'')+' of training left (attending at about '+(age+yl)+')':', finishing training now'));}
+  else me.push('Stage: attending surgeon, age '+age+', '+pracYrs()+' year'+(pracYrs()!==1?'s':'')+' in practice');
+  me.push('Specialty: '+c.s.n+'. My salary: '+fkPrecise(c.s.sal)+(c.s.overridden?' (my actual or offered salary)':' (specialty average — not my actual number)')+'.');
+  me.push('Household: '+(c.hh==='couple'?'married / partnered, partner earns '+(c.pinc>0?fkPrecise(c.pinc):'nothing (single income)'):'single')+'. Household gross income: '+fkPrecise(c.gross)+'.');
+  if(c.nk>0){var k=[c.nk+' child'+(c.nk!==1?'ren':'')];if(c.nDay)k.push(c.nDay+' in daycare / preschool');if(c.nPriv)k.push(c.nPriv+' in private school');if(c.colOn)k.push('planning to pay about '+fkPrecise(c.colAmt)+'/yr per child for college');me.push('Children: '+k.join(', ')+'.');}
+  else me.push('Children: none.');
+  me.push('Net worth, not counting a home: '+fkPrecise(startNW())+'.');
+  if(!c.houseOn)me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo, no plan to buy.');
+  else if(c.houseOwned)me.push('Housing: own a home worth about '+fkPrecise(c.hp)+(c.loanAmt>0?', mortgage '+fkPrecise(c.loanAmt)+' at '+c.mRateEff+'% with '+c.mortYrs+' years left':', no mortgage')+'.');
+  else if(c.buyYr===0)me.push('Housing: buying a '+fkPrecise(c.hp)+' home now, with '+Math.round(c.MT.down*100)+'% down.');
+  else me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo; plan to buy a '+fkPrecise(c.hp)+' home in '+c.buyYr+' year'+(c.buyYr!==1?'s':'')+' ('+Math.round(c.MT.down*100)+'% down). Cash needed at closing, after any family gift: about '+fkPrecise(c.dpOwn)+'.');
+  if(c.loansOn&&c.lb>0)me.push('Student loans: '+fkPrecise(c.lb)+'; '+(c.pslf?'going for Public Service Loan Forgiveness, '+c.pslfYrs+' of 10 years of payments done; staying at a qualifying employer for the rest: '+aiAns(x.pslf10):c.loansRefi?'planning to refinance privately and pay off in 10 years':'standard repayment')+'.');
+  else me.push('Student loans: none.');
+  me.push('Employer: '+(c.planType==='403b'?'hospital / academic (403(b)'+(c.def457?' and 457(b)':'')+')':'private group (401(k))')+'. Maxing it: '+(c.def401?'yes':'no')+'. Employer contribution: '+(+$('emp').value>0?$('emp').value+'% of salary':'none or unknown')+'.');
+  if(c.cars>0)me.push('Cars: about '+fkPrecise(c.cars)+'/yr.');
+  if(c.famCost>0)me.push('Supporting family: '+fkPrecise(c.famCost)+'/yr.');
+  me.push('Own-occupation disability insurance: '+aiAns(x.dis)+'. Term life insurance: '+aiAns(x.life)+'.');
+  var ga=+$('pb-goal').value;me.push('Planned full retirement age: '+ra+'.'+(ga>startAge()&&ga<ra?' Goal age for work to be optional: '+ga+'.':''));
+  var g=AI_GOALS[$('ai-goal').value]||AI_GOALS.fu;
+  me.push('My goal: '+g.n.replace('{RA}',ra)+'.');
+
+  var sr=Math.round(flat.savAt(0)/c.gross*100);
+  calc.push('Spending: about '+fkPrecise(c.totalSpend)+'/yr ('+(c.spendEntered||c.actual?'from my real numbers':'the app\'s estimate for my household — not tracked')+'). Taxes: about '+fkPrecise(c.taxes)+'/yr.');
+  if(P.short>0)calc.push('Spending is about '+fkPrecise(P.short)+'/yr more than take-home pay allows — a shortfall right now.');
+  calc.push('Savings rate: about '+sr+'% of gross household income, counting payroll retirement saving and the employer contribution. Rule of thumb for my goal: '+g.sr+'%+.');
+  var b1=brkMoY(c,plan,1),bR=brkMoY(c,plan,RY());
+  calc.push('Brokerage investing in my plan: '+(b1===null?'none — a deficit':fkPrecise(b1)+'/mo')+' in year 1'+(RY()>1?', '+(bR===null?'a deficit':fkPrecise(bR)+'/mo')+' by year '+RY():'')+', on top of retirement accounts.');
+  calc.push('If nothing changes: work optional '+(flat.coast?'at '+flat.coast:'not before '+ra)+', full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'.');
+  if(plan.coast!==flat.coast||plan.fi!==flat.fi)calc.push('Following my plan (raises and freed-up costs invested): work optional '+(plan.coast?'at '+plan.coast:'not before '+ra)+', full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'.');
+  calc.push('Retirement spending assumed: '+fkPrecise(retSpend(c))+'/yr in today\'s dollars, so the target portfolio is about '+fkPrecise(plan.fiNum)+' (25×, the 4% rule). Returns assumed: '+Math.round(realReturn()*1000)/10+'% after inflation.');
+  // Rent vs buy and loans: the same analysis their tabs show
+  if(c.houseOn&&!c.houseOwned){try{rvbSync();var v=$('rvb-verdict'),t=v&&v.querySelector('.box-title');if(t)calc.push('Rent vs buy ('+($('rvb-custom').checked?'numbers set on that tab':'my numbers')+', '+$('rvb-yrs').value+'-year stay): '+t.textContent.trim()+'. '+(v.querySelector('.box-body').textContent.match(/Owning costs about [^.]+\./)||[''])[0]);}catch(e){}}
+  if(c.loansOn&&c.lb>0){try{$('sl-bal').value=$('lb').value;$('sl-pslf').checked=$('pslf').checked;$('sl-yrs-left').value=MODE==='res'?$('yrs-left').value:0;$('sl-qual-done').value=$('pslf').checked?Math.min(9,+$('pslf-yrs').value):0;calcLoans();
+    var lt=$('sl-verdict').querySelector('.box-title');if(lt)calc.push('Student loan analysis: '+lt.textContent.replace(/^[→\s]+/,'').trim()+'.');}catch(e){}}
+  return {me:me,calc:calc};
+}
+function aiRole(){
+  return 'Act as my financial adviser: a skeptical, fee-only fiduciary who works for me — not a salesperson, and not a cheerleader. Your job is to find what\'s wrong with my plan before I commit to it.\n\n'+
+    'How to work:\n- The numbers below come from a calculator using my inputs. Treat them as fixed facts; don\'t redo the math unless something looks inconsistent, and if it does, say so.\n- Plain language. This is education, not legal or tax advice — tell me where I need a professional (fee-only planner, CPA, insurance broker, attorney).';
+}
+function aiGuardTxt(c){var off=aiList('ai-off');return aiGuards(c).filter(function(g){return off.indexOf(g.k)<0;}).map(function(g){return '- '+g.t;}).join('\n');}
+function aiBuild(c,kind){
+  var F=aiFacts(c),st={early:'early career',mid:'mid career',late:'late career'}[aiStage()];
+  var facts='About me ('+st+'):\n- '+F.me.join('\n- ')+'\n\nWhat the calculator worked out (fixed facts):\n- '+F.calc.join('\n- ');
+  var gt=aiGuardTxt(c);
+  if(kind==='numbers')return 'My numbers — Surgeon Financial Independence app, '+ckDate(ckToday())+'\n\n'+facts+'\n';
+  if(kind==='instr')return aiRole()+'\n\nMy numbers are in the attached file. If it is more than a year old, or my situation has changed, ask me to update it before giving a plan.\n\nEvery time, make sure you:\n'+gt+'\n';
+  var qs=aiList('ai-qs'),valid=aiQs(c).map(function(q){return q.k;}),ql=AI_Q.filter(function(q){return qs.indexOf(q.k)>=0&&valid.indexOf(q.k)>=0;}).map(function(q){return q.t;});
+  var free=$('ai-free').value.trim();if(free)ql.push(free);
+  if(!ql.length)ql.push(AI_Q[0].t);
+  return aiRole()+'\n\n'+facts+'\n\nMake sure you:\n'+gt+'\n\nMy question'+(ql.length>1?'s':'')+':\n- '+ql.join('\n- ')+'\n';
+}
+function calcAI(){
+  if(!$('tab-ai'))return;
+  var c=getCosts(),st=aiStage(),x=aiCtx(c),auto=$('ai-stage').value==='auto';
+  document.querySelectorAll('#tab-ai .aichips[data-ai]').forEach(function(box){
+    var v=box.dataset.ai==='stage'?st:$('ai-'+box.dataset.ai).value;
+    box.querySelectorAll('.aichip').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
+  });
+  $('ai-stage-hint').textContent=auto?'Set from My Numbers — tap to change.':'';
+  $('ai-life-q').style.display=x.dep?'':'none';
+  $('ai-pslf-q').style.display=c.loansOn&&c.lb>0&&c.pslf?'':'none';
+  // Goal: today's savings rate against what the goal usually takes
+  var g=AI_GOALS[$('ai-goal').value]||AI_GOALS.fu,flat=pbFlat(c),sr=Math.round(flat.savAt(0)/c.gross*100),ok=sr>=g.sr;
+  $('ai-goal-out').innerHTML='<div class="ai-goal'+(ok?'':' warn')+'">You save about <b>'+sr+'%</b> of gross today. '+g.lbl.charAt(0).toUpperCase()+g.lbl.slice(1)+' usually takes <b>'+g.sr+'%+</b>. '+
+    'If nothing changes, work is optional '+(flat.coast?'at <b>'+flat.coast+'</b>':'<b>not before '+retAge()+'</b>')+'. The prompt holds the AI to this goal — not to anyone else\'s idea of what you should want.</div>';
+  // Guardrails, flagged where your own numbers make them urgent
+  var off=aiList('ai-off'),gs=aiGuards(c),stN={early:'Early career',mid:'Mid career',late:'Late career'}[st];
+  var row=function(gd){var flag=gd.hot?gd.hot(c,x):'',on=off.indexOf(gd.k)<0;
+    return '<label class="gr'+(on?'':' off')+(flag&&on?' hot':'')+'"><input type="checkbox" data-k="'+gd.k+'"'+(on?' checked':'')+' onchange="aiToggle(this)"><span><span class="gr-t">'+gd.t+'</span><span class="gr-why">'+gd.w+'</span>'+(flag?'<span class="gr-flag">⚠ '+flag+'</span>':'')+'</span></label>';};
+  $('ai-guards').innerHTML='<div class="gr-sh">'+stN+'</div>'+AI_G[st].map(row).join('')+'<div class="gr-sh">Every time</div>'+AI_G.all.map(row).join('');
+  // Question menu for this stage
+  var qs=aiList('ai-qs');
+  $('ai-qmenu').innerHTML=aiQs(c).map(function(q){return '<button class="aichip'+(qs.indexOf(q.k)>=0?' on':'')+'" data-q="'+q.k+'" onclick="aiQ(this)">'+q.t+'</button>';}).join('');
+  $('ai-prompt').textContent=aiBuild(c,'full');
+}
+function aiToggle(el){var off=aiList('ai-off').filter(function(k){return k!==el.dataset.k;});if(!el.checked)off.push(el.dataset.k);$('ai-off').value=off.join(',');calcAI();saveState();}
+function aiQ(el){var qs=aiList('ai-qs').filter(function(k){return k!==el.dataset.q;});if(!el.classList.contains('on'))qs.push(el.dataset.q);$('ai-qs').value=qs.join(',');calcAI();saveState();}
+document.addEventListener('click',function(e){
+  var ch=e.target.closest('#tab-ai .aichips[data-ai] .aichip');if(!ch)return;
+  var k=ch.parentNode.dataset.ai;$('ai-'+k).value=ch.dataset.v;calcAI();saveState();
+});
+function aiCopyText(txt,btn,ok){
+  var done=function(){var t=btn.textContent;btn.textContent=ok;setTimeout(function(){btn.textContent=t;},2200);};
+  var fallback=function(){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.top='-1000px';document.body.appendChild(ta);ta.select();var good=false;try{good=document.execCommand('copy');}catch(e){}document.body.removeChild(ta);
+    if(good)done();else{var d=document.querySelector('#tab-ai details.how');if(d)d.open=true;btn.textContent='Copy blocked — select the prompt below';}};
+  try{navigator.clipboard.writeText(txt).then(done,fallback);}catch(e){fallback();}
+}
+function aiCopy(btn,kind){var c=getCosts();aiCopyText(aiBuild(c,kind),btn,kind==='instr'?'✓ Instructions copied':'✓ Copied — now paste it into an AI');}
+function aiDownload(){
+  var txt=aiBuild(getCosts(),'numbers'),a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download='my-surgeon-fi-numbers-'+ckToday()+'.txt';
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
 // ── QUICK SETUP ──
 function chipVal(q){var on=document.querySelector('#setup [data-q="'+q+'"] .chip.on');return on?on.dataset.v:null;}
 function setupSync(){
@@ -3564,6 +3816,7 @@ function setupSync(){
 function openSetup(){
   var sel=$('su-spec');if(!sel.options.length)sel.innerHTML=$('spec').innerHTML;sel.value=$('spec').value;
   $('su-age').value=$('age').value;
+  var gv=$('ai-goal').value||'fu';document.querySelectorAll('#setup [data-q="goal"] .chip').forEach(function(x){x.classList.toggle('on',x.dataset.v===gv);});
   $('setup').style.display='block';setupSync();
 }
 function closeSetup(){$('setup').style.display='none';try{localStorage.setItem('surgeonFI.setupSeen','1');}catch(e){}}
@@ -3588,6 +3841,7 @@ function applySetup(){
   var lb=+$('su-lb').value||0;$('loans').checked=lb>0;$('lb').value=lb;$('pslf').checked=chipVal('pslf')==='yes';
   $('plan-type').value=chipVal('emp');$('def457').checked=chipVal('emp')==='403b';$('emp').value=Math.min(10,Math.max(0,+$('su-emp').value||0));
   if(stage==='att'&&+$('nw').value<-100000)$('nw').value=0;
+  $('ai-goal').value=chipVal('goal')||'fu';$('ai-stage').value='auto';
   closeSetup();go();tab('play');window.scrollTo(0,0);
 }
 
