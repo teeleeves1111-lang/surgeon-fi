@@ -271,6 +271,16 @@ details.pb-more[open]>summary{margin-bottom:9px;}
 #tab-ai .gr-why{color:var(--mg);font-size:12px;display:block;margin-top:1px;}
 #tab-ai .gr.hot{background:var(--lam);margin:0 -8px;padding:8px;border-radius:6px;border-top-color:transparent;}
 #tab-ai .gr-flag{display:block;color:var(--am);font-size:12px;font-weight:600;margin-top:2px;}
+#tab-ai .airow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 2px;font-size:13px;}
+#tab-ai .airow label{flex:1 1 150px;color:var(--dk);}
+#tab-ai .aiin{width:130px;font-size:15px;padding:7px 8px;border-radius:8px;border:1px solid var(--bdr);font-family:var(--font);background:var(--bg);color:var(--dk);}
+#tab-ai .aiin.wide{width:100%;}
+#tab-ai .airow.tight label{flex:0 0 auto;}
+#tab-ai .aix{display:flex;gap:8px;align-items:flex-start;margin:10px 0 2px;padding-top:10px;border-top:1px solid var(--bdr);font-size:14px;font-weight:600;}
+#tab-ai .aix input{width:18px;height:18px;margin-top:1px;accent-color:var(--accent);flex-shrink:0;}
+#tab-ai .aixb{margin:2px 0 6px 26px;}
+#tab-ai .pb-link{display:block;margin-top:10px;padding:11px 12px;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;text-align:center;text-decoration:none;font-size:14px;}
+.rp-link{color:var(--accent);font-weight:600;}
 #tab-ai .gr-sh{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mg);margin:10px 0 2px;}
 #ai-prompt{white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--bdr);border-radius:8px;padding:10px;max-height:340px;overflow:auto;color:var(--dk);margin:8px 0;}
 #ai-free{width:100%;font-size:15px;padding:9px;border-radius:8px;border:1px solid var(--bdr);font-family:var(--font);margin-top:8px;}
@@ -872,6 +882,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
 <div id="tab-paths" class="panel">
+  <div class="hint" style="margin:0 0 10px;font-size:13px">Within about 10 years of stopping? The <a class="rp-link" href="https://retirement-playbook-sepia.vercel.app" target="_blank" rel="noopener">Retirement Playbook ↗</a> covers withdrawals, Roth conversions, Social Security and health insurance before Medicare.</div>
   <details class="card fold" id="simple-math" style="border:2px solid var(--accent)">
     <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math — how much you need, and why your savings rate matters most</summary>
 
@@ -1237,6 +1248,41 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="hint" style="margin-top:8px">Salary, household, kids, home and loans come from <a href="#" style="color:var(--accent);font-weight:600" onclick="tab('reality');return false">My Numbers</a>. Change them there.</div>
   </div>
 
+  <!-- Everyone: money the rest of the app doesn't see. Folded until late career. -->
+  <details class="card fold" id="ai-extra">
+    <summary class="ctitle">Do you have any of these? (optional)</summary>
+    <div class="hint">Check what applies and fill in rough numbers. The app's projections don't include these, so the AI is told to factor them in.</div>
+    <label class="aix"><input type="checkbox" id="ai-x-bal" onchange="aiInput()"><span>Retirement and investment balances</span></label>
+    <div class="aixb" id="ai-xb-bal">
+      <div class="hint">Rough totals from your statements.</div>
+      <div class="airow"><label for="ai-b-pre">401(k), 403(b), 457, traditional IRA</label><input class="aiin" type="number" id="ai-b-pre" min="0" step="10000" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow"><label for="ai-b-roth">Roth accounts</label><input class="aiin" type="number" id="ai-b-roth" min="0" step="10000" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow"><label for="ai-b-tax">Taxable brokerage</label><input class="aiin" type="number" id="ai-b-tax" min="0" step="10000" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow"><label for="ai-b-oth">Other investments — crypto, private deals, real estate equity</label><input class="aiin" type="number" id="ai-b-oth" min="0" step="10000" inputmode="numeric" oninput="aiInput()"></div>
+    </div>
+    <label class="aix"><input type="checkbox" id="ai-x-inc" onchange="aiInput()"><span>Other income — rental, part-time or locums, a business</span></label>
+    <div class="aixb" id="ai-xb-inc">
+      <div class="airow"><select class="aiin" style="flex:1 1 140px;width:auto" id="ai-i1-type" onchange="aiInput()"><option value="rental">Rental</option><option value="part">Part-time or locums</option><option value="biz">Business</option><option value="other">Other</option></select><input class="aiin" type="number" id="ai-i1-amt" min="0" step="1000" placeholder="$ / year" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow tight"><label for="ai-i1-from">From age</label><input class="aiin" type="number" id="ai-i1-from" min="18" max="100" style="width:70px" inputmode="numeric" oninput="aiInput()"><label for="ai-i1-to" style="flex:0 0 auto">to</label><input class="aiin" type="number" id="ai-i1-to" min="18" max="100" style="width:70px" placeholder="—" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="hint">A second source:</div>
+      <div class="airow"><select class="aiin" style="flex:1 1 140px;width:auto" id="ai-i2-type" onchange="aiInput()"><option value="rental">Rental</option><option value="part" selected>Part-time or locums</option><option value="biz">Business</option><option value="other">Other</option></select><input class="aiin" type="number" id="ai-i2-amt" min="0" step="1000" placeholder="$ / year" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow tight"><label for="ai-i2-from">From age</label><input class="aiin" type="number" id="ai-i2-from" min="18" max="100" style="width:70px" inputmode="numeric" oninput="aiInput()"><label for="ai-i2-to" style="flex:0 0 auto">to</label><input class="aiin" type="number" id="ai-i2-to" min="18" max="100" style="width:70px" placeholder="—" inputmode="numeric" oninput="aiInput()"></div>
+    </div>
+    <label class="aix"><input type="checkbox" id="ai-x-inh" onchange="aiInput()"><span>An expected inheritance</span></label>
+    <div class="aixb" id="ai-xb-inh">
+      <div class="airow"><label for="ai-h-amt">Rough amount</label><input class="aiin" type="number" id="ai-h-amt" min="0" step="25000" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow"><label for="ai-h-when">When</label><select class="aiin" id="ai-h-when" onchange="aiInput()"><option value="">Not sure</option><option value="5">Within 5 years</option><option value="15">5–15 years</option><option value="15+">More than 15 years</option></select></div>
+      <div class="airow"><label for="ai-h-sure">How sure</label><select class="aiin" id="ai-h-sure" onchange="aiInput()"><option value="likely">Likely</option><option value="possible" selected>Possible</option><option value="long">A long shot</option></select></div>
+    </div>
+    <label class="aix"><input type="checkbox" id="ai-x-home" onchange="aiInput()"><span>A second or vacation home</span></label>
+    <div class="aixb" id="ai-xb-home">
+      <div class="airow"><label for="ai-v-val">Rough value</label><input class="aiin" type="number" id="ai-v-val" min="0" step="25000" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow"><label for="ai-v-mort">Mortgage left</label><input class="aiin" type="number" id="ai-v-mort" min="0" step="10000" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow"><label for="ai-v-cost">Yearly costs — tax, insurance, upkeep, HOA</label><input class="aiin" type="number" id="ai-v-cost" min="0" step="1000" inputmode="numeric" oninput="aiInput()"></div>
+      <div class="airow"><label for="ai-v-plan">Plan for it</label><select class="aiin" id="ai-v-plan" onchange="aiInput()"><option value="keep">Keep it</option><option value="sell">Sell it</option><option value="rent">Rent it out</option><option value="">Not sure</option></select></div>
+    </div>
+  </details>
+
   <div class="card">
     <div class="ctitle">3 · What the AI has to cover</div>
     <div class="hint" style="margin-bottom:4px">The questions an experienced surgeon would ask before agreeing to your plan. Uncheck any you disagree with — just do it on purpose.</div>
@@ -1256,6 +1302,12 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="hint ai-links" style="margin-top:6px">Then open <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a><a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a><a href="https://gemini.google.com/app" target="_blank" rel="noopener">Gemini</a> and paste.</div>
     <details class="how"><summary>See the prompt</summary><div id="ai-prompt"></div></details>
     <div class="box box-b" style="margin-bottom:0"><div class="box-body"><strong>When it answers:</strong> "Are you sure?" just invites it to flip. Ask something specific instead — "What's the strongest case against buying now?" or "What happens to this plan if I can't operate for a year?" And if it suddenly agrees with you after you push back, ask what new fact changed its mind.</div></div>
+  </div>
+
+  <div class="card" id="ai-rp" style="border:2px solid var(--accent)">
+    <div class="ctitle" style="color:var(--accent)">Close to retiring? Go deeper</div>
+    <div style="font-size:13px;line-height:1.55">The <b>Retirement Playbook</b> is a companion app for the last stretch: the order to draw from your accounts, Roth conversions in the gap years, Social Security timing, and covering health insurance until Medicare. It has its own Ask AI, with the questions that matter near retirement — pension, deferred comp, where you'll live, your spouse's plans.</div>
+    <a class="pb-link" href="https://retirement-playbook-sepia.vercel.app" target="_blank" rel="noopener">Open the Retirement Playbook ↗</a>
   </div>
 
   <details class="card fold" id="ai-setup">
@@ -3756,8 +3808,27 @@ function aiFacts(c){
   if(c.houseOn&&!c.houseOwned){try{rvbSync();var v=$('rvb-verdict'),t=v&&v.querySelector('.box-title');if(t)calc.push('Rent vs buy ('+($('rvb-custom').checked?'numbers set on that tab':'my numbers')+', '+$('rvb-yrs').value+'-year stay): '+t.textContent.trim()+'. '+(v.querySelector('.box-body').textContent.match(/Owning costs about [^.]+\./)||[''])[0]);}catch(e){}}
   if(c.loansOn&&c.lb>0){try{$('sl-bal').value=$('lb').value;$('sl-pslf').checked=$('pslf').checked;$('sl-yrs-left').value=MODE==='res'?$('yrs-left').value:0;$('sl-qual-done').value=$('pslf').checked?Math.min(9,+$('pslf-yrs').value):0;calcLoans();
     var lt=$('sl-verdict').querySelector('.box-title');if(lt)calc.push('Student loan analysis: '+lt.textContent.replace(/^[→\s]+/,'').trim()+'.');}catch(e){}}
-  return {me:me,calc:calc};
+  return {me:me,calc:calc,more:aiMore(c)};
 }
+// Late-career answers and the optional "Do you have any of these?" items — none of these feed the projections
+function aiNum(id){var n=+$(id).value;return n>0?n:0;}
+function aiMore(c){
+  var m=[],st=aiStage(),v=function(id){return $(id).value;};
+  if($('ai-x-bal').checked){
+    var pre=aiNum('ai-b-pre'),ro=aiNum('ai-b-roth'),tx=aiNum('ai-b-tax'),ot=aiNum('ai-b-oth'),tot=pre+ro+tx;
+    var b=[];if(pre)b.push(fkPrecise(pre)+' pre-tax (401(k), 403(b), 457, IRA)');if(ro)b.push(fkPrecise(ro)+' Roth');if(tx)b.push(fkPrecise(tx)+' taxable brokerage');if(ot)b.push(fkPrecise(ot)+' other investments (crypto, private deals, real estate equity)');
+    if(b.length)m.push('Balances: '+b.join('; ')+(tot>0?'. Mix of retirement and brokerage money: '+Math.round(pre/tot*100)+'% pre-tax, '+Math.round(ro/tot*100)+'% Roth, '+Math.round(tx/tot*100)+'% taxable':'')+'. These are part of my net worth above, not extra.'+(ot?' Treat the other investments as riskier and harder to sell.':''));
+  }else if(st==='late')m.push('Balances by account type: not given. Assume mostly pre-tax 401(k)/403(b) money and ask me to confirm before advising on Roth conversions or withdrawal order.');
+  if($('ai-x-inc').checked){var T={rental:'Rental',part:'Part-time or locums',biz:'Business',other:'Other'};
+    [1,2].forEach(function(i){var a=aiNum('ai-i'+i+'-amt');if(!a)return;var f=aiNum('ai-i'+i+'-from'),t=aiNum('ai-i'+i+'-to');
+      m.push('Other income: '+T[v('ai-i'+i+'-type')]+', about '+fkPrecise(a)+'/yr'+(f?' from age '+f:'')+(t?' to '+t:f?' onward':'')+'.');});}
+  if($('ai-x-inh').checked){var ha=aiNum('ai-h-amt');if(ha){var wh={'5':'within 5 years','15':'in 5–15 years','15+':'more than 15 years away'}[v('ai-h-when')]||'timing unknown',su={likely:'likely',possible:'possible',long:'a long shot'}[v('ai-h-sure')];
+    m.push('Possible inheritance: about '+fkPrecise(ha)+', '+wh+', '+su+'. Treat it as a bonus: build the plan without it, then show what changes if it arrives.');}}
+  if($('ai-x-home').checked){var hv=aiNum('ai-v-val');if(hv){var hm=aiNum('ai-v-mort'),hcst=aiNum('ai-v-cost'),hp={keep:'keep it',sell:'sell it',rent:'rent it out'}[v('ai-v-plan')];
+    m.push('Second / vacation home: worth about '+fkPrecise(hv)+(hm?', mortgage '+fkPrecise(hm):', no mortgage')+(hcst?', costs about '+fkPrecise(hcst)+'/yr to carry':'')+(hp?'; plan to '+hp:'; plan undecided')+'.');}}
+  return m;
+}
+function aiInput(){calcAI();saveState();}
 function aiRole(){
   return 'Act as my financial adviser: a skeptical, fee-only fiduciary who works for me — not a salesperson, and not a cheerleader. Your job is to find what\'s wrong with my plan before I commit to it.\n\n'+
     'How to work:\n- The numbers below come from a calculator using my inputs. Treat them as fixed facts; don\'t redo the math unless something looks inconsistent, and if it does, say so.\n- Plain language. This is education, not legal or tax advice — tell me where I need a professional (fee-only planner, CPA, insurance broker, attorney).';
@@ -3765,7 +3836,8 @@ function aiRole(){
 function aiGuardTxt(c){var off=aiList('ai-off');return aiGuards(c).filter(function(g){return off.indexOf(g.k)<0;}).map(function(g){return '- '+g.t;}).join('\n');}
 function aiBuild(c,kind){
   var F=aiFacts(c),st={early:'early career',mid:'mid career',late:'late career'}[aiStage()];
-  var facts='About me ('+st+'):\n- '+F.me.join('\n- ')+'\n\nWhat the calculator worked out (fixed facts):\n- '+F.calc.join('\n- ');
+  var facts='About me ('+st+'):\n- '+F.me.join('\n- ')+'\n\nWhat the calculator worked out (fixed facts):\n- '+F.calc.join('\n- ')+
+    (F.more.length?'\n\nMore about me — NOT included in the calculator\'s projections above, so factor these in yourself:\n- '+F.more.join('\n- '):'');
   var gt=aiGuardTxt(c);
   if(kind==='numbers')return 'My numbers — Surgeon Financial Independence app, '+ckDate(ckToday())+'\n\n'+facts+'\n';
   if(kind==='instr')return aiRole()+'\n\nMy numbers are in the attached file. If it is more than a year old, or my situation has changed, ask me to update it before giving a plan.\n\nEvery time, make sure you:\n'+gt+'\n';
@@ -3774,6 +3846,7 @@ function aiBuild(c,kind){
   if(!ql.length)ql.push(AI_Q[0].t);
   return aiRole()+'\n\n'+facts+'\n\nMake sure you:\n'+gt+'\n\nMy question'+(ql.length>1?'s':'')+':\n- '+ql.join('\n- ')+'\n';
 }
+var AI_LAST_ST=null;
 function calcAI(){
   if(!$('tab-ai'))return;
   var c=getCosts(),st=aiStage(),x=aiCtx(c),auto=$('ai-stage').value==='auto';
@@ -3784,6 +3857,12 @@ function calcAI(){
   $('ai-stage-hint').textContent=auto?'Set from My Numbers — tap to change.':'';
   $('ai-life-q').style.display=x.dep?'':'none';
   $('ai-pslf-q').style.display=c.loansOn&&c.lb>0&&c.pslf?'':'none';
+  // Late career: show the Playbook link, and open the optional section the first time someone reaches late stage
+  var late=st==='late';
+  $('ai-rp').style.display=late?'':'none';
+  if(late&&AI_LAST_ST!=='late')$('ai-extra').open=true;
+  AI_LAST_ST=st;
+  ['bal','inc','inh','home'].forEach(function(k){$('ai-xb-'+k).style.display=$('ai-x-'+k).checked?'':'none';});
   // Goal: today's savings rate against what the goal usually takes
   var g=AI_GOALS[$('ai-goal').value]||AI_GOALS.fu,flat=pbFlat(c),sr=Math.round(flat.savAt(0)/c.gross*100),ok=sr>=g.sr;
   $('ai-goal-out').innerHTML='<div class="ai-goal'+(ok?'':' warn')+'">You save about <b>'+sr+'%</b> of gross today. '+g.lbl.charAt(0).toUpperCase()+g.lbl.slice(1)+' usually takes <b>'+g.sr+'%+</b>. '+
