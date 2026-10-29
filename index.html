@@ -2919,8 +2919,8 @@ function calcPlay(){
   var srNow=pct(sav0),sr10=pct(plan.savAt(RY()));
   var ageTxt=function(m){return m.coast?'Age '+m.coast:'Not before '+retAge();};
   $('pb-big').innerHTML=[
-    {l:'If nothing changes',v:ageTxt(flat),s:'work optional · full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'<br>'+(brk>0?'retirement accounts + '+fkPrecise(brk)+'/mo brokerage':'retirement accounts only, no brokerage'),c:flat.coast?'warn':'bad'},
-    {l:'With this plan',v:ageTxt(plan),s:'work optional · full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'<br>brokerage '+brkTxt(c,plan,RY())+' by year '+RY()+(opts.dcRedir||opts.loanRedir?' (incl. '+(opts.dcRedir?'childcare':'')+(opts.dcRedir&&opts.loanRedir?' + ':'')+(opts.loanRedir?'loans':'')+' redirected)':''),c:goalMet&&!(opts.short>0)?'good':plan.coast?'warn':'bad'},
+    {l:'Work optional — if nothing changes',v:ageTxt(flat),s:'full retirement '+(flat.fi?'at '+flat.fi:'not reached'),c:flat.coast?'warn':'bad'},
+    {l:'Work optional — with this plan',v:ageTxt(plan),s:'full retirement '+(plan.fi?'at '+plan.fi:'not reached'),c:goalMet&&!(opts.short>0)?'good':plan.coast?'warn':'bad'},
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('')+pbLadder(c,plan,opts);
 
   // Outcome
@@ -3088,8 +3088,8 @@ function calcPlay(){
     var mustCover=fixedMo+(c.otherCost/12);
     F.push({k:mustCover>baseTH?'r':'g',t:mustCover>baseTH?'Your base pay doesn\'t cover your bills':'Base pay covers your bills',b:'Guaranteed base of '+fk(base)+' takes home about '+fkPrecise(baseTH)+'/mo; your monthly costs are about '+fkPrecise(mustCover)+'. '+(mustCover>baseTH?'You\'re relying on bonuses for ordinary bills. When a bonus lands, move the shortfall ('+fkPrecise((mustCover-baseTH)*6)+' per six months) into a separate account and pay yourself from it monthly. Don\'t add fixed costs until base pay covers them.':'Good — send bonuses straight to savings the day they arrive.')});
   }
-  if(c.childcareEst>0) F.push({k:'b',t:'The day childcare ends',b:'That frees '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo. Set up the brokerage increase now so it starts the same month — otherwise it disappears into spending. '+(opts.dcRedir?'Your plan already counts on it.':'<strong>Your plan currently doesn\'t redirect it</strong> — turning that on moves work optional from '+(plan.coast||'never')+' to '+(pbSim(c,Object.assign({},opts,{dcRedir:true})).coast||'never')+'.')});
-  if(c.def457===0&&hosp) F.push({k:'a',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another '+$L(LIM.k401)+' a year pre-tax into a 457(b). Check your plan and turn it on in My Numbers.'});
+  if(c.childcareEst>0) F.push({k:'b',dup:'childcare',t:'The day childcare ends',b:'That frees '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo. Set up the brokerage increase now so it starts the same month — otherwise it disappears into spending. '+(opts.dcRedir?'Your plan already counts on it.':'<strong>Your plan currently doesn\'t redirect it</strong> — turning that on moves work optional from '+(plan.coast||'never')+' to '+(pbSim(c,Object.assign({},opts,{dcRedir:true})).coast||'never')+'.')});
+  if(c.def457===0&&hosp) F.push({k:'a',dup:'457(b)',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another '+$L(LIM.k401)+' a year pre-tax into a 457(b). Check your plan and turn it on in My Numbers.'});
   if(c.colOn){var colTot=0,colAll=0;for(var cy2=0;cy2<60;cy2++){colTot+=c.colAt(cy2);colAll+=c.colRaw(cy2);}
     F.push({k:'a',t:'College',b:fk(c.colAmt)+'/yr per child for '+c.colIn.length+' child'+(c.colIn.length!==1?'ren':'')+', '+colWhen(c)+' — about '+fk(colAll)+' in all'+(colAll>colTot?', of which 529s cover about '+fk(colAll-colTot)+'. The other '+fk(colTot):'. It')+' comes from take-home (about '+fk(colTot/(1-0.46))+' of salary). The plan counts it in the years it\'s paid. See "Paying for college" below.'});}
   if(c.nPriv>0) F.push({k:'a',t:'Private school',b:fk(c.schoolEst)+'/yr for '+c.nPriv+' child'+(c.nPriv!==1?'ren':'')+', '+privWhen(c)+(opts.kidRedir?' — the plan sends it to the brokerage when it ends':' — when it ends, send it to the brokerage before it disappears into spending')+'. Paid from take-home, so it takes about '+fk(c.schoolEst/(1-0.46))+' of salary a year.'});
@@ -3097,7 +3097,7 @@ function calcPlay(){
   if(false)F.push({k:'b',t:'Disability insurance',b:'Your income is your biggest asset. Own-occupation, individually owned policy covering about 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers will issue'+($('pb-bonus').checked?', and make sure bonus pay is included in what\'s covered':'')+'. '+(MODE==='res'?'Buy it before you graduate, while you\'re healthy and resident discounts apply.':'Re-check coverage whenever income rises.')});
   if(false) F.push({k:'b',t:'Term life insurance',b:'About 10–15× income for someone depending on you: '+fk(c.s.sal*10)+'–'+fk(c.s.sal*15)+', 20–30 year term. No whole life or IUL. Plus a $2M+ umbrella policy.'});
   $('pb-flags-card').style.display=F.length?'block':'none';
-  $('pb-flags').innerHTML=F.map(function(f){return '<div class="pb-flag '+f.k+'"><div><b>'+f.t+'.</b> '+f.b+'</div></div>';}).join('');
+  $('pb-flags').innerHTML=F.map(function(f){return '<div class="pb-flag '+f.k+'"'+(f.dup?' data-dup="'+f.dup+'"':'')+'><div><b>'+f.t+'.</b> '+f.b+'</div></div>';}).join('');
 
   // Checklist
   $('pb-chk-title').textContent=MODE==='res'?'Timeline — before you finish training':'Timeline — this year';
@@ -3306,7 +3306,7 @@ function calcPlay(){
      how:['If you want help, hire a fee-only fiduciary who charges a flat fee, not a percentage of your assets.','Ask anyone giving advice: "How are you paid?" If the answer involves commissions, walk away.']},
     couple?{t:'Agree on a savings target with your partner',d:'Write down a savings rate and the brokerage amount together. It\'s much easier to stick to a number you both chose.',how:null}:null,
     est?{t:'Every retirement plan maxed — check the pay stub',d:'The '+(hosp?'403(b)':'401(k)')+(hosp?', the 457(b)':'')+(startAge()>=50?', the age-50 catch-up':'')+' and both backdoor Roths each January. Confirm on a pay stub, not the election form. Then everything in Step 1 below.',how:null}:
-    {t:'Day 1 as an attending: max the retirement plan',d:'Call HR before your first paycheck — you can\'t make up missed pay periods. Then everything in Step 1 below.',how:null}
+    null
   ];
   basics=basics.filter(Boolean);
   var FTF=ftfLoad(),nDone=0;
@@ -3328,7 +3328,7 @@ function calcPlay(){
   var yrsGain=function(alt){var x=pbSim(c,Object.assign({},opts,alt));var a=plan.coast||retAge()+5,b2=x.coast||retAge()+5;return a-b2;};
   if($('pb-bonus').checked){var base0=+$('pb-base').value,bTH=base0*(c.takeHome/c.gross)/12,need=fixedMo+(c.otherCost/12);
     if(need>bTH)moves.push({p:100,t:'Stop relying on bonuses for monthly bills',d:'Base pay covers about '+fkPrecise(bTH)+'/mo of '+fkPrecise(need)+' in costs. When a bonus lands, put the shortfall in a separate account and pay yourself from it monthly. Add no new fixed costs until base pay covers them.'});}
-  if(MODE==='res')moves.push({p:95,t:'Buy own-occupation disability insurance before you graduate',d:'Your future income is your biggest asset. Coverage is easiest to get, and cheapest, while you\'re still in training and healthy.'});
+  if(MODE==='res'&&!FTF[ftfKey('Disability insurance — own-occupation, owned by you')])moves.push({p:95,t:'Buy own-occupation disability insurance before you graduate',d:'Your future income is your biggest asset. Coverage is easiest to get, and cheapest, while you\'re still in training and healthy.'});
   if(hosp&&c.def457===0){var g=yrsGain({taxAdv:taxAdv+LIM.k457});moves.push({p:80+g,t:'Start the 457(b) — '+$L(LIM.k457)+'/yr pre-tax',d:'Your hospital almost certainly offers one. On your plan it makes you work-optional '+(g>0?g+' year'+(g!==1?'s':'')+' sooner':'sooner')+'. Check its distribution rules, then sign up at open enrollment.'});}
   if(hasDC&&!opts.dcRedir){var g2=yrsGain({dcRedir:true});moves.push({p:85+g2,t:'Send the childcare money to the brokerage when it ends',d:fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo frees up in about '+dcEnd+' years. Redirecting it makes you work-optional '+(g2>0?g2+' years sooner':'sooner')+'. Schedule the transfer increase before the last daycare bill.'});}
   else if(hasDC)moves.push({p:60,t:'Lock in the childcare redirect now',d:'In about '+dcEnd+' years, '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo frees up. Your plan depends on that money going to the brokerage the same month — set a reminder or schedule it now.'});
@@ -3345,7 +3345,7 @@ function calcPlay(){
   if(brk===0&&!c.actual&&GM.short===0&&raise>0&&Math.max(roomMo,leftAfter)>=1000){
     // Realistic headline: nobody invests every leftover dollar — new expenses take part of it. The plan is a transfer that starts small and rises every year.
     var xA=pbSim(c,Object.assign({},opts,{brk:1e7})),xF0=pbFlat(c),pS=Math.round(plan.savAt(RY())/c.gross*100);
-    moves.push({p:91,t:'Automate the brokerage — start small, raise it '+fkPrecise(raise)+'/mo every year',d:'Your budget leaves about '+fkPrecise(roomMo)+'/mo'+(leftAfter?' now and about '+fkPrecise(leftAfter)+'/mo once you own (year '+GM.opts.buyYr+')':'')+', but new expenses always claim part of it. Set up an automatic transfer on payday before they do, and raise it every January and with every pay raise. On your numbers that makes work optional '+(plan.coast?'at '+plan.coast:'not before '+retAge())+' (the transfer reaches about '+brkTxt(c,plan,RY())+' by year '+RY()+')'+(xF0.coast!==plan.coast?' instead of '+(xF0.coast||retAge()+' or later'):'')+'.'+(xA.coast&&xA.coast<(plan.coast||99)?' Every extra dollar moves it toward '+xA.coast+' — the age if all of it were invested.':'')});}
+    moves.push({p:91,t:'Automate the brokerage — start small, raise it '+fkPrecise(raise)+'/mo every year',d:'Your budget leaves about '+fkPrecise(roomMo)+'/mo'+(leftAfter?' now and '+fkPrecise(leftAfter)+'/mo once you own':'')+' — set up a transfer on payday, before new expenses claim it, and raise it every January.'});}
   else if(brk===0&&!c.actual&&roomMo>=1000){var xR=pbSim(c,{brk:roomMo,raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}),xF=pbFlat(c);
     moves.push({p:91,t:'Invest the '+fkPrecise(roomMo)+'/mo your budget leaves — automatically',d:'After the app\'s estimated spending'+(sqMo>0?' and the college fund':'')+', about '+fkPrecise(roomMo)+'/mo is left and not going anywhere. Make it an automatic brokerage transfer on payday — or start with half and raise it every quarter. On your numbers, that alone makes work optional '+(xR.coast?'at '+xR.coast:'not before '+retAge())+(xF.coast?' instead of '+xF.coast:'')+', with full retirement at '+(xR.fi||'—')+' instead of '+(xF.fi||'—')+'.'});}
   else if(!c.actual&&pbOpts(c).short>0){}   // short budget: 'Close the gap' comes first; no brokerage move until there's room
@@ -3365,7 +3365,10 @@ function calcPlay(){
   var G=pbOpts(c);   // one gap figure everywhere: spending + Roth/HSA + house fund vs take-home
   if(G.short>0)moves.push({p:101,t:'Close the gap: you\'re about '+fk(G.short)+' a year short',d:'Take-home doesn\'t cover the app\'s estimated spending'+(c.cashLeft<0?' (that alone is '+fk(-c.cashLeft)+' over)':'')+' plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(G.dpYr>0?' and the house fund':'')+'. '+(G.dpYr>0?'A later or smaller house closes it fastest. ':'')+'Look at the biggest lines on My Numbers before adding any new fixed cost.'+(sqPeak>0?' It grows before it shrinks: school and college add up to '+fk(sqPeak)+' a year more than today in the years ahead.':'')+(MODE==='att'?' My Playbook → "How to get out" shows when costs that end close it.':'')});
   moves.sort(function(a,b){return b.p-a.p;});
-  $('pb-top3').innerHTML=moves.slice(0,3).map(function(m,i){return '<div class="pb-move"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t" style="font-size:13px">'+m.t+'</div><div class="pb-d">'+m.d+'</div></div></div>';}).join('');
+  var top3=moves.slice(0,3),topT=top3.map(function(m){return m.t;}).join(' ');
+  var shown=0;document.querySelectorAll('#pb-flags .pb-flag').forEach(function(el){var d=el.dataset.dup,hide=!!d&&topT.indexOf(d)>=0;el.style.display=hide?'none':'';if(!hide)shown++;});
+  $('pb-flags-card').style.display=shown?'block':'none';
+  $('pb-top3').innerHTML=top3.map(function(m,i){return '<div class="pb-move"><div class="pb-n">'+(i+1)+'</div><div class="pb-body"><div class="pb-t" style="font-size:13px">'+m.t+'</div><div class="pb-d">'+m.d+'</div></div></div>';}).join('');
 }
 
 
@@ -3376,7 +3379,7 @@ var FTF_KEY='surgeonFI.ftf';
 function ftfKey(t){return t.toLowerCase().replace(/<[^>]*>/g,'').replace(/[^a-z0-9]+/g,' ').trim().split(' ').slice(0,3).join('-');}
 function ftfLoad(){try{return JSON.parse(localStorage.getItem(FTF_KEY)||'{}')||{};}catch(e){return {};}}
 function ftfToggle(el){var o=ftfLoad();if(el.checked)o[el.dataset.k]=1;else delete o[el.dataset.k];try{localStorage.setItem(FTF_KEY,JSON.stringify(o));}catch(e){}
-  el.parentNode.classList.toggle('done',el.checked);var n=document.querySelectorAll('#pb-basics .ftf input:checked').length,t=document.querySelectorAll('#pb-basics .ftf').length;$('ftf-prog').textContent=n+' of '+t+' done';}
+  el.parentNode.classList.toggle('done',el.checked);var n=document.querySelectorAll('#pb-basics .ftf input:checked').length,t=document.querySelectorAll('#pb-basics .ftf').length;$('ftf-prog').textContent=n+' of '+t+' done';try{calcPlay();}catch(e){}}
 // ── PLAYBOOK OPTIONS (shared by playbook and summary bar) ──
 function pbOpts(c){
   if(c.actual&&c.brk>0&&+$('pb-brk').value===0){$('pb-brk').value=Math.min(15000,Math.round(c.brk/12/250)*250);$('pb-brk-v').textContent=fkPrecise(+$('pb-brk').value);}   // real savings: the brokerage you entered is the plan's starting transfer, on every tab
