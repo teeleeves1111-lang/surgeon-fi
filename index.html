@@ -300,6 +300,7 @@ details.how ol{margin:5px 0 2px 16px;line-height:1.55;}
 details.how li{margin-bottom:3px;}
 details.how .how-h{font-weight:700;color:var(--dk);margin:8px 0 0;font-size:11px;}
 details.how ol:empty{display:none;}
+@media screen{.print-only{display:none!important;}}
 @media print{#sumbar,#setup{display:none!important;}
   body{background:#fff;font-size:11px;}
   .mode-bar,.tabs,.no-print,.foot,#hdr .hdr-row,#hdr p{display:none!important;}
@@ -665,13 +666,13 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 
 <!-- ═══ TAB: MY PLAYBOOK ════════════════════════════════════════════ -->
 <div id="tab-play" class="panel">
-  <div class="card" style="border-color:var(--accent)">
+  <div class="no-print" style="text-align:right;margin:-2px 2px 8px"><a href="#" style="color:var(--accent);font-weight:600;font-size:14px;text-decoration:none" onclick="document.getElementById('pb-save').scrollIntoView({behavior:'smooth'});return false">Save / print ↓</a></div>
+  <div class="card print-only" style="border-color:var(--accent)">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
       <div>
         <div style="font-size:15px;font-weight:700" id="pb-title">Your financial plan</div>
         <div style="font-size:11px;color:var(--mg);margin-top:2px" id="pb-sub"></div>
       </div>
-      <button class="btn ghost no-print" style="padding:5px 10px" onclick="document.getElementById('pb-save').scrollIntoView({behavior:'smooth'})">Save / print ↓</button>
     </div>
   </div>
   <div id="pb-ck-top"></div>
@@ -841,7 +842,6 @@ details.nsec:not([open])>summary::after{margin-left:0;}
       <button class="btn ghost" onclick="if(confirmReset())resetState()">Reset</button>
     </div>
     <div class="hint no-print" id="pb-backup" style="margin:8px 0 0"></div>
-    <div class="hint no-print" style="margin:6px 0 0">Built from My Numbers — change anything there and this updates. Come back each year, and whenever something big changes (a new job, a house, a child, school), and save a check-in.</div>
     <div id="pb-ck-bottom" style="margin-top:10px"></div>
   </div>
   <div class="box box-g"><div class="box-body" style="font-size:12px;text-align:center">Financial independence isn't about being rich. It's about having enough — so your time belongs to you.</div></div>
@@ -1874,7 +1874,7 @@ function dpCard(c,nwNow){
 // ── WATERFALL ─────────────────────────────────────────────────────
 function calcWaterfall(c){
   c=c||getCosts();
-  var tagE=' <span class="tag tag-est">est.</span>',tagA=' <span class="tag tag-act">yours</span>';
+  var tagE='',tagA=' <span class="tag tag-act">yours</span>';
   var A=c.A,useTotal=A.total!==null;
   $('wf-title').textContent=c.actual?'your numbers (annual)':MODE==='att'?'this year (estimates)':'year 1 attending (estimates)';
   var hp=c.hp;
@@ -1921,15 +1921,15 @@ function calcWaterfall(c){
     if(c.kidsCost>0) items.push({l:(A.kids!==null?'Childcare & school':(c.childcareEst>0?'Childcare':'')+(c.schoolEst>0?(c.childcareEst>0?' + ':'')+'Private school':'')+(c.colNow>0?(c.childcareEst+c.schoolEst>0?' + ':'')+'College':''))+(A.kids!==null?tagA:tagE),a:c.kidsCost,col:'#8E44AD',p:pct(c.kidsCost),
       note:A.kids!==null?null:(c.nDay>0?c.nDay+' in care × '+fkPrecise(+$('daymo').value)+'/mo':'')+(c.nPriv>0?(c.nDay>0?' · ':'')+c.nPriv+' in private school':'')+(c.colNow>0?' · '+fk(c.colNow)+' college':'')});
     if(c.cars>0) items.push({l:'Cars'+(A.cars!==null?tagA:tagE),a:c.cars,col:'#7F8C8D',p:pct(c.cars)});
-    if(A.other===null) items.push({l:'Insurance premiums'+tagE,a:c.insEst,col:'#8B2020',p:pct(c.insEst),note:'own-occ disability'+((c.hh==='couple'||c.nk>0)?', term life':'')+', umbrella'});
+    if(A.other===null) items.push({l:'Insurance premiums'+tagE,a:c.insEst,col:'#8B2020',p:pct(c.insEst),note:null});
     items.push({l:'Living + discretionary'+(A.other!==null?tagA:tagE),a:c.otherCost-(A.other===null?c.insEst:0),col:'#95A5A6',p:pct(c.otherCost-(A.other===null?c.insEst:0)),
-      note:A.other!==null?null:'household of '+hhSize()+' · food, utilities, health premiums, travel'+(c.lifestyleEst>0?' · incl. '+fk(c.lifestyleEst)+' bigger-home costs':'')});
+      note:A.other!==null?null:(c.lifestyleEst>0?'incl. '+fk(c.lifestyleEst)+' bigger-home costs':null)});
   }
   if(c.save529On) items.push({l:'529 savings',a:c.save529Amt,col:'#8E44AD',p:pct(c.save529Amt)});
   if(c.emp>0) items.push({l:'+ Employer retirement contribution',a:c.emp,col:'#1D6B52',p:pct(c.emp),note:'on top of salary'});
-  if(c.payRet>0&&!c.actual) items.push({l:'Payroll retirement savings',a:c.payRet,col:'#1D6B52',p:pct(c.payRet),note:(c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)'))+(c.catchNow>0?' + '+fk(c.catchNow)+' Roth catch-up':'')+(c.defP>0?' + partner\'s plan':'')+' — taken before take-home'});
+  if(c.payRet>0&&!c.actual) items.push({l:'Payroll retirement savings',a:c.payRet,col:'#1D6B52',p:pct(c.payRet),note:(c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)'))+(c.catchNow>0?' + '+fk(c.catchNow)+' Roth catch-up':'')+(c.defP>0?' + partner\'s plan':'')});
   if(!c.actual){
-    if(c.cashLeft>=0) items.push({l:'Cash left over each year',a:c.cashLeft,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:pct(c.cashLeft),note:'for Roths, brokerage, down payment — only if automated'});
+    if(c.cashLeft>=0) items.push({l:'Cash left over each year',a:c.cashLeft,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:pct(c.cashLeft),note:null});
     else items.push({l:'Short each year',a:-c.cashLeft,col:'#C0392B',bad:true,p:pct(-c.cashLeft),note:'spending is more than take-home — it comes from credit cards, savings or bonuses'});
   } else if(c.left<0) items.push({l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true});
 
@@ -2388,11 +2388,8 @@ function calcLoans(){
     html+='</div>';
     vHtml+='<div class="box box-g"><div class="box-title" style="color:var(--g)">→ Refinance at attending start'+(refiSaves>0?' — saves '+fk(refiSaves)+' vs. the federal rate':'')+'</div><div class="box-body">';
     vHtml+=fm(refiPmt)+'/mo for 10 years at '+refiRateStr+', '+fk(totalOOPrefi)+' in all. ';
-    if(resMos>0&&balAtAtt!==bal) vHtml+='That payment is on the '+fk(balAtAtt)+' you\'ll owe when you start as an attending, after '+yrsLeft+' more year'+(yrsLeft!==1?'s':'')+' of training (you owe '+fk(bal)+' today). My Numbers and My Plan use today\'s balance: '+fm(std10(bal,refiRate))+'/mo. ';
-    vHtml+='Refinance to the lowest rate you qualify for and pay off in 10 years or less. ';
-    vHtml+='Physician-focused lenders: Laurel Road, SoFi, Earnest, Splash Financial — compare at least 3 current offers before signing. ';
-    vHtml+='Do not extend the term past 10 years. ';
-    vHtml+='Every dollar of prepayment earns a guaranteed '+refiRateStr+' — better than bonds, better than cash.';
+    if(resMos>0&&balAtAtt!==bal) vHtml+='That\'s on the '+fk(balAtAtt)+' you\'ll owe after training; My Numbers uses today\'s '+fk(bal)+' ('+fm(std10(bal,refiRate))+'/mo). ';
+    vHtml+='Compare at least 3 physician lenders (Laurel Road, SoFi, Earnest, Splash) and keep the term at 10 years or less.';
     vHtml+='</div></div>';
   }
   $('sl-verdict').innerHTML=vHtml;
@@ -3064,6 +3061,8 @@ function calcPlay(){
   if(false)F.push({k:'b',t:'Disability insurance',b:'Your income is your biggest asset. Own-occupation, individually owned policy covering about 60% of income — roughly '+fkPrecise(c.gross*0.6/12)+'/mo of benefit, up to what insurers will issue'+($('pb-bonus').checked?', and make sure bonus pay is included in what\'s covered':'')+'. '+(MODE==='res'?'Buy it before you graduate, while you\'re healthy and resident discounts apply.':'Re-check coverage whenever income rises.')});
   if(false) F.push({k:'b',t:'Term life insurance',b:'About 10–15× income for someone depending on you: '+fk(c.s.sal*10)+'–'+fk(c.s.sal*15)+', 20–30 year term. No whole life or IUL. Plus a $2M+ umbrella policy.'});
   $('pb-flags-card').style.display=F.length?'block':'none';
+  F=F.filter(function(f){return f.k!=='g';});
+  $('pb-flags-card').style.display=F.length?'block':'none';
   $('pb-flags').innerHTML=F.map(function(f){return '<div class="pb-flag '+f.k+'"'+(f.dup?' data-dup="'+f.dup+'"':'')+'><div><b>'+f.t+'.</b> '+f.b+'</div></div>';}).join('');
 
   // Checklist
@@ -3667,7 +3666,7 @@ function renderCheckin(c){
   var btn='<button class="btn ghost no-print" id="ck-btn" style="margin-top:8px" onclick="ckSave()">'+(savedToday?'✓ Check-in saved today — update it':'Save today\'s check-in')+'</button>';
   var ageTxt=function(a){return a?String(a):'not by '+retAge();};
   if(!last){
-    box.innerHTML='<div class="ck"><b>Check-ins</b><div class="hint" style="margin-top:4px">'+(savedToday?'Today\'s plan is saved. Next time you open the app — next year, or when something big changes — this box shows what moved since today.':'Save a check-in to record today\'s ages and savings. Next time you come back, this box shows what changed since then.')+'</div>'+btn+'</div>';
+    box.innerHTML='<div class="hint" style="margin-top:2px">'+(savedToday?'Today\'s plan is saved. Come back each year — this shows what moved.':'Come back each year and save a check-in — next time you\'ll see what changed.')+'</div>'+btn;
     renderBackup();return;
   }
   var n=ckNow(c);
@@ -3693,8 +3692,8 @@ function renderBackup(){
   var el=$('pb-backup');if(!el)return;var at=null;try{at=localStorage.getItem(LINK_KEY);}catch(e){}
   var stale=!at||(new Date(ckToday())-new Date(at))>3.156e10;
   el.className='hint no-print'+(stale?' warn':'');
-  el.innerHTML=stale?'<b>Keep a backup.</b> Your numbers and check-ins live only in this browser — a new phone or a cleared browser erases them. Tap <strong>Copy my plan link</strong> and email it to yourself; opening that link restores everything.':
-    'Backup link copied '+ckDate(at)+'. Copy a fresh one after big changes — the newest link has everything, including your check-ins.';
+  el.innerHTML=stale?'<b>Keep a backup:</b> your numbers live only in this browser — copy your plan link and email it to yourself.':
+    'Backup link copied '+ckDate(at)+'.';
 }
 var STATE_KEY='surgeonFI.v1',MODES_KEY='surgeonFI.modes',restoring=false,DEFAULTS=null;
 function modesLoad(){try{return JSON.parse(localStorage.getItem(MODES_KEY)||'{}')||{};}catch(e){return {};}}
