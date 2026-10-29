@@ -684,7 +684,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div id="pb-flags"></div>
   </div>
   <div class="card"><div class="ctitle"><span id="ftf-title">First things first — before you invest a dollar</span> <span id="ftf-prog" style="float:right;color:var(--accent);text-transform:none;letter-spacing:0"></span></div>
-    <div class="hint">Tap an item to see why and how. Tick it off when it's done — this device remembers.</div>
+    <div class="hint">Tap an item for why and how; tick it when it's done.</div>
     <div id="pb-basics"></div></div>
 
   <details class="pb-full" id="pb-full"><summary>Your full plan<span>Change the plan, your goal age and settings · the monthly autopilot, in order · your brokerage year by year</span></summary><div class="pb-full-in">
@@ -850,20 +850,20 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
 <div id="tab-paths" class="panel">
-  <div class="hint" style="margin:0 0 10px;font-size:13px">Within about 10 years of stopping? The <a class="rp-link" href="https://retirement-playbook-sepia.vercel.app" target="_blank" rel="noopener">Retirement Playbook ↗</a> covers withdrawals, Roth conversions, Social Security and health insurance before Medicare. Your numbers carry over.</div>
+  <div class="hint" id="paths-rp" style="margin:0 0 10px;font-size:13px;display:none">Within about 10 years of stopping? The <a class="rp-link" href="https://retirement-playbook-sepia.vercel.app" target="_blank" rel="noopener">Retirement Playbook ↗</a> covers withdrawals, Roth conversions, Social Security and health insurance before Medicare. Your numbers carry over.</div>
   <details class="card fold" id="simple-math" style="border:2px solid var(--accent)">
     <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math — how much you need, and why your savings rate matters most</summary>
 
     <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">1. How much do I need? The 4% rule</div>
     <ol style="font-size:12px;line-height:1.6;color:#333;padding-left:18px">
-      <li><strong>Where it comes from.</strong> In the 1990s, researchers tested every historical stretch of the US market — including the Great Depression and the inflation of the 1970s — to see how much retirees could safely spend.</li>
-      <li><strong>What it says.</strong> Take 4% of your portfolio in your first year of retirement, raise that dollar amount with inflation every year after, and historically the money lasted at least 30 years.</li>
-      <li><strong>The arithmetic.</strong> Divide what you'll spend each year by 4% — the same as multiplying by 25. <span id="mm-mynum"></span></li>
-      <li><strong>The fine print.</strong> Retiring before about 55 means a longer retirement, so a more cautious 3.5% (×28.6) is reasonable: <span id="mm-cautious"></span>. Social Security at 70 isn't counted and adds a cushion later.</li>
+      <li><strong>Where it comes from.</strong> Researchers tested every stretch of US market history, including the Depression and the 1970s.</li>
+      <li><strong>What it says.</strong> Spend 4% of your portfolio in year one, raise it with inflation, and the money historically lasted 30+ years.</li>
+      <li><strong>The arithmetic.</strong> What you'll spend each year × 25. <span id="mm-mynum"></span></li>
+      <li><strong>Retiring before 55?</strong> Use 3.5% (×28.6) to be safe: <span id="mm-cautious"></span>.</li>
     </ol>
 
     <div class="subhd">2. Why your savings rate matters more than your salary</div>
-    <div style="font-size:12px;line-height:1.6;color:#333">Your savings rate works on <strong>both ends</strong> at once. Every dollar you save is a dollar invested <em>and</em> a dollar you've learned to live without — so the number you need shrinks too. Salary helps, but only through what you save: a raise that turns into a bigger house and a nicer car raises your number as fast as your savings. Drag the two sliders and watch which one moves the finish line.</div>
+    <div style="font-size:12px;line-height:1.6;color:#333">Every dollar you save is invested <em>and</em> a dollar you've learned to live without, so the number you need shrinks too. Drag the two sliders and watch which one moves the finish line.</div>
 
     <div class="g2" style="margin-top:10px">
       <div>
@@ -892,7 +892,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   </details>
   <div class="fu res" id="fu">
     <h2>When does work become optional?</h2>
-    <p>Work optional = saved enough that you could stop saving and still retire on time. From then on your paycheck only has to cover today's bills — so you can leave a bad job, go part-time, or pay for call coverage. Some people call it FU money.</p>
+    <p>Saved enough that you could stop saving and still retire on time — so you can leave a bad job, go part-time, or pay for call coverage. Some call it FU money.</p>
     <div class="fu-grid" id="fu-grid"></div>
   </div>
   <div class="card">
@@ -911,7 +911,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   </div>
   <div class="box box-a">
     <div class="box-title" style="color:var(--am)">The path nobody warns you about</div>
-    <div class="box-body">No loans, no luxury cars — and still saving under 10%. Full-time childcare (about $70k a year for two), a North Jersey mortgage and property tax, and the ordinary cost of running a family can absorb a surgeon's income. Nothing extravagant; it just adds up. The fix isn't monthly discipline. It's deciding the house, school and childcare with the real numbers in hand <em>before</em> they lock in, and sending childcare money to the brokerage the month it ends.</div>
+    <div class="box-body">No loans, no luxury cars — and still saving under 10%. Childcare, a North Jersey mortgage and ordinary family costs can absorb a surgeon's income. Decide the house, school and childcare with real numbers before they lock in.</div>
   </div>
   <details class="card fold" id="paths-more">
     <summary class="ctitle">Assumptions — retirement spending, retirement age, return</summary>
@@ -955,7 +955,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
       <div class="sr"><label>Private refi rate</label>
         <input type="range" min="3" max="8" step="0.1" value="5" id="sl-refi" oninput="calcLoans()">
         <span class="sv" id="sl-refi-v">5.0%</span></div>
-      <div style="font-size:10px;color:var(--mg);margin-top:4px;line-height:1.5">Payments use household income from My Numbers (your salary plus your partner's, less pre-tax retirement), as on a joint return. Residency assumes a $65k salary plus your partner's income. Household size and children also come from My Numbers.</div>
+      <div style="font-size:10px;color:var(--mg);margin-top:4px;line-height:1.5">Household income, family size and children come from My Numbers. Residency assumes a $65k salary.</div>
     </div>
   </div>
 
@@ -975,7 +975,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 
 <!-- ═══ TAB 7: TRUE COST ════════════════════════════════════════════ -->
 <div id="tab-true" class="panel">
-  <div class="hint" style="margin:0 2px 10px;font-size:12px">Every fixed cost is paid from take-home, not gross — and if it lasts into retirement, it raises the amount you need before you can stop working. Pick one and see what it really costs.</div>
+  <div class="hint" style="margin:0 2px 10px;font-size:12px">Pick a cost and see what it really takes from your plan.</div>
   <div class="g2">
     <div class="card">
       <div class="ctitle">The cost</div>
@@ -993,13 +993,12 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <input type="range" min="1" max="31" value="31" id="tc-yrs" oninput="calcTrue()">
         <span class="sv" id="tc-yrs-v">Permanent</span></div>
       <div class="hint" id="tc-desc">Default: a $1.5M house instead of $1M in NJ — mortgage, 2.23% property tax, insurance, and upkeep on the extra $500k (≈$4,000/mo).</div>
-      <div class="trow"><label>Continues into retirement (raises your FI number)</label>
+      <div class="trow"><label>Continues into retirement</label>
         <label class="tog"><input type="checkbox" id="tc-ret" checked onchange="calcTrue()"><span class="tsl"></span></label></div>
       <div class="sr"><label>Part that continues in retirement</label>
         <input type="range" min="0" max="100" step="5" value="37" id="tc-retpct" oninput="calcTrue()">
         <span class="sv" id="tc-retpct-v">37%</span></div>
-      <div class="hint">For a house, the mortgage ends but property tax, insurance and upkeep don't (≈37% of the extra cost in NJ). A lease you'd keep replacing is 100%.</div>
-      <div class="hint" style="margin-top:8px">Uses your numbers from My Numbers and the same path as the other tabs.</div>
+      <div class="hint">A house's mortgage ends; its tax, insurance and upkeep don't (about 37% in NJ). A lease you keep renewing is 100%.</div>
     </div>
     <div>
       <div id="tc-msg"></div>
@@ -1047,14 +1046,15 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <input type="range" min="2000" max="12000" step="250" value="7500" id="rvb-rent" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-rent-v">$7.5k</span></div>
 
-      <div class="sr"><label>Rent increase / yr (before inflation)</label>
-        <input type="range" min="0" max="6" step="0.5" value="4" id="rvb-rentg" oninput="rvbTouch();calcRentBuy()">
-        <span class="sv" id="rvb-rentg-v">4.0%</span></div>
-      <div class="hint" style="margin-top:-4px;margin-bottom:8px">Over decades, rents tend to rise about as fast as home prices — so the default matches appreciation.</div>
       <div class="sr"><label id="rvb-yrs-lbl">Years in home</label>
         <input type="range" min="1" max="15" value="5" id="rvb-yrs" oninput="rvbTouch();calcRentBuy()">
         <span class="sv" id="rvb-yrs-v">5 yrs</span></div>
 
+      <details class="how"><summary>More assumptions — rent increase, appreciation, return, property tax</summary><div style="margin-top:8px">
+      <div class="sr"><label>Rent increase / yr (before inflation)</label>
+        <input type="range" min="0" max="6" step="0.5" value="4" id="rvb-rentg" oninput="rvbTouch();calcRentBuy()">
+        <span class="sv" id="rvb-rentg-v">4.0%</span></div>
+      <div class="hint" style="margin-top:-4px;margin-bottom:8px">Over decades, rents tend to rise about as fast as home prices — so the default matches appreciation.</div>
       <div class="sr"><label>Home appreciation / yr (before inflation)</label>
         <input type="range" min="2" max="8" step="0.5" value="4" id="rvb-appr" oninput="calcRentBuy()">
         <span class="sv" id="rvb-appr-v">4.0%</span></div>
@@ -1066,7 +1066,8 @@ details.nsec:not([open])>summary::after{margin-left:0;}
       <div class="sr"><label>Property tax rate</label>
         <input type="range" min="0.2" max="3.5" step="0.05" value="2.23" id="rvb-tax" oninput="calcRentBuy();go()">
         <span class="sv" id="rvb-tax-v">2.23%</span></div>
-      <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">New Jersey average is 2.23% — set it for your town. Also used in My Numbers.</div>
+      <div style="font-size:10px;color:var(--mg);margin-top:-4px;margin-bottom:8px">New Jersey averages about 2.2% — set it for your town. Also used in My Numbers.</div>
+      </div></details>
     </div>
     <div class="card">
       <div class="ctitle" id="rvb-ch-title">Wealth comparison — renter vs owner</div>
@@ -1093,7 +1094,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   <input type="hidden" id="ai-off" value=""><input type="hidden" id="ai-qs" value="weak">
   <div class="card" style="border:2px solid var(--accent)">
     <div class="ctitle" style="color:var(--accent)">Ask AI — and make it push back</div>
-    <div style="font-size:13px;line-height:1.55">AI will build a plan around whatever you bring it: the house next year, the new car, "my loans will be no problem." Ask it "can I afford this?" and it usually says yes. This page turns your numbers into a prompt that tells the AI to question your plan the way an experienced surgeon would. The math comes from this app, not from the AI.</div>
+    <div style="font-size:13px;line-height:1.55">Ask an AI "can I afford this?" and it usually says yes. This turns your numbers into a prompt that makes it question your plan the way an experienced surgeon would. The math comes from this app.</div>
   </div>
 
   <div class="card">
@@ -1152,11 +1153,11 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     </div>
   </details>
 
-  <div class="card">
-    <div class="ctitle">3 · What the AI has to cover</div>
-    <div class="hint" style="margin-bottom:4px">The questions an experienced surgeon would ask before agreeing to your plan. Uncheck any you disagree with — just do it on purpose.</div>
+  <details class="card fold" id="ai-guards-card">
+    <summary class="ctitle">3 · What the AI has to cover <span id="ai-guards-sum" style="text-transform:none;letter-spacing:0;font-weight:500"></span></summary>
+    <div class="hint" style="margin-bottom:4px">The questions an experienced surgeon would ask before agreeing to your plan. Uncheck any you disagree with — on purpose.</div>
     <div id="ai-guards"></div>
-  </div>
+  </details>
 
   <div class="card">
     <div class="ctitle">4 · What do you want to ask?</div>
@@ -1170,7 +1171,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="hint" style="margin-top:8px"><b>Privacy:</b> the prompt has your numbers but no names, employers or account numbers. Keep it that way when you add details.</div>
     <div class="hint ai-links" style="margin-top:6px">Then open <a href="https://claude.ai/new" target="_blank" rel="noopener">Claude</a><a href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT</a><a href="https://gemini.google.com/app" target="_blank" rel="noopener">Gemini</a> and paste.</div>
     <details class="how"><summary>See the prompt</summary><div id="ai-prompt"></div></details>
-    <div class="box box-b" style="margin-bottom:0"><div class="box-body"><strong>When it answers:</strong> "Are you sure?" just invites it to flip. Ask something specific instead — "What's the strongest case against buying now?" or "What happens to this plan if I can't operate for a year?" And if it suddenly agrees with you after you push back, ask what new fact changed its mind.</div></div>
+    <div class="box box-b" style="margin-bottom:0"><div class="box-body"><strong>When it answers:</strong> don't ask "are you sure?" — it just flips. Ask "What's the strongest case against this?" If it suddenly agrees after you push back, ask what new fact changed its mind.</div></div>
   </div>
 
   <div class="card" id="ai-rp" style="border:2px solid var(--accent)">
@@ -1949,12 +1950,10 @@ function calcWaterfall(c){
     {l:'Your savings rate',v:showSR+'%',s:fk(c.invest)+'/yr saved',c:cls},
     {l:c.spendEntered?'Spending / mo':'Implied spending / mo',v:fk((c.spendEntered?c.totalSpend-c.save529Amt:c.impliedSpend)/12),s:c.spendEntered?'what you entered':'take-home minus savings',c:''},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
-    {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
   ]:[
     {l:'Room to save',v:showSR+'%',s:'only if every leftover dollar is invested'+(c.buyYr>0?' · renting now':''),c:dpAlert?'warn':cls},
     {l:'Net saving / yr',v:fk(Math.max(0,c.left+c.emp)),s:c.cashLeft<0?'retirement plans minus the shortfall':'retirement plans + cash left over',c:c.cashLeft>=0?'good':'bad'},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
-    {l:'Tax burden',v:fk(c.taxes),s:pct(c.taxes)+'% of gross',c:'bad'},
   ];
   $('wf-metrics').innerHTML=mets.map(function(m){
     return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';
@@ -2115,6 +2114,7 @@ function calcPaths(){
   var idealms=msAll[0],typms=msAll[1],crpms=msAll[2],mems=msAll[3];
 
   $('fu').className='fu '+(MODE==='res'?'res':'att');
+  $('paths-rp').style.display=MODE==='att'&&retAge()-startAge()<=15?'':'none';
   $('fu-grid').innerHTML=
     '<div class="fu-cell"><div class="fu-num" style="color:#A8FFD4">'+(mems.coast?'Age '+mems.coast:'Not before '+retAge())+'</div>'+
       '<div class="fu-lbl" style="font-size:9px;margin-top:3px">🔓 Work optional<br>could stop saving and still retire on time</div></div>'+
@@ -2126,8 +2126,6 @@ function calcPaths(){
     {l:'Today',dot:MODE==='att'?'y':''},
     (msSel.zero===sa?null:{l:msSel.zero?'Age '+msSel.zero:'Not reached',sub:'Zero NW',dot:msSel.zero?'r':''}),   // skip when you start at or above zero
     {l:msSel.million?'Age '+msSel.million:'Not reached',sub:'$1M milestone',dot:msSel.million?'r':''},
-    {l:msSel.coast?'Age '+msSel.coast:'Not before '+retAge(),sub:'Work optional',sub2:msSel.coast?fk(callTarget(msSel.coast,fi,rr))+' saved':'',dot:msSel.coast?'k':''},
-    {l:msSel.fi?'Age '+msSel.fi:'Not reached',sub:'Full retirement',sub2:fk(fi)+' target',dot:msSel.fi?'k':''},
   ].filter(Boolean).map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
       (m.dot==='k'?'⭐':m.dot==='r'?'✓':m.dot==='y'?'📍':'◎')+'</div>'+
@@ -2163,7 +2161,7 @@ function syncFISR(){
   $('fi-sr').value=0;
   note.style.display='block';
   var b0=brkMoY(c,pbFlat(c),RY());
-  note.textContent='Starts at what you do now'+(b0?' ('+fkPrecise(b0)+'/mo into the brokerage)':' — nothing into a brokerage yet')+'. Your 403(b)/401(k), 457(b) and Roths through payroll are already counted. Drag to add more each month.';
+  note.textContent='Starts at what you do now'+(b0?' ('+fkPrecise(b0)+'/mo into the brokerage)':' (nothing into a brokerage yet)')+'. Retirement accounts are already counted.';
 }
 function calcFI(){
   var c=getCosts();
@@ -2188,7 +2186,7 @@ function calcFI(){
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
     (fiYr?(coastYr?'Work optional at '+coastYr:'Not work-optional before '+retAge())+' · full retirement at '+fiYr:'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?(addMo?'Investing <strong>'+fkPrecise(addMo)+'/mo more</strong> in the brokerage, every month from now':'With what you invest now'+(brkNow?' ('+fkPrecise(brkNow)+'/mo into the brokerage)':'')+' plus your retirement accounts')+', work becomes optional '+(coastYr?'at age <strong>'+coastYr+'</strong>':'<strong>only at '+retAge()+' or later</strong>')+' and full retirement at <strong>'+fiYr+'</strong>, assuming '+fk(spend)+'/yr in retirement.':
+    (fiYr?(addMo?'With <strong>'+fkPrecise(addMo)+'/mo more</strong> into the brokerage, every month from now.':'With what you invest now'+(brkNow?' ('+fkPrecise(brkNow)+'/mo into the brokerage)':'')+' plus your retirement accounts.')+' Assumes '+fk(spend)+'/yr in retirement.':
     (coastYr?'Work becomes optional at age '+coastYr+' — but full retirement is past the projection window. Reduce retirement spending or invest more each month to get there sooner.':
     'At this level, neither work optional nor full retirement arrives in the projection window. Each extra $1,000 a month into the brokerage makes a real difference — drag the slider.'))+
     '</div></div>'+fiGoalLine(c);
@@ -2205,7 +2203,7 @@ function mmPure(r){var nw=0,y=0,target=25*(1-r);while(nw<target&&y<100){nw=nw*1.
 function calcMath(){
   var c=getCosts();
   var spend=retSpend(c);
-  $('mm-mynum').innerHTML='Your estimate: <strong>'+fk(spend)+'/yr ÷ 4% = '+fk(spend*25)+'</strong>. ($150k/yr → $3.75M; $200k/yr → $5M.)';
+  $('mm-mynum').innerHTML='For you: <strong>'+fk(spend)+'/yr × 25 = '+fk(spend*25)+'</strong>.';
   $('mm-cautious').textContent=fk(spend)+'/yr ÷ 3.5% = '+fk(spend/0.035);
   if(!$('mm-sal').dataset.touched)$('mm-sal').value=Math.min(1200000,Math.max(300000,Math.round(c.s.sal/50000)*50000));
   if(!$('mm-sr').dataset.touched)$('mm-sr').value=c.actual?Math.min(60,Math.max(5,effSR(c))):20;
@@ -2370,8 +2368,7 @@ function calcLoans(){
     var refiSaves=totalOOPfedStd-totalOOPrefi;
     var interestFed=totalOOPfedStd-bal;
     var interestRefi=totalOOPrefi-bal;
-    html+='<div class="box box-r" style="margin-bottom:10px"><div class="box-title" style="color:var(--rd)">⚠ Do not let loans ride on IDR — forgiveness is now taxable</div>';
-    html+='<div class="box-body">Carrying federal loans for 20–30 years on IBR/RAP without PSLF now results in taxable forgiveness. On '+fk(bal)+' at '+rateStr+', the forgiven amount could trigger a six-figure tax bill in your 50s or 60s. The old low-payment strategy is now a trap for private practice physicians. Pay it off.</div></div>';
+    var slWarn='<div class="box box-r"><div class="box-title" style="color:var(--rd)">Don\'t let the loans ride on IBR or RAP</div><div class="box-body">Without PSLF, forgiveness after 20–25 years is now taxable — on '+fk(bal)+' that could be a six-figure tax bill. Pay it off.</div></div>';
     html+='<div class="g2">';
     html+='<div class="card"><div class="ctitle">Federal Standard 10yr ('+rateStr+')</div><table class="tbl">';
     html+='<tr><th>Phase</th><th>Monthly</th><th>Duration</th><th>Total paid</th></tr>';
@@ -2393,7 +2390,7 @@ function calcLoans(){
     vHtml+='</div></div>';
   }
   $('sl-verdict').innerHTML=vHtml;
-  $('sl-result').innerHTML=html;
+  $('sl-result').innerHTML=(typeof slWarn!=='undefined'&&!pslfOn?slWarn:'')+'<details class="card fold"><summary class="ctitle">Compare the two paths, year by year</summary>'+html+'</details>';
 }
 
 
@@ -2453,7 +2450,6 @@ function calcTrue(){
     '<tr><td>Brokerage you can fund, year '+RY()+'</td><td>'+(S0.savAt(RY())<0?'deficit':brkTxt(c,S0,RY()))+'</td><td>'+(S1.savAt(RY())<0?'deficit':brkTxt(c,S1,RY()))+'</td></tr>'+
     '<tr class="hl-b"><td>Work optional</td><td>'+g0.w+'</td><td>'+g1.w+'</td></tr>'+
     '<tr class="hl"><td>Full retirement</td><td>'+g0.f+'</td><td>'+g1.f+'</td></tr></table>'+
-    '<div style="margin-top:6px;font-size:11px;color:var(--mg)">Income can fall — reimbursement cuts, a job change, less call, disability. Fixed costs can\'t. Decide them with the real numbers before they lock in.</div>'+
     '</div></div>';
 
   $('tc-tbl').innerHTML='<tr><th></th><th>Without it</th><th>With it</th></tr>'+
@@ -2461,7 +2457,7 @@ function calcTrue(){
       return '<tr><td>Saving now'+(hf>0?'<br><span style="font-size:10px;color:var(--mg)">including the house fund</span>':'')+'</td><td>'+fk(n0)+' ('+pc(n0)+'%)</td><td>'+fk(n1)+(n1<0?' — deficit':' ('+pc(n1)+'%)')+'</td></tr>';})()+
     '<tr><td>Net worth in 20 years</td><td>'+fk(A0.nw20)+'</td><td>'+fk(A1.nw20)+'</td></tr>'+
     '<tr><td>FI number</td><td>'+fk(fiBase)+'</td><td>'+fk(fiWith)+'</td></tr>'+
-    '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">"Without it" is the same path as the other tabs: starting at age '+sa+' with net worth '+fk(nw0)+', today\'s saving, your house plan and costs as they are, no raises. Retirement spending from the Paths tab ('+fk(retSpend(c))+'/yr). '+Math.round(rr*100)+'% real return; amounts in today\'s dollars.</td></tr>';
+    '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">Same path as the other tabs: today\'s saving, your house plan, no raises. '+Math.round(rr*100)+'% real return; today\'s dollars.</td></tr>';
 }
 
 // ── RENT VS BUY ────────────────────────────────────────────────────
@@ -2689,7 +2685,7 @@ function calcRentBuy(){
   var verdictBox,verdictTitle,verdictBody;
   if(renterWins){
     verdictBox='box-a';verdictTitle='color:var(--am)';
-    verdictBody=beLine+' Until then the renter comes out ahead — if the renter actually invests the down payment and the monthly difference. Spent instead, buying wins sooner.';
+    verdictBody=beLine+' That assumes the renter invests the down payment and the monthly difference.';
   } else {
     verdictBox='box-b';verdictTitle='color:var(--b)';
     verdictBody=beLine+' Staying longer rewards the commitment; selling early is what costs owners.';
@@ -2721,7 +2717,7 @@ function calcRentBuy(){
   var beRent=Math.round((ownerNet)/12);
   var mythWin=ownerNet>renterGone;
   $('rvb-myth').innerHTML='<div class="card"><div class="ctitle">"Renting is throwing money away" — so is owning</div>'+
-    '<div style="font-size:11px;color:var(--mg);margin-bottom:8px;line-height:1.5">Both renters and owners pay money they never get back. Rent is the renter\'s. The owner\'s is interest, property tax, insurance, upkeep, buying and selling costs, and the return the down payment would have earned invested. Only principal and appreciation come back. Year 1, '+fk(price)+' home vs '+fkPrecise(rent)+'/mo rent, staying '+years+' yr'+(years!==1?'s':'')+':</div>'+
+    '<div style="font-size:11px;color:var(--mg);margin-bottom:8px;line-height:1.5">Both pay money they never get back. Year 1, '+fk(price)+' home vs '+fkPrecise(rent)+'/mo rent, staying '+years+' yr'+(years!==1?'s':'')+':</div>'+
     '<div class="g2">'+
     '<table class="tbl"><tr><th>Renter — gone</th><th>Annual</th></tr>'+
     '<tr><td>Rent</td><td>'+fk(renterGone)+'</td></tr>'+
@@ -2737,9 +2733,9 @@ function calcRentBuy(){
     '<tr class="hl2"><td><strong>Net gone</strong></td><td><strong>'+fk(ownerNet)+'</strong></td></tr></table>'+
     '</div>'+
     '<div class="box '+(mythWin?'box-a':'box-b')+'" style="margin-bottom:0"><div class="box-body">'+
-    (mythWin?'<strong>In year 1, the owner loses '+fk(ownerNet-renterGone)+' more than the renter.</strong> '+(breakeven?'That gap shrinks every year — rent rises while the mortgage payment stays fixed — which is why buying pulls ahead if you stay about '+breakeven+' years. ':'Rent rises each year while the mortgage payment stays fixed, but at this price and rent the gap never closes within 30 years. ')+'Principal paydown ('+fk(yr1Prin)+') isn\'t on either list because it isn\'t a cost — it is savings, the same as the renter investing the difference. ':
-             '<strong>In year 1, owning loses '+fk(renterGone-ownerNet)+' less than renting.</strong> At this price, rent, and time horizon, buying is the better deal. ')+
-    'For a '+years+'-year stay, renting wins whenever comparable rent is below about <strong>'+fkPrecise(beRent)+'/mo</strong>. Equity is not free money — it is your own down payment and principal coming back.'+
+    (mythWin?'<strong>In year 1, the owner loses '+fk(ownerNet-renterGone)+' more than the renter.</strong> '+(breakeven?'The gap shrinks as rent rises; buying pulls ahead after about '+breakeven+' years. ':'At this price and rent the gap never closes within 30 years. '):
+             '<strong>In year 1, owning loses '+fk(renterGone-ownerNet)+' less than renting.</strong> ')+
+    'For a '+years+'-year stay, renting wins whenever similar rent is below about <strong>'+fkPrecise(beRent)+'/mo</strong>.'+
     '</div></div></div>';
 
   var txnHtml='';
@@ -2854,9 +2850,7 @@ function calcPlay(){
     var at=function(r){var m=r<=b10?F0:pbFlat(c,Math.round((r-b10)*c.gross));return (m.coast?'work optional at '+m.coast:'work optional not before '+retAge())+(m.fi?', full retirement at '+m.fi:'');};
     var needPct=needLevel!==null?Math.round((taxAdv+12*needLevel)/c.gross*100):null;
     $('pb-goal-help').innerHTML=gapG>0?'First close the '+fk(gapG)+'/yr gap — until spending fits take-home, no age is realistic. '+(MODE==='att'?'See "How to get out" below.':'Start with the top moves above.'):
-      'Not sure? The usual target is <strong>20% of gross</strong>, all accounts counted, for a full career; <strong>25–30%</strong> to stop working in your 50s. For you: '+
-      [0.20,0.25,0.30].map(function(r){return '<strong>'+Math.round(r*100)+'%</strong> → '+at(r);}).join('; ')+'.'+(Math.round(b10*100)>=20?' You\'re already at '+Math.round(b10*100)+'%.':'')+
-      (needPct!==null?' Age '+goal+' takes about '+needPct+'% from now.':' Age '+goal+' isn\'t reachable from this start — try a later age.');
+      (needPct!==null?'Age '+goal+' takes about <strong>'+needPct+'% of pay</strong> from now. ':'Age '+goal+' isn\'t reachable from this start — try a later age. ')+'Usual targets: 20% for a full career, 25–30% to stop in your 50s.'+(Math.round(b10*100)>=20?' You\'re already at '+Math.round(b10*100)+'%.':'');
     var cur=+$('age').value,dates=[];
     if(c.colOn&&c.colIn.length)dates.push('your last child finishes college around <strong>'+(cur+c.colEnd)+'</strong>');
     else if(c.nPriv>0)dates.push('private school ends around <strong>'+(cur+c.privEnd)+'</strong>');
@@ -2892,20 +2886,18 @@ function calcPlay(){
   var out='<table class="tbl"><tr><th></th><th>Work optional</th><th>Full retirement</th></tr>'+
     '<tr><td>If nothing changes — brokerage stays at '+fkPrecise(brk)+'/mo<br><span style="font-size:10px;color:var(--mg)">retirement accounts + '+fkPrecise(brk)+'/mo</span></td><td>'+(flat.coast||'not by '+retAge())+'</td><td>'+(flat.fi||'—')+'</td></tr>'+
     '<tr class="hl"><td>Your plan (raise '+fkPrecise(raise)+'/mo each year'+(opts.dcRedir?' + childcare':'')+(opts.loanRedir?' + loans':'')+')'+'<br><span style="font-size:10px;font-weight:400">brokerage '+brkTxt(c,plan,RY())+' by year '+RY()+''+(plan.capYr!==null?' — as far as your budget goes':'')+'</span>'+'</td><td>'+(plan.coast||'not by '+retAge())+'</td><td>'+(plan.fi||'—')+'</td></tr>'+
-    (planCut&&plan.capYr!==null?'<tr><td>Same plan, if you also spend less<br><span style="font-size:10px;color:var(--mg)">brokerage '+brkTxt(c,planCut,RY())+' by year '+RY()+', so every raise happens</span></td><td>'+(planCut.coast||'not by '+retAge())+'</td><td>'+(planCut.fi||'—')+'</td></tr>':'')+'</table>';
+    (planCut&&plan.capYr!==null&&(planCut.coast!==plan.coast||planCut.fi!==plan.fi)?'<tr><td>Same plan, if you also spend less<br><span style="font-size:10px;color:var(--mg)">brokerage '+brkTxt(c,planCut,RY())+' by year '+RY()+', so every raise happens</span></td><td>'+(planCut.coast||'not by '+retAge())+'</td><td>'+(planCut.fi||'—')+'</td></tr>':'')+'</table>';
   var PO=pbOpts(c),short=PO.short,room=PO.room,shortBuy=PO.shortBuy;
   if(short>0||shortBuy>0) out+='<div class="pb-flag a" style="margin-top:8px"><div><b>'+(short>0?'First close the gap: you\'re about '+fk(short)+' a year short'+(shortBuy>short?', and about '+fk(shortBuy)+' a year after you buy the house':''):'After you buy the house you\'ll be about '+fk(shortBuy)+' a year short')+'.</b> '+
     'Take-home doesn\'t cover the app\'s estimated spending plus '+(couple?'the Roths':'the Roth')+(hsa?' and HSA':'')+(PO.buying?', the down payment fund and then the higher cost of owning':'')+', so the ages above already count that much less saved.'+(PO.buying?' A later or smaller house closes it fastest — the down payment card on My Numbers shows the options.':(c.cashLeft<0?' See move 1.':''))+'</div></div>';
-  else if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Work becomes optional at '+plan.coast+'. The single most important thing now is that the raises and redirects actually happen — set them up as automatic transfers.</div></div>';
+  else if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ This plan reaches your goal.</b> Work becomes optional at '+plan.coast+'. Now make the raises and redirects automatic transfers.</div></div>';
   else out+='<div class="pb-flag a" style="margin-top:8px"><div><b>To be work-optional by '+goal+':</b> '+
     (needRaise!==null?'raise your brokerage by <strong>'+fkPrecise(needRaise)+'/mo every year</strong> instead of '+fkPrecise(raise)+'. ':'no realistic yearly raise gets there from this start — ')+
     (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
     'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
-  if(PO.buying) out+='<div class="hint" style="margin-top:8px;color:#444"><b>The house is in this plan.</b> '+(c.actual?'When you buy in year '+c.buyYr+', the '+fk(PO.dpOwn)+' down payment comes out of what you\'ve saved; after that,':'Until you buy in year '+c.buyYr+', the down payment fund takes about '+fk(PO.dpYr)+' a year; after that,')+' owning costs about '+fk(PO.houseExtra)+' a year '+(PO.houseExtra>=0?'more':'less')+' than your rent. '+(c.actual?'The ages above count both against your savings.':'Both come out of what\'s left before anything reaches the brokerage.')+'</div>';
-  if(!c.actual&&plan.capYr!==null){var ex10=Math.max(0,plan.wantAt(RY())-plan.cashAt(RY()));
+  if(!c.actual&&plan.capYr!==null&&plan.sa+plan.capYr<(plan.coast||retAge())){var ex10=Math.max(0,plan.wantAt(RY())-plan.cashAt(RY()));
     out+='<div class="hint" style="margin-top:8px;color:#444"><b>Why the plan stops short.</b> '+(plan.capYr===0?'Right now':'From year '+(plan.capYr+1))+' your budget has no cash left for the brokerage you set'+(raise>0?' and its yearly raises':'')+', so the ages above count only what it can fund. With pay held flat after inflation, keeping every raise going means spending less than the app\'s estimate'+(ex10>0?' — about <strong>'+fk(ex10)+' a year less by year '+RY()+'</strong>':'')+'. Real pay raises can cover part of it.</div>';}
   else if(c.actual&&raise>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> Each yearly raise of '+fkPrecise(raise)+'/mo comes out of spending, because the app holds your pay flat after inflation: by year '+RY()+' you\'d be spending about <strong>'+fk(12*raise*RY())+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.</div>';
-  out+='<div class="hint" style="margin-top:6px">'+(needLevel!==null?'For reference: a steady '+fkPrecise(needLevel)+'/mo from '+yr1+' makes you work-optional at '+goal+'. Most people can\'t start there — which is why the yearly raise matters.':'For reference: no steady brokerage amount from '+yr1+' makes you work-optional by '+goal+'. Try a later goal age or lower retirement spending.')+'</div>';
   $('pb-outcome').innerHTML=out;
   renderCheckin(c);
 
@@ -3561,12 +3553,14 @@ function calcAI(){
   // Goal: today's savings rate against what the goal usually takes
   var g=AI_GOALS[$('ai-goal').value]||AI_GOALS.fu,flat=pbFlat(c),sr=Math.round(flat.savAt(0)/c.gross*100),ok=sr>=g.sr;
   $('ai-goal-out').innerHTML='<div class="ai-goal'+(ok?'':' warn')+'">You save about <b>'+sr+'%</b> of gross today. '+g.lbl.charAt(0).toUpperCase()+g.lbl.slice(1)+' usually takes <b>'+g.sr+'%+</b>. '+
-    'If nothing changes, work is optional '+(flat.coast?'at <b>'+flat.coast+'</b>':'<b>not before '+retAge()+'</b>')+'. The prompt holds the AI to this goal — not to anyone else\'s idea of what you should want.</div>';
+    'If nothing changes, work is optional '+(flat.coast?'at <b>'+flat.coast+'</b>':'<b>not before '+retAge()+'</b>')+'. The prompt holds the AI to this goal.</div>';
   // Guardrails, flagged where your own numbers make them urgent
   var off=aiList('ai-off'),gs=aiGuards(c),stN={early:'Early career',mid:'Mid career',late:'Late career'}[st];
   var row=function(gd){var flag=gd.hot?gd.hot(c,x):'',on=off.indexOf(gd.k)<0;
     return '<label class="gr'+(on?'':' off')+(flag&&on?' hot':'')+'"><input type="checkbox" data-k="'+gd.k+'"'+(on?' checked':'')+' onchange="aiToggle(this)"><span><span class="gr-t">'+gd.t+'</span><span class="gr-why">'+gd.w+'</span>'+(flag?'<span class="gr-flag">⚠ '+flag+'</span>':'')+'</span></label>';};
   $('ai-guards').innerHTML='<div class="gr-sh">'+stN+'</div>'+AI_G[st].map(row).join('')+'<div class="gr-sh">Every time</div>'+aiAll(st).map(row).join('');
+  var nOn=$('ai-guards').querySelectorAll('input:checked').length,nHot=$('ai-guards').querySelectorAll('.gr.hot').length;
+  $('ai-guards-sum').textContent='— '+nOn+' questions included'+(nHot?', '+nHot+' flagged for your numbers':'')+' · tap to review';
   // Question menu for this stage
   var qs=aiList('ai-qs');
   $('ai-qmenu').innerHTML=aiQs(c).map(function(q){return '<button class="aichip'+(qs.indexOf(q.k)>=0?' on':'')+'" data-q="'+q.k+'" onclick="aiQ(this)">'+q.t+'</button>';}).join('');
