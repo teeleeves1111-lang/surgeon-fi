@@ -1951,8 +1951,7 @@ function calcWaterfall(c){
     {l:c.spendEntered?'Spending / mo':'Implied spending / mo',v:fk((c.spendEntered?c.totalSpend-c.save529Amt:c.impliedSpend)/12),s:c.spendEntered?'what you entered':'take-home minus savings',c:''},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
   ]:[
-    {l:'Room to save',v:showSR+'%',s:'only if every leftover dollar is invested'+(c.buyYr>0?' · renting now':''),c:dpAlert?'warn':cls},
-    {l:'Net saving / yr',v:fk(Math.max(0,c.left+c.emp)),s:c.cashLeft<0?'retirement plans minus the shortfall':'retirement plans + cash left over',c:c.cashLeft>=0?'good':'bad'},
+    {l:'Room to save',v:showSR+'% · '+fk(Math.max(0,c.left+c.emp))+'/yr',s:(c.cashLeft<0?'retirement plans minus the shortfall':'retirement plans + every leftover dollar, if all of it is saved')+(c.buyYr>0?' · renting now':''),c:dpAlert?'warn':cls},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
   ];
   $('wf-metrics').innerHTML=mets.map(function(m){
@@ -2454,7 +2453,7 @@ function calcTrue(){
 
   $('tc-tbl').innerHTML='<tr><th></th><th>Without it</th><th>With it</th></tr>'+
     (function(){var hf=pbOpts(c).dpYr,n0=S0.savAt(0)+hf,n1=S1.savAt(0)+hf;   // the house fund is saving too, as on the Playbook
-      return '<tr><td>Saving now'+(hf>0?'<br><span style="font-size:10px;color:var(--mg)">including the house fund</span>':'')+'</td><td>'+fk(n0)+' ('+pc(n0)+'%)</td><td>'+fk(n1)+(n1<0?' — deficit':' ('+pc(n1)+'%)')+'</td></tr>';})()+
+      return '<tr><td>Saved now, if nothing changes<br><span style="font-size:10px;color:var(--mg)">'+(c.actual?'what you actually save'+(hf>0?' + the house fund':''):'retirement plans and Roths'+(pbOpts(c).brk>0?' + your brokerage':'')+(hf>0?' + the house fund':'')+'; leftover cash not counted')+'</span></td><td>'+fk(n0)+' ('+pc(n0)+'%)</td><td>'+fk(n1)+(n1<0?' — deficit':' ('+pc(n1)+'%)')+'</td></tr>';})()+
     '<tr><td>Net worth in 20 years</td><td>'+fk(A0.nw20)+'</td><td>'+fk(A1.nw20)+'</td></tr>'+
     '<tr><td>FI number</td><td>'+fk(fiBase)+'</td><td>'+fk(fiWith)+'</td></tr>'+
     '<tr><td colspan="3" style="font-size:9px;color:var(--mg)">Same path as the other tabs: today\'s saving, your house plan, no raises. '+Math.round(rr*100)+'% real return; today\'s dollars.</td></tr>';
