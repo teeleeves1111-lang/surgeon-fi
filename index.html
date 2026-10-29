@@ -457,9 +457,9 @@ details.nsec:not([open])>summary::after{margin-left:0;}
       </div>
 
       <div class="sr"><label>Current net worth</label>
-        <input type="range" min="-1000000" max="10000000" step="25000" value="-260000" id="nw" oninput="go()">
+        <input type="range" min="-1000000" max="10000000" step="25000" value="0" id="nw" oninput="go()">
         <span class="sv" id="nw-v">−$260k</span></div>
-      <div class="hint" style="margin-top:-4px">Retirement accounts, brokerage and cash, minus student loans and other debts. Leave out your home and its mortgage — housing is set below.</div>
+      <div class="hint" style="margin-top:-4px">Retirement accounts, brokerage and cash, minus credit cards and car loans. Leave out student loans — their payments are already counted below — and your home.</div>
 
       <div class="sr"><label>Household</label>
         <select id="hh-type" onchange="go()">
@@ -2755,7 +2755,7 @@ function calcRentBuy(){
 // The one 'if nothing changes' path every tab uses: today's saving, the house paid for, no raises or redirects.
 // extra = $/yr more (or less) saved every year — what the 'What if' slider moves.
 function pbLadder(c,plan,opts){   // the one thing to do, in dollars: what goes into the brokerage in years 1, 5 and 10
-  if(opts.short>0)return '<div class="pb-ladder"><b>First, close the gap:</b> spending is about '+fk(opts.short)+' a year more than take-home allows. Until that\'s fixed there\'s nothing to invest — see your top move below.</div>';
+  if(opts.short>0)return '<div class="pb-ladder"><b>First, close the gap:</b> take-home doesn\'t cover spending plus the Roths — about '+fk(opts.short)+' a year short. Until that\'s fixed there\'s nothing to invest — see your top move below.</div>';
   var y=[1,5,RY()].filter(function(v,k,a){return a.indexOf(v)===k;}),v=y.map(function(k){return brkMoY(c,plan,k);});
   if(v.every(function(x){return !x;}))return '<div class="pb-ladder"><b>Your one number:</b> start an automatic brokerage transfer — any amount — and raise it every year. That account, not the 401(k), decides when work becomes optional.</div>';
   return '<div class="pb-ladder"><b>Your one number — into a brokerage account each month:</b> '+y.map(function(k,n){return fkPrecise(v[n]||0)+' in year '+k;}).join(' → ')+'. On top of the 401(k)/403(b) and Roths. Automate it, and raise it with every raise and every cost that ends.</div>';
@@ -3457,11 +3457,11 @@ function aiFacts(c){
   me.push('Household: '+(c.hh==='couple'?'married / partnered, partner earns '+(c.pinc>0?fkPrecise(c.pinc):'nothing (single income)'):'single')+'. Household gross income: '+fkPrecise(c.gross)+'.');
   if(c.nk>0){var k=[c.nk+' child'+(c.nk!==1?'ren':'')];if(c.nDay)k.push(c.nDay+' in daycare / preschool');if(c.nPriv)k.push(c.nPriv+' in private school');if(c.colOn)k.push('planning to pay about '+fkPrecise(c.colAmt)+'/yr per child for college');me.push('Children: '+k.join(', ')+'.');}
   else me.push('Children: none.');
-  me.push('Net worth, not counting a home: '+fkPrecise(startNW())+'.');
+  me.push('Net worth, not counting a home or student loans: '+fkPrecise(startNW())+'.');
   if(!c.houseOn)me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo, no plan to buy.');
   else if(c.houseOwned)me.push('Housing: own a home worth about '+fkPrecise(c.hp)+(c.loanAmt>0?', mortgage '+fkPrecise(c.loanAmt)+' at '+c.mRateEff+'% with '+c.mortYrs+' years left':', no mortgage')+'.');
-  else if(c.buyYr===0)me.push('Housing: buying a '+fkPrecise(c.hp)+' home now, with '+Math.round(c.MT.down*100)+'% down.');
-  else me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo; plan to buy a '+fkPrecise(c.hp)+' home in '+c.buyYr+' year'+(c.buyYr!==1?'s':'')+' ('+Math.round(c.MT.down*100)+'% down). Cash needed at closing, after any family gift: about '+fkPrecise(c.dpOwn)+'.');
+  else if(c.buyYr===0)me.push('Housing: buying a '+fkPrecise(c.hp)+' home '+(MODE==='res'?'when I start as an attending':'now')+', with '+Math.round(c.MT.down*100)+'% down. Cash needed at closing'+(c.gift>0?', after a family gift of '+fkPrecise(c.gift):'')+': about '+fkPrecise(c.dpOwn)+'.');
+  else me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo; plan to buy a '+fkPrecise(c.hp)+' home '+(MODE==='res'?'in attending year '+c.buyYr:'in '+c.buyYr+' year'+(c.buyYr!==1?'s':''))+' ('+Math.round(c.MT.down*100)+'% down). Cash needed at closing'+(c.gift>0?', after a family gift of '+fkPrecise(c.gift):'')+': about '+fkPrecise(c.dpOwn)+'.');
   if(c.loansOn&&c.lb>0)me.push('Student loans: '+fkPrecise(c.lb)+'; '+(c.pslf?'going for Public Service Loan Forgiveness, '+c.pslfYrs+' of 10 years of payments done; staying at a qualifying employer for the rest: '+aiAns(x.pslf10):c.loansRefi?'planning to refinance privately and pay off in 10 years':'not going for PSLF; repayment plan not decided (the calculator assumes a 10-year payoff)')+'.');
   else me.push('Student loans: none.');
   me.push('Employer: '+(c.planType==='403b'?'hospital / academic (403(b)'+(c.def457?' and 457(b)':'')+')':'private group (401(k))')+'. Maxing it: '+(c.def401?'yes':'no')+'. Employer contribution: '+(+$('emp').value>0?$('emp').value+'% of salary':'none or unknown')+'.');
@@ -3474,7 +3474,7 @@ function aiFacts(c){
 
   var sr=Math.round(flat.savAt(0)/c.gross*100);
   calc.push('Spending: about '+fkPrecise(c.totalSpend)+'/yr, including loan payments ('+(c.spendEntered||c.actual?'from my real numbers':'the app\'s estimate for my household — not tracked')+'). Taxes: about '+fkPrecise(c.taxes)+'/yr.');
-  if(P.short>0)calc.push('Spending is about '+fkPrecise(P.short)+'/yr more than take-home pay allows — a shortfall right now.');
+  if(P.short>0)calc.push('Take-home pay doesn\'t cover spending plus the backdoor Roth'+(c.hh==='couple'?'s':'')+': about '+fkPrecise(P.short)+'/yr short'+(c.cashLeft<0?' ('+fkPrecise(-c.cashLeft)+' of it from spending alone)':'')+'.');
   calc.push('Savings rate: about '+sr+'% of gross household income, counting payroll retirement saving, the employer contribution and any automatic brokerage transfer. Rule of thumb for my goal: '+g.sr+'%+.');
   if(P.buying&&P.dpYr>0)calc.push('Saving toward the down payment and closing: about '+fkPrecise(P.dpYr)+'/yr until I buy (cash, not counted in the savings rate).');
   var rothA=c.actual?c.rothAmt:(c.hh==='couple'?2*LIM.ira:LIM.ira),hsaA=$('pb-hdhp').checked?(c.hh==='couple'||c.nk>0?LIM.hsaFam:4400):0,parts=[];
@@ -3487,13 +3487,14 @@ function aiFacts(c){
   calc.push('Brokerage investing in my plan: '+(b1===null?'none — a deficit':fkPrecise(b1)+'/mo')+' in year 1'+(RY()>1?', '+(bR===null?'a deficit':fkPrecise(bR)+'/mo')+' by year '+RY():'')+', on top of retirement accounts.');
   if(c.colOn&&c.colIn.length){var cs=c.colIn.map(function(a){return a<=0?'now':'in '+a+' yr'+(a!==1?'s':'');});calc.push('College is already built into these projections: '+fkPrecise(c.colAmt)+'/yr per child for 4 years, starting '+cs.join(', ')+', paid from 529s first (balance '+fkPrecise(c.col529)+') and then from cash flow.');}
   calc.push('"Work optional" below means: saved enough that I could stop saving entirely and still retire at '+ra+'.');
+  if(c.houseOn&&!c.houseOwned)calc.push('The ages below already include the house: the down payment and the higher cost of owning come out of savings.');
   calc.push('If nothing changes: work optional '+(flat.coast?'at '+flat.coast:'not before '+ra)+', full retirement '+(flat.fi?'at '+flat.fi:'not reached')+'.');
   if(plan.coast!==flat.coast||plan.fi!==flat.fi)calc.push('Following my plan (raises and freed-up costs invested): work optional '+(plan.coast?'at '+plan.coast:'not before '+ra)+', full retirement '+(plan.fi?'at '+plan.fi:'not reached')+'.');
   calc.push('Retirement spending assumed: '+fkPrecise(retSpend(c))+'/yr in today\'s dollars, so the target portfolio is about '+fkPrecise(plan.fiNum)+' (25×, the 4% rule). Returns assumed: '+Math.round(realReturn()*1000)/10+'% after inflation.');
   // Rent vs buy and loans: the same analysis their tabs show
   if(c.houseOn&&!c.houseOwned){try{rvbSync();var v=$('rvb-verdict'),t=v&&v.querySelector('.box-title');if(t)calc.push('Rent vs buy ('+($('rvb-custom').checked?'numbers set on that tab':'my numbers')+', '+$('rvb-yrs').value+'-year stay): '+t.textContent.trim()+'. '+(v.querySelector('.box-body').textContent.match(/Owning costs about [^.]+\./)||[''])[0]);}catch(e){}}
   if(c.loansOn&&c.lb>0){try{$('sl-bal').value=$('lb').value;$('sl-pslf').checked=$('pslf').checked;$('sl-yrs-left').value=MODE==='res'?$('yrs-left').value:0;$('sl-qual-done').value=$('pslf').checked?Math.min(9,+$('pslf-yrs').value):0;calcLoans();
-    var lt=$('sl-verdict').querySelector('.box-title');if(lt)calc.push('Student loan analysis: '+lt.textContent.replace(/^[→\s]+/,'').trim()+'.');}catch(e){}}
+    var lt=$('sl-verdict').querySelector('.box-title');if(lt)calc.push('Student loan analysis: '+lt.textContent.replace(/^[→✓\s]+/,'').trim()+'.');}catch(e){}}
   return {me:me,calc:calc,more:aiMore(c)};
 }
 // Late-career answers and the optional "Do you have any of these?" items — none of these feed the projections
@@ -3589,7 +3590,7 @@ function chipVal(q){var on=document.querySelector('#setup [data-q="'+q+'"] .chip
 function setupSync(){
   $('su-yrs-row').style.display=chipVal('stage')==='res'?'flex':'none';
   $('su-pinc-row').style.display=chipVal('hh')==='couple'?'flex':'none';
-  var h=chipVal('home');$('su-hp-row').style.display=h==='rent'?'none':'flex';$('su-rent-row').style.display=h==='rent'?'flex':'none';$('su-mort-row').style.display=h==='own'?'flex':'none';
+  var h=chipVal('home');$('su-hp-row').style.display=h==='rent'?'none':'flex';$('su-rent-row').style.display=h==='rent'||h==='buylater'?'flex':'none';$('su-mort-row').style.display=h==='own'?'flex':'none';
 }
 function openSetup(){
   var sel=$('su-spec');if(!sel.options.length)sel.innerHTML=$('spec').innerHTML;sel.value=$('spec').value;
@@ -3614,11 +3615,11 @@ function applySetup(){
   $('hh-type').value=chipVal('hh');$('pinc').value=chipVal('hh')==='couple'?(+$('su-pinc').value||0):0;
   var nk=+$('su-nk').value;$('kids').checked=nk>0;if(nk>0){$('nk').value=nk;$('nday').value=Math.min(nk,+$('su-nday').value);$('daymo').value=+$('su-daymo').value||2500;}
   var h=chipVal('home');$('house').checked=h!=='rent';$('house-owned').checked=h==='own';$('buy-yr').value=h==='buylater'?2:0;
-  if(h!=='rent')$('hp').value=+$('su-hp').value||1000000;else $('rent').value=+$('su-rent').value||4500;
+  if(h!=='rent')$('hp').value=+$('su-hp').value||1000000;if(h==='rent'||h==='buylater')$('rent').value=+$('su-rent').value||4500;
   if(h==='own'&&$('su-mort').value!==''){$('mort-set').checked=true;$('mort-bal').value=+$('su-mort').value;$('mort-rate').value=+$('su-mrate').value||+$('rvb-rate').value;$('mort-yrs').value=$('su-myrs').value!==''?+$('su-myrs').value:25;}
   var lb=+$('su-lb').value||0;$('loans').checked=lb>0;$('lb').value=lb;$('pslf').checked=chipVal('pslf')==='yes';
   $('plan-type').value=chipVal('emp');$('def457').checked=chipVal('emp')==='403b';$('emp').value=Math.min(10,Math.max(0,+$('su-emp').value||0));
-  if(stage==='att'&&+$('nw').value<-100000)$('nw').value=0;
+  if(+$('nw').value<=-100000)$('nw').value=0;   // older entries subtracted student loans; their payments are counted in the budget instead
   $('ai-goal').value=chipVal('goal')||'fu';$('ai-stage').value='auto';
   closeSetup();go();tab('play');window.scrollTo(0,0);
 }
