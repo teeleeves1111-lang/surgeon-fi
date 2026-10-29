@@ -2036,7 +2036,7 @@ function calcWaterfall(c){
       'Nobody invests all of it — new expenses come up — so the plan starts small and rises; the brokerage reaches about '+brkTxt(c,Splan,RY())+' by year '+RY()+'. '+
       (SplanAll.coast&&SplanAll.coast<(Splan.coast||99)?'Investing every leftover dollar each year would make it '+SplanAll.coast+'; letting it all drift into spending, '+floorTxt+'. ':'If it all drifts into spending: '+floorTxt+'. ');
     if(c.cashLeft<rothNeed){
-      var payAge=coastAt(c.payRet+c.emp+Math.min(0,c.cashLeft));
+      var payAge=Sfloor.coast;   // same 'if nothing changes' path as My Plan
       msg='box-r|'+(c.cashLeft<0?'Spending is more than take-home: short '+fk(-c.cashLeft)+' a year':'Almost nothing left after spending')+'|<strong>At this rate work becomes optional at '+(payAge?'age '+payAge:retAge()+' or later')+'.</strong> '+
         (c.cashLeft<0?'After the app\'s estimated spending you\'re '+fk(-c.cashLeft)+' a year short — it lands on credit cards, savings or bonuses.':'After the app\'s estimated spending only '+fk(c.cashLeft)+' is left — not even enough for the backdoor Roths.');
       more='Your payroll retirement plans still get funded ('+fk(c.payRet+c.emp)+'/yr). Fix the gap before adding fixed costs: the biggest items in the waterfall are where to look'+(c.childcareEst>0?' (childcare ends — plan for that money)':c.nPriv>0||c.colOn?' (school and college end — plan for that money)':'')+(c.buyYr>0?'; and buying the house will add '+fk(Math.max(0,c.ownHousing-c.rentEst))+'/yr on top of today\'s rent':'')+'. '+realNote;
@@ -3473,7 +3473,7 @@ function aiFacts(c){
   me.push('My goal: '+g.n.replace('{RA}',ra)+'.');
 
   var sr=Math.round(flat.savAt(0)/c.gross*100);
-  calc.push('Spending: about '+fkPrecise(c.totalSpend)+'/yr, including loan payments ('+(c.spendEntered||c.actual?'from my real numbers':'the app\'s estimate for my household — not tracked')+'). Taxes: about '+fkPrecise(c.taxes)+'/yr.');
+  calc.push('Spending: about '+fkPrecise(c.totalSpend)+'/yr, including loan payments ('+(c.spendEntered||c.actual?'from my real numbers':'the app\'s estimate for my household — not tracked')+'). Taxes: about '+fkPrecise(c.taxes)+'/yr (federal '+fk(c.tax.fed)+', New Jersey '+fk(c.tax.nj)+', Social Security and Medicare '+fk(c.tax.fica)+(c.tax.itemizing?'; itemizing':'')+').');
   if(P.short>0)calc.push('Take-home pay doesn\'t cover spending plus the backdoor Roth'+(c.hh==='couple'?'s':'')+': about '+fkPrecise(P.short)+'/yr short'+(c.cashLeft<0?' ('+fkPrecise(-c.cashLeft)+' of it from spending alone)':'')+'.');
   calc.push('Savings rate: about '+sr+'% of gross household income, counting payroll retirement saving, the employer contribution and any automatic brokerage transfer. Rule of thumb for my goal: '+g.sr+'%+.');
   if(P.buying&&P.dpYr>0)calc.push('Saving toward the down payment and closing: about '+fkPrecise(P.dpYr)+'/yr until I buy (cash, not counted in the savings rate).');
