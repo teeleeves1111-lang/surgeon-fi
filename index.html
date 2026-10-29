@@ -882,7 +882,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
 
 <!-- ═══ TAB 2: THREE PATHS ══════════════════════════════════════════ -->
 <div id="tab-paths" class="panel">
-  <div class="hint" style="margin:0 0 10px;font-size:13px">Within about 10 years of stopping? The <a class="rp-link" href="https://retirement-playbook-sepia.vercel.app" target="_blank" rel="noopener">Retirement Playbook ↗</a> covers withdrawals, Roth conversions, Social Security and health insurance before Medicare.</div>
+  <div class="hint" style="margin:0 0 10px;font-size:13px">Within about 10 years of stopping? The <a class="rp-link" href="https://retirement-playbook-sepia.vercel.app" target="_blank" rel="noopener">Retirement Playbook ↗</a> covers withdrawals, Roth conversions, Social Security and health insurance before Medicare. Your numbers carry over.</div>
   <details class="card fold" id="simple-math" style="border:2px solid var(--accent)">
     <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math — how much you need, and why your savings rate matters most</summary>
 
@@ -1308,6 +1308,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="ctitle" style="color:var(--accent)">Close to retiring? Go deeper</div>
     <div style="font-size:13px;line-height:1.55">The <b>Retirement Playbook</b> is a companion app for the last stretch: the order to draw from your accounts, Roth conversions in the gap years, Social Security timing, and covering health insurance until Medicare. It has its own Ask AI, with the questions that matter near retirement — pension, deferred comp, where you'll live, your spouse's plans.</div>
     <a class="pb-link" href="https://retirement-playbook-sepia.vercel.app" target="_blank" rel="noopener">Open the Retirement Playbook ↗</a>
+    <div class="hint" style="margin-top:6px">Your age, household, retirement age, retirement spending and any balances you entered above go with you. Nothing is saved anywhere — they travel in the link.</div>
   </div>
 
   <details class="card fold" id="ai-setup">
@@ -4084,6 +4085,25 @@ restoreState();
 go();
 if(window.matchMedia&&matchMedia('(max-width:500px)').matches)document.querySelectorAll('details.nsec').forEach(function(d){d.open=false;});   // phones: sections start folded, with their one-line summary
 if(!_hadState)openSetup();
+
+/* Retirement Playbook links carry the numbers both apps share (a one-time copy in the link, not a sync) */
+function playbookURL(){
+  var q=new URLSearchParams();
+  try{
+    q.set('from','sfi');
+    q.set('fs', $('hh-type').value==='single'?'1':'2');
+    q.set('byear', new Date().getFullYear() - (+$('age').value));
+    q.set('retage', retAge());
+    var sp=retSpend(getCosts()); if(sp>0) q.set('spend', Math.round(sp/1000)*1000);
+    var pre=aiNum('ai-b-pre'),ro=aiNum('ai-b-roth'),tx=aiNum('ai-b-tax');
+    if(pre+ro+tx>0){ q.set('pre',Math.round(pre)); q.set('roth',Math.round(ro)); q.set('tax',Math.round(tx)); }
+    else { var nw=+$('nw').value; if(nw>0) q.set('sfnw', Math.round(nw)); }
+  }catch(e){}
+  return 'https://retirement-playbook-sepia.vercel.app/?'+q.toString();
+}
+document.querySelectorAll('a.rp-link, a.pb-link').forEach(function(a){
+  ['mousedown','focus','touchstart','click'].forEach(function(ev){ a.addEventListener(ev, function(){ a.href=playbookURL(); }, {passive:true}); });
+});
 </script>
 </body>
 </html>
