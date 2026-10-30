@@ -2817,7 +2817,7 @@ function pbSim(c,o){
 }
 // ── First two years as an attending: every dollar of pay, bucket by bucket, month by month ──
 // Order: taxes and payroll retirement → bills → Roth (and HSA) → emergency fund → down payment on schedule → brokerage gets the rest.
-function pbYear1(c){
+function pbYear1(c,plan){
   var card=$('pb-yr1');if(!card)return;
   if(ESTAB()){card.style.display='none';return;}
   card.style.display='block';
@@ -2896,7 +2896,9 @@ function pbYear1(c){
   }
   msg+='The brokerage starts small and grows each time a bucket fills or a cost ends.';
   html+='<div class="box box-b"><div class="box-body">'+msg+'</div></div>';
-  html+='<div class="hint" style="margin:-2px 0 10px">Don\'t count on investing every dollar in the last line — new costs always show up. Automate a set amount a little below it, and raise it every January.</div>';
+  var p0=plan?Math.round(plan.brkAt(0)):null,p1=plan?Math.round(plan.brkAt(1)):null,fits=plan&&p0*12<=brkY[0]+600&&p1*12<=brkY[1]+600;
+  html+='<div class="hint" style="margin:-2px 0 10px">Don\'t count on investing every dollar in the last line — new costs always show up. Automate a set amount a little below it, and raise it every January.'+
+    (plan&&!c.actual?' Your plan\'s brokerage transfer ("Your one number," above) '+(fits?'fits inside this, with room to spare.':'is more than this leaves — the emergency fund'+(buying?' and down payment':'')+' come first.'):'')+'</div>';
 
   // the order to do it in
   var perCheck=function(a){return $L(Math.ceil(a/26))+' a paycheck (every two weeks)';};
@@ -2942,7 +2944,7 @@ function calcPlay(){
   $('pb-stepyr-v').textContent=opts.stepYr>0?'Year '+opts.stepYr:'No raise';$('pb-step-opts').style.display=opts.stepYr>0?'block':'none';
   $('pb-stepamt-v').textContent=fk(+$('pb-stepamt').value);$('pb-stepshare-v').textContent=Math.round(opts.stepShare*100)+'%';
   var plan=pbSim(c,opts);
-  pbYear1(c);
+  pbYear1(c,plan);
   var flat=pbSim(c,{brk:brk,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,mortRedir:false,kidRedir:false,taxAdv:taxAdv,stepShare:0});
   // Level brokerage needed from year 1 to hit goal
   function solve(fn){var lo=0,hi=40000;if(!fn(hi))return null;for(var k=0;k<30;k++){var mid=(lo+hi)/2;if(fn(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;}
