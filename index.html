@@ -1424,7 +1424,7 @@ function secSummaries(){
   var h;
   if(!on('house'))h='Renting '+fkPrecise(v('rent'))+'/mo';
   else if(on('house-owned'))h='Own '+fk(v('hp'))+(on('mort-set')?' · '+fk(v('mort-bal'))+' left at '+(+$('mort-rate').value)+'%':'');
-  else h='Buying '+fk(v('hp'))+(v('buy-yr')>0?' in year '+v('buy-yr'):' now');
+  else h='Buying '+fk(v('hp'))+(v('buy-yr')>0?' in '+v('buy-yr')+' year'+(v('buy-yr')!==1?'s':''):' now');
   $('sum-house').textContent=h;
   var k='None';
   if(on('kids')){var nk=v('nk'),nd=Math.min(v('nday'),nk),np=Math.min(v('npriv'),nk-nd);
@@ -1778,7 +1778,7 @@ function retSpend(c){
 }
 function retAge(){return +$('fi-retage').value||65;}
 function RYsync(){var e=$('ry-lbl');if(e)e.textContent='year '+RY();}
-function RY(){return Math.max(1,Math.min(10,retAge()-startAge()-1));}   // 'year '+RY()+'' — or sooner when retirement is less than 11 years away
+function RY(){return Math.max(1,Math.min(10,retAge()-startAge()-1));}   // year label (1 = first year): year 10, or sooner when retirement is less than 11 years away. Index savAt() with RY()-1.
 // Portfolio needed at a given age so that, with no further saving, it grows to the FI number by retirement age
 function callTarget(age,fiNum,rr){return fiNum/Math.pow(1+rr,Math.max(0,retAge()-age));}
 // Project net worth; sav(i) = savings in year i. Returns milestone ages (age after n years = sa+n).
@@ -1920,7 +1920,7 @@ function calcWaterfall(c){
     var hTag=A.housing!==null?tagA:tagE;
     if(A.housing!==null) items.push({l:'Housing'+hTag,a:c.housingCost,col:'#E67E22',p:pct(c.housingCost)});
     else if(c.houseOn&&c.buyYr===0) items.push({l:'Housing (PITI + upkeep)'+hTag,a:c.housingCost,col:'#E67E22',p:pct(c.housingCost),note:c.houseOwned?null:'+'+fk(downNeeded)+' cash at closing'});
-    else if(c.houseOn&&c.buyYr>0) items.push({l:'Rent (until attending yr '+c.buyYr+')'+hTag,a:c.housingCost,col:'#E8A020',p:pct(c.housingCost),note:'Buying '+fk(hp)+' in yr '+c.buyYr+' — owning will cost '+fk(c.ownHousing)+'/yr'});
+    else if(c.houseOn&&c.buyYr>0) items.push({l:'Rent (first '+c.buyYr+' attending year'+(c.buyYr!==1?'s':'')+')'+hTag,a:c.housingCost,col:'#E8A020',p:pct(c.housingCost),note:'Buying '+fk(hp)+' in '+c.buyYr+' yr'+(c.buyYr!==1?'s':'')+' — owning will cost '+fk(c.ownHousing)+'/yr'});
     else if(c.housingCost>0) items.push({l:'Housing (rent)'+hTag,a:c.housingCost,col:'#E67E22',p:pct(c.housingCost)});
     if(c.loanPay>0) items.push({l:'Student loans'+(A.loans!==null?tagA:tagE),a:c.loanPay,col:'#E8A020',p:pct(c.loanPay),
       note:A.loans!==null?null:(c.pslf?(c.pslfYrsLeft>0?'IDR payment · '+c.pslfYrsLeft+' yr'+(c.pslfYrsLeft!==1?'s':'')+' of PSLF payments left':'Forgiveness eligible now'):'10-yr payoff at '+(+$('sl-refi').value).toFixed(1)+'%'+(c.loansRefi?' (locked in)':''))});
@@ -1997,9 +1997,9 @@ function calcWaterfall(c){
   var Sauto=pbSim(c,Object.assign({brk:1e7},noPlan));   // every leftover dollar invested, each year (capped at the cash you have)
   var Sfloor=pbSim(c,Object.assign({brk:0},noPlan));    // only the retirement accounts
   var coastEst=c.actual?pbFlat(c).coast:Sauto.coast;
-  var auto10=Math.round(Sauto.savAt(RY())/c.gross*100);
-  var Splan=pbSim(c,pbOpts(c).opts),plan10=Math.round(Splan.savAt(RY())/c.gross*100),pRaise=+$('pb-raise').value,pBrk=+$('pb-brk').value;
-  var SplanAll=pbSim(c,Object.assign({},pbOpts(c).opts,{brk:1e7})),all10=Math.round(SplanAll.savAt(RY())/c.gross*100);   // same plan, every leftover dollar invested
+  var auto10=Math.round(Sauto.savAt(RY()-1)/c.gross*100);
+  var Splan=pbSim(c,pbOpts(c).opts),plan10=Math.round(Splan.savAt(RY()-1)/c.gross*100),pRaise=+$('pb-raise').value,pBrk=+$('pb-brk').value;
+  var SplanAll=pbSim(c,Object.assign({},pbOpts(c).opts,{brk:1e7})),all10=Math.round(SplanAll.savAt(RY()-1)/c.gross*100);   // same plan, every leftover dollar invested
   var planAge=Splan.coast?'age <strong>'+Splan.coast+'</strong>':'<strong>age '+retAge()+' or later</strong>';
   var planDesc=pBrk>0?'a '+fkPrecise(pBrk)+'/mo brokerage transfer'+(pRaise>0?' raised '+fkPrecise(pRaise)+'/mo every year':''):'an automatic brokerage transfer that starts small and rises '+fkPrecise(pRaise)+'/mo every year';
   // Nobody invests every leftover dollar: lead with the plan, show "all of it" as the ceiling
@@ -2049,7 +2049,7 @@ function calcWaterfall(c){
       var HB=pbOpts(c),after=Math.max(0,Math.round(c.cashLeft-HB.houseExtra-rothNeed));
       var same=coastEst===floorAge||(coastEst&&floorAge&&Math.abs(coastEst-floorAge)<=1);
       msg='box-a|Room to save today: '+c.srPct+'% — but the house plan needs it|'+(same?'<strong>The house, not automation, sets your timeline: work becomes optional at '+coastAge+'.</strong>':planLead)+
-        ' Until you buy in year '+c.buyYr+', the down payment fund takes about '+fk(HB.dpYr)+' a year; after that about '+fk(after)+' a year is left for the brokerage.';
+        ' Until you buy in '+c.buyYr+' year'+(c.buyYr!==1?'s':'')+', the down payment fund takes about '+fk(HB.dpYr)+' a year; after that about '+fk(after)+' a year is left for the brokerage.';
       more=leftLine+' Owning costs about '+fk(HB.houseExtra)+' a year more than your rent. '+(same?'Invested automatically or drifting into spending, the answer barely changes. The down payment card below shows a later or smaller option. ':planMore)+realNote;
       moreT='Why this age';
     } else {
@@ -2083,7 +2083,7 @@ function calcPaths(){
   var myInv=effInvest(c);
   var mySR=effSR(c);
   var F=pbFlat(c),myNW0=nwStart-(pbOpts(c).opts.dpNow||0);   // same path as the Playbook's 'if nothing changes'
-  var my10=Math.round(F.savAt(RY())/c.gross*100);
+  var my10=Math.round(F.savAt(RY()-1)/c.gross*100);
 
   var paths=[
     {n:'Ideal — 25%',sr:.25,col:'#1D6B52',bg:'rgba(29,158,117,0.08)'},
@@ -2181,8 +2181,8 @@ function calcFI(){
   var sa=startAge(),nwStart=startNW();
   // Same engine as the Playbook: start from 'if nothing changes' and add (or remove) saving every year
   var F0=pbFlat(c),extra=12*addMo;
-  var pj=extra?pbFlat(c,extra):F0,sr=pj.savAt(RY())/c.gross,brkNow=brkMoY(c,F0,RY())||0;
-  var savings=pj.savAt(RY());
+  var pj=extra?pbFlat(c,extra):F0,sr=pj.savAt(RY()-1)/c.gross,brkNow=brkMoY(c,F0,RY())||0;
+  var savings=pj.savAt(RY()-1);
   var fi=spend*25;
   var coastYr=pj.coast!==null&&pj.coast<retAge()?pj.coast:null,fiYr=pj.fi;
   var bxCls=MODE==='att'?'box-b':'box-g';
@@ -2451,7 +2451,7 @@ function calcTrue(){
     '<div style="margin:4px 0">Over 20 years: <strong>'+fk(lost20)+'</strong> — '+fk(paid)+' paid plus what it would have grown to.</div>'+
     '<div style="margin:4px 0">'+(ret?'It continues into retirement, so the amount you need goes up <strong>'+fk(fiAdd)+'</strong> ('+fk(annual*retPct)+'/yr × 25).':(perm?'You\'ve set it to stop at retirement, so the amount you need stays the same. If part of it carries on — property tax on a house, a lease you\'d renew — turn on "Continues into retirement."':'It ends before retirement, so the amount you need stays the same.'))+'</div>'+
     '<table class="tbl" style="margin-top:8px"><tr><th></th><th>Without it</th><th>With it</th></tr>'+
-    '<tr><td>Brokerage you can fund, year '+RY()+'</td><td>'+(S0.savAt(RY())<0?'deficit':brkTxt(c,S0,RY()))+'</td><td>'+(S1.savAt(RY())<0?'deficit':brkTxt(c,S1,RY()))+'</td></tr>'+
+    '<tr><td>Brokerage you can fund, year '+RY()+'</td><td>'+(S0.savAt(RY()-1)<0?'deficit':brkTxt(c,S0,RY()))+'</td><td>'+(S1.savAt(RY()-1)<0?'deficit':brkTxt(c,S1,RY()))+'</td></tr>'+
     '<tr class="hl-b"><td>Work optional</td><td>'+g0.w+'</td><td>'+g1.w+'</td></tr>'+
     '<tr class="hl"><td>Full retirement</td><td>'+g0.f+'</td><td>'+g1.f+'</td></tr></table>'+
     '</div></div>';
@@ -2765,7 +2765,7 @@ function pbLadder(c,plan,opts){   // the one thing to do, in dollars: what goes 
   if(v.every(function(x){return !x;}))return '<div class="pb-ladder"><b>Your one number:</b> start an automatic brokerage transfer — any amount — and raise it every year. That account, not the 401(k), decides when work becomes optional.</div>';
   return '<div class="pb-ladder"><b>Your one number — into a brokerage account each month:</b> '+y.map(function(k,n){return fkPrecise(v[n]||0)+' in year '+k;}).join(' → ')+'. On top of the 401(k)/403(b) and Roths. Automate it, and raise it with every raise and every cost that ends.</div>';
 }
-function brkMoY(c,m,y){var s=m.savAt(y);if(s<0)return null;return Math.max(0,Math.round((s-pbOpts(c).taxAdv)/12/50)*50);}
+function brkMoY(c,m,y){var s=m.savAt(y-1);/* y = year label (1 = first year); savAt is 0-based */if(s<0)return null;return Math.max(0,Math.round((s-pbOpts(c).taxAdv)/12/50)*50);}
 function brkTxt(c,m,y){var b=brkMoY(c,m,y);return b===null?'a deficit':fkPrecise(b)+'/mo';}
 function pbFlat(c,extra){return pbSim(c,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0,extra:extra||0});}
 function realReturn(){var e=document.getElementById('fi-rr');return e?(+e.value||5)/100:0.05;}
@@ -2952,7 +2952,7 @@ function calcPlay(){
   var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{uncapped:true,brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,kidRedir:opts.kidRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
   // ── Picking the goal age: the usual targets on this household's engine, its own dates, and deciding together ──
   (function(){
-    var F0=pbFlat(c),b10=F0.savAt(RY())/c.gross,gapG=c.actual?0:pbOpts(c).short;
+    var F0=pbFlat(c),b10=F0.savAt(RY()-1)/c.gross,gapG=c.actual?0:pbOpts(c).short;
     var at=function(r){var m=r<=b10?F0:pbFlat(c,Math.round((r-b10)*c.gross));return (m.coast?'work optional at '+m.coast:'work optional not before '+retAge())+(m.fi?', full retirement at '+m.fi:'');};
     var needPct=needLevel!==null?Math.round((taxAdv+12*needLevel)/c.gross*100):null;
     $('pb-goal-help').innerHTML=gapG>0?'First close the '+fk(gapG)+'/yr gap — until spending fits take-home, no age is realistic. '+(MODE==='att'?'See "How to get out" below.':'Start with the top moves above.'):
@@ -2975,12 +2975,12 @@ function calcPlay(){
   var spend=retSpend(c);
 
   $('pb-title').textContent=(MODE==='res'?'Resident':'Attending')+' plan — '+(c.s.overridden?fk(c.s.sal)+' salary':c.s.n+', '+fk(c.s.sal));
-  $('pb-sub').textContent='Household '+fk(c.gross)+' · '+(couple?'married':'single')+(c.nk?' · '+c.nk+' child'+(c.nk!==1?'ren':''):'')+(c.houseOn?' · '+fk(c.hp)+' home'+(c.buyYr>0?' (buying yr '+c.buyYr+')':''):' · renting')+(c.loansOn&&c.lb>0?' · '+fk(c.lb)+' loans':'')+' · plan starts '+yr1+' · updated '+new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  $('pb-sub').textContent='Household '+fk(c.gross)+' · '+(couple?'married':'single')+(c.nk?' · '+c.nk+' child'+(c.nk!==1?'ren':''):'')+(c.houseOn?' · '+fk(c.hp)+' home'+(c.buyYr>0?' (buying in '+c.buyYr+' yr'+(c.buyYr!==1?'s':'')+')':''):' · renting')+(c.loansOn&&c.lb>0?' · '+fk(c.lb)+' loans':'')+' · plan starts '+yr1+' · updated '+new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'});
 
   var goalMet=plan.coast!==null&&plan.coast<=goal;
   var pct=function(x){return Math.round(x/c.gross*100);};
   var dpY=pbOpts(c).dpYr,sav0=flat.savAt(0)+dpY;   // the house fund is saving too — just into the house
-  var srNow=pct(sav0),sr10=pct(plan.savAt(RY()));
+  var srNow=pct(sav0),sr10=pct(plan.savAt(RY()-1));
   var ageTxt=function(m){return m.coast?'Age '+m.coast:'Not before '+retAge();};
   $('pb-big').innerHTML=[
     {l:'Work optional — if nothing changes',v:ageTxt(flat),s:'full retirement '+(flat.fi?'at '+flat.fi:'not reached'),c:flat.coast?'warn':'bad'},
@@ -3001,7 +3001,7 @@ function calcPlay(){
     (needRaise!==null?'raise your brokerage by <strong>'+fkPrecise(needRaise)+'/mo every year</strong> instead of '+fkPrecise(raise)+'. ':'no realistic yearly raise gets there from this start — ')+
     (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
     'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
-  if(!c.actual&&plan.capYr!==null&&plan.sa+plan.capYr<(plan.coast||retAge())){var ex10=Math.max(0,plan.wantAt(RY())-plan.cashAt(RY()));
+  if(!c.actual&&plan.capYr!==null&&plan.sa+plan.capYr<(plan.coast||retAge())){var ex10=Math.max(0,plan.wantAt(RY()-1)-plan.cashAt(RY()-1));
     out+='<div class="hint" style="margin-top:8px;color:#444"><b>Why the plan stops short.</b> '+(plan.capYr===0?'Right now':'From year '+(plan.capYr+1))+' your budget has no cash left for the brokerage you set'+(raise>0?' and its yearly raises':'')+', so the ages above count only what it can fund. With pay held flat after inflation, keeping every raise going means spending less than the app\'s estimate'+(ex10>0?' — about <strong>'+fk(ex10)+' a year less by year '+RY()+'</strong>':'')+'. Real pay raises can cover part of it.</div>';}
   else if(c.actual&&raise>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> Each yearly raise of '+fkPrecise(raise)+'/mo comes out of spending, because the app holds your pay flat after inflation: by year '+RY()+' you\'d be spending about <strong>'+fk(12*raise*RY())+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.</div>';
   $('pb-outcome').innerHTML=out;
@@ -3023,7 +3023,7 @@ function calcPlay(){
   if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
   steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). '+(ESTAB()?'Already have it in savings? Skip this; top it back up only after you use it. ':'Build it in year 1, then stop. ')+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
   if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year '+RY()+' — then that payment moves to the brokerage.',a:c.loanPay});
-  if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=c.dpOwn,dpMo=Math.max(0,dpNeed-Math.max(0,dpCash()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' ('+Math.round(c.MT.down*100)+'% down + closing'+(c.gift>0?', after '+fk(c.gift)+' from family':'')+') for a '+fk(c.hp)+' home in year '+c.buyYr+'.',a:dpMo});}
+  if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=c.dpOwn,dpMo=Math.max(0,dpNeed-Math.max(0,dpCash()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' ('+Math.round(c.MT.down*100)+'% down + closing'+(c.gift>0?', after '+fk(c.gift)+' from family':'')+') for a '+fk(c.hp)+' home in '+c.buyYr+' year'+(c.buyYr!==1?'s':'')+'.',a:dpMo});}
   steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.',a:brk*12,brk:true});
   // ── "How to do it" for each step ──
   var perCheck=function(a){return $L(Math.ceil(a/26))+' per paycheck if paid every two weeks ('+$L(Math.ceil(a/24))+' if twice a month)';};
@@ -3219,7 +3219,7 @@ function calcPlay(){
     $('pb-stuck-title').textContent=gap>0?'Spending is more than take-home — how to get out':fxPct>45?'Fixed costs are '+fxPct+'% of take-home — how to get out and save':'Locked into big fixed costs? How to get out and save';
     var redir={raise:0,dcRedir:hasDC,loanRedir:hasLoan,mortRedir:c.houseOwned&&c.mortMo>0,kidRedir:(c.nPriv>0||c.colOn)&&c.A.kids===null,stepShare:0};
     var S0=pbFlat(c),SR=pbSim(c,redir);
-    var sr10=function(m){return Math.round(m.savAt(RY())/c.gross*100)+'%';};
+    var sr10=function(m){return Math.round(m.savAt(RY()-1)/c.gross*100)+'%';};
     var wo=function(m){return m.coast?'age '+m.coast:retAge()+' or later';},fr=function(m){return m.fi?'age '+m.fi:'not reached';};
     var sRow=function(l,m,hl){return '<tr'+(hl?' class="hl"':'')+'><td>'+l+'</td><td>'+sr10(m)+'</td><td>'+wo(m)+'</td><td>'+fr(m)+'</td></tr>';};
     var tbl=function(rows){return '<table class="tbl"><tr><th></th><th>Saving in year '+RY()+'</th><th>Work optional</th><th>Full retirement</th></tr>'+rows+'</table>';};
@@ -3408,7 +3408,7 @@ function calcPlay(){
   var leftAfter=GM.buying&&GMafter>roomMo+500?GMafter:0;   // buying later: the leftover jumps once you own
   if(brk===0&&!c.actual&&GM.short===0&&raise>0&&Math.max(roomMo,leftAfter)>=1000){
     // Realistic headline: nobody invests every leftover dollar — new expenses take part of it. The plan is a transfer that starts small and rises every year.
-    var xA=pbSim(c,Object.assign({},opts,{brk:1e7})),xF0=pbFlat(c),pS=Math.round(plan.savAt(RY())/c.gross*100);
+    var xA=pbSim(c,Object.assign({},opts,{brk:1e7})),xF0=pbFlat(c),pS=Math.round(plan.savAt(RY()-1)/c.gross*100);
     moves.push({p:91,t:'Automate the brokerage — start small, raise it '+fkPrecise(raise)+'/mo every year',d:'Your budget leaves about '+fkPrecise(roomMo)+'/mo'+(leftAfter?' now and '+fkPrecise(leftAfter)+'/mo once you own':'')+' — set up a transfer on payday, before new expenses claim it, and raise it every January.'});}
   else if(brk===0&&!c.actual&&roomMo>=1000){var xR=pbSim(c,{brk:roomMo,raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}),xF=pbFlat(c);
     moves.push({p:91,t:'Invest the '+fkPrecise(roomMo)+'/mo your budget leaves — automatically',d:'After the app\'s estimated spending'+(sqMo>0?' and the college fund':'')+', about '+fkPrecise(roomMo)+'/mo is left and not going anywhere. Make it an automatic brokerage transfer on payday — or start with half and raise it every quarter. On your numbers, that alone makes work optional '+(xR.coast?'at '+xR.coast:'not before '+retAge())+(xF.coast?' instead of '+xF.coast:'')+', with full retirement at '+(xR.fi||'—')+' instead of '+(xF.fi||'—')+'.'});}
@@ -3478,7 +3478,7 @@ function pbOpts(c){
 }
 function updateSumbar(c){
   var P=pbOpts(c),plan=pbSim(c,P.opts),flat=pbSim(c,Object.assign({},P.opts,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0}));
-  var sr0=Math.round(flat.savAt(RY())/c.gross*100),sr10=Math.round(plan.savAt(RY())/c.gross*100);
+  var sr0=Math.round(flat.savAt(RY()-1)/c.gross*100),sr10=Math.round(plan.savAt(RY()-1)/c.gross*100);
   $('sumbar').style.display=CUR_TAB==='play'?'none':'flex';
   var bF=brkMoY(c,flat,RY()),bP=brkMoY(c,plan,RY());
   $('sumbar').innerHTML='<div class="sb-i"><span class="sb-l">Brokerage · yr '+RY()+'</span><b>'+(bF===null?'short':fkPrecise(bF))+' → '+(bP===null?'short':fkPrecise(bP))+'/mo</b></div>'+
@@ -3568,7 +3568,7 @@ function aiFacts(c){
   if(!c.houseOn)me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo, no plan to buy.');
   else if(c.houseOwned)me.push('Housing: own a home worth about '+fkPrecise(c.hp)+(c.loanAmt>0?', mortgage '+fkPrecise(c.loanAmt)+' at '+c.mRateEff+'% with '+c.mortYrs+' years left':', no mortgage')+'.');
   else if(c.buyYr===0)me.push('Housing: buying a '+fkPrecise(c.hp)+' home '+(MODE==='res'?'when I start as an attending':'now')+', with '+Math.round(c.MT.down*100)+'% down. Cash needed at closing'+(c.gift>0?', after a family gift of '+fkPrecise(c.gift):'')+': about '+fkPrecise(c.dpOwn)+'.');
-  else me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo; plan to buy a '+fkPrecise(c.hp)+' home '+(MODE==='res'?'in attending year '+c.buyYr:'in '+c.buyYr+' year'+(c.buyYr!==1?'s':''))+' ('+Math.round(c.MT.down*100)+'% down). Cash needed at closing'+(c.gift>0?', after a family gift of '+fkPrecise(c.gift):'')+': about '+fkPrecise(c.dpOwn)+'.');
+  else me.push('Housing: renting at '+fkPrecise(+$('rent').value)+'/mo; plan to buy a '+fkPrecise(c.hp)+' home '+(MODE==='res'?'after '+c.buyYr+' attending year'+(c.buyYr!==1?'s':''):'in '+c.buyYr+' year'+(c.buyYr!==1?'s':''))+' ('+Math.round(c.MT.down*100)+'% down). Cash needed at closing'+(c.gift>0?', after a family gift of '+fkPrecise(c.gift):'')+': about '+fkPrecise(c.dpOwn)+'.');
   if(c.loansOn&&c.lb>0)me.push('Student loans: '+fkPrecise(c.lb)+'; '+(c.pslf?'going for Public Service Loan Forgiveness, '+c.pslfYrs+' of 10 years of payments done; staying at a qualifying employer for the rest: '+aiAns(x.pslf10):c.loansRefi?'planning to refinance privately and pay off in 10 years':'not going for PSLF; repayment plan not decided (the calculator assumes a 10-year payoff)')+'.');
   else me.push('Student loans: none.');
   me.push('Employer: '+(c.planType==='403b'?'hospital / academic (403(b)'+(c.def457?' and 457(b)':'')+')':'private group (401(k))')+'. Maxing it: '+(c.def401?'yes':'no')+'. Employer contribution: '+(+$('emp').value>0?$('emp').value+'% of salary':'none or unknown')+'.');
@@ -3751,7 +3751,7 @@ function ckToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 function ckDate(s){var p=s.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]+' '+(+p[2])+', '+p[0];}
 function ckNow(c){
   var P=pbOpts(c),plan=pbSim(c,P.opts);
-  return {d:ckToday(),m:MODE,age:startAge(),coast:plan.coast||null,fi:plan.fi||null,sr:Math.round(plan.savAt(RY())/c.gross*100),bk:brkMoY(c,plan,RY()),ry:RY(),
+  return {d:ckToday(),m:MODE,age:startAge(),coast:plan.coast||null,fi:plan.fi||null,sr:Math.round(plan.savAt(RY()-1)/c.gross*100),bk:brkMoY(c,plan,RY()),ry:RY(),
     nw:Math.round(startNW()),brk:+$('pb-brk').value,raise:+$('pb-raise').value,gross:Math.round(c.gross),act:!!c.actual};
 }
 function ckSave(quiet){
