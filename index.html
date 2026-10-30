@@ -687,6 +687,11 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="hint">Tap an item for why and how; tick it when it's done.</div>
     <div id="pb-basics"></div></div>
 
+  <details class="card pb-more" id="pb-yr1" style="display:none">
+    <summary class="ctitle"><span>Your first two years as an attending — where every dollar goes<span id="pb-yr1-sum" style="display:block;font-size:11px;font-weight:400;color:var(--mg);text-transform:none;letter-spacing:0;margin-top:3px"></span></span></summary>
+    <div id="pb-yr1-body"></div>
+  </details>
+
   <details class="pb-full" id="pb-full"><summary>Your full plan<span>Change the plan, your goal age and settings · the monthly autopilot, in order · your brokerage year by year</span></summary><div class="pb-full-in">
   <div class="g2">
     <div class="card no-print">
@@ -2810,6 +2815,105 @@ function pbSim(c,o){
   m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;m.capYr=capYr;m.cashAt=cashAt;m.wantAt=wantAt;m.savAt=sav;
   return m;
 }
+// ── First two years as an attending: every dollar of pay, bucket by bucket, month by month ──
+// Order: taxes and payroll retirement → bills → Roth (and HSA) → emergency fund → down payment on schedule → brokerage gets the rest.
+function pbYear1(c){
+  var card=$('pb-yr1');if(!card)return;
+  if(ESTAB()){card.style.display='none';return;}
+  card.style.display='block';
+  var hosp=c.planType==='403b',couple=c.hh==='couple',P=pbOpts(c);
+  var roth=(couple?2:1)*LIM.ira;
+  var hsa=$('pb-hdhp').checked?(couple||c.nk>0?LIM.hsaFam:4400):0;
+  var spendYr=c.actual&&!c.spendEntered?Math.max(0,c.impliedSpend):c.totalSpend;
+  var ef=Math.round(3*spendYr/12/1000)*1000;
+  var buying=P.buying,by=c.buyYr,dpTotal=buying?P.dpYr*by:0,dpMonths=by*12;
+  var efS=0,dpS=0,efMo=null,buyMo=null,ownMo=[0,0],efY=[0,0],dpY=[0,0],brkY=[0,0],rothY=[0,0],hsaY=[0,0];
+  for(var m=1;m<=24;m++){
+    var y=m<=12?0:1,own=buying&&buyMo!==null&&m>=buyMo;if(own)ownMo[y]++;
+    var cash=(c.cashLeft-(own?P.houseExtra:0))/12;                          // after tax, payroll retirement and bills; owning costs more than renting
+    if(cash<=0)continue;
+    var r=Math.min(cash,(roth+hsa)/12),rs=roth+hsa>0?r/((roth+hsa)/12):0;rothY[y]+=roth/12*rs;hsaY[y]+=hsa/12*rs;cash-=r;
+    var e=Math.min(cash,ef-efS);efS+=e;efY[y]+=e;cash-=e;if(efMo===null&&efS>=ef-1)efMo=m;
+    if(buying&&buyMo===null){var d=Math.min(cash,Math.max(0,dpTotal*Math.min(m,dpMonths)/dpMonths-dpS));dpS+=d;dpY[y]+=d;cash-=d;
+      if(m>=dpMonths&&dpS>=dpTotal-1)buyMo=m+1;}                           // buy the month after the down payment is complete
+    brkY[y]+=cash;
+  }
+  var leftY=[0,1].map(function(y){return c.cashLeft-P.houseExtra*ownMo[y]/12;});
+  var lateBy=buying?(buyMo===null?null:buyMo-(dpMonths+1)):0;              // months later than planned; null = not by month 24
+  var R=function(v){return Math.round(v);};
+  efY=efY.map(R);dpY=dpY.map(R);brkY=brkY.map(R);rothY=rothY.map(R);hsaY=hsaY.map(R);
+
+  var cell=function(a){return a===0?'—':'<span style="white-space:nowrap">'+(a<0?'−':'')+fkPrecise(Math.abs(a)/12)+'</span>'+'<small style="display:block;color:var(--mg);font-size:9.5px">'+fk(Math.abs(a))+'/yr</small>';};
+  var row=function(lbl,a0,a1,cls){return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+lbl+'</td><td style="text-align:right">'+cell(a0)+'</td><td style="text-align:right">'+cell(a1)+'</td></tr>';};
+  var both=function(lbl,a,cls){return row(lbl,a,a,cls);};
+  var plans=(hosp?'403(b)':'401(k)')+(c.def457>0?' + 457(b)':'')+(c.defP>0?' + partner\'s plan':'')+(c.catchNow>0?' + catch-up':'');
+  var houseLbl=c.owningNow?'Mortgage, property tax, upkeep':buying&&buyMo!==null&&buyMo<=24?'Rent, then owning from month '+buyMo:'Rent';
+  var otherIns=c.A.other===null&&c.A.total===null;
+  var t='<table class="tbl" style="margin-bottom:8px"><tr><th>Each month</th><th style="text-align:right">Year 1</th><th style="text-align:right">Year 2</th></tr>';
+  t+=both('<strong>Gross pay</strong>'+(c.pinc>0?' (both of you)':''),c.gross);
+  t+=both('Taxes — federal, Social Security/Medicare, NJ',-c.taxes);
+  t+=both(plans+' — pre-tax, through payroll',-c.payRet);
+  t+=both('<strong>Take-home</strong>',c.takeHome,'hl-b');
+  if(c.A.total!==null)t+=both('Everything you spend (your number)',-c.totalSpend);
+  else{
+    t+=row(houseLbl,-(c.cashLeft-leftY[0]+c.housingCost),-(c.cashLeft-leftY[1]+c.housingCost));
+    if(c.loanPay>0)t+=both('Student loans — '+(c.pslf?'PSLF payment':'refinanced, 10 years'),-c.loanPay);
+    if(c.cars>0)t+=both('Cars',-c.cars);
+    if(c.kidsCost>0)t+=both('Childcare and school',-c.kidsCost);
+    if(c.save529Amt>0)t+=both('529 college saving',-c.save529Amt);
+    if(otherIns)t+=both('Disability, life and umbrella insurance',-c.insEst);
+    t+=both(otherIns?'Everything else — food, utilities, travel, giving':'Everything else',-(c.otherCost-(otherIns?c.insEst:0)));
+  }
+  t+=row('<strong>Left after the bills</strong>',leftY[0],leftY[1],'hl-b');
+  t+=row('Backdoor Roth'+(couple?' — both of you':''),-rothY[0],-rothY[1]);
+  if(hsa>0)t+=row('HSA',-hsaY[0],-hsaY[1]);
+  t+=row('Emergency fund — high-yield savings',-efY[0],-efY[1]);
+  if(buying)t+=row('Down payment fund',-dpY[0],-dpY[1]);
+  t+=row('<strong>Left for the brokerage</strong>',brkY[0],brkY[1],'hl');
+  var sr=function(y){return Math.round((c.payRet+c.emp+rothY[y]+hsaY[y]+brkY[y])/c.gross*100);};
+  var srAll=function(y){return Math.round((c.payRet+c.emp+rothY[y]+hsaY[y]+brkY[y]+efY[y]+dpY[y])/c.gross*100);};
+  t+='<tr><td>Saved for retirement, % of gross pay'+(c.emp>0?' (with employer money)':'')+'</td><td style="text-align:right"><strong>'+sr(0)+'%</strong></td><td style="text-align:right"><strong>'+sr(1)+'%</strong></td></tr>';
+  t+='<tr><td>Counting the emergency fund'+(buying?' and down payment':'')+'</td><td style="text-align:right">'+srAll(0)+'%</td><td style="text-align:right">'+srAll(1)+'%</td></tr></table>';
+
+  var html='',deficit=c.cashLeft-roth-hsa<0;
+  if(deficit){
+    html+='<div class="box box-r"><div class="box-body"><strong>The bills plus the Roth come to more than take-home — about '+fk(-(c.cashLeft-roth-hsa))+' a year short.</strong> Nothing can go to the emergency fund'+(buying?', the down payment':'')+' or the brokerage until that\'s fixed. The usual fix is housing or cars — try a smaller number in My Numbers.</div></div>';
+  }
+  html+='<div class="hint" style="margin-bottom:8px">Your numbers from My Numbers, same pay both years. Each month the money fills one bucket after another, top to bottom; the brokerage gets whatever is left.</div>'+t;
+  // what it means, in one box
+  var msg='<strong>This is normal.</strong> In the first two years most of the money goes to things you can\'t skip: '+(function(){var a=['taxes','the '+(hosp?'403(b)':'401(k)'),'the Roth'];if(c.loanPay>0)a.push('the loans');if(buying)a.push('the down payment');return a.slice(0,-1).join(', ')+' and '+a[a.length-1];})()+'. ';
+  if(!deficit){
+    if(efMo)msg+='The emergency fund is full in about <strong>month '+efMo+'</strong>'+(buying?'; after that the same transfer feeds the down payment fund':'; after that the same transfer goes to the brokerage')+'. ';
+    if(buying){
+      var planMo=dpMonths+1;
+      if(lateBy===0)msg+='The down payment ('+fk(dpTotal)+') is saved on time to buy in month '+planMo+'. ';
+      else if(lateBy!==null)msg+='<strong>The emergency fund comes first, so the down payment ('+fk(dpTotal)+') is ready about '+lateBy+' month'+(lateBy!==1?'s':'')+' late</strong> — buying moves from month '+planMo+' to month '+buyMo+'. Family help or a smaller house closes the gap. ';
+      else{var perMo=Math.max(1,(c.cashLeft-roth-hsa)/12),moNeed=24+Math.ceil(Math.max(0,dpTotal-dpS)/perMo);
+        msg+='<strong>The down payment ('+fk(dpTotal)+') isn\'t ready by month '+planMo+'</strong> — at this pace it takes until about month '+moNeed+'. Family help, a later date or a smaller house closes the gap. ';}
+      var after=Math.max(0,Math.round((c.cashLeft-P.houseExtra-roth-hsa)/12/50)*50);
+      msg+='After you buy, owning costs about '+fkPrecise(P.houseExtra/12)+'/mo more than rent, which leaves about <strong>'+fkPrecise(after)+'/mo</strong> for the brokerage'+(c.loanPay>0&&!c.pslf?' — until the loans are paid off in year 10 and add '+fkPrecise(c.loanPay/12)+'/mo':'')+'. ';
+    }
+  }
+  msg+='The brokerage starts small and grows each time a bucket fills or a cost ends.';
+  html+='<div class="box box-b"><div class="box-body">'+msg+'</div></div>';
+  html+='<div class="hint" style="margin:-2px 0 10px">Don\'t count on investing every dollar in the last line — new costs always show up. Automate a set amount a little below it, and raise it every January.</div>';
+
+  // the order to do it in
+  var perCheck=function(a){return $L(Math.ceil(a/26))+' a paycheck (every two weeks)';};
+  var efMoAmt=Math.round(Math.max(0,c.cashLeft-roth-hsa)/12/50)*50;
+  var L=[];
+  L.push('<strong>Before your first paycheck:</strong> sign up for the '+(hosp?'403(b)':'401(k)')+' as a dollar amount — '+perCheck(LIM.k401)+' reaches '+$L(LIM.k401)+'. '+(hosp?(c.def457>0?'Elect the 457(b) the same way. ':'Ask HR about the 457(b), a second pre-tax account. '):'')+'Own-occupation disability insurance should already be in place (buy it before residency ends, while you\'re healthy and resident discounts apply). Term life if anyone depends on your income. An umbrella policy.');
+  L.push('<strong>Month 1:</strong> keep living close to how you lived as a resident. Pay off any credit card balance. Open a high-yield savings account and automate '+fkPrecise(efMoAmt)+'/mo into it until it reaches '+fk(ef)+' (three months of spending).');
+  if(c.loanPay>0)L.push('<strong>Months 1–2:</strong> settle the loans. '+(c.pslf?'Certify your employer for PSLF and enroll in the lowest income-driven plan — never refinance.':'If you won\'t work for a nonprofit, refinance (compare 3+ lenders) and pay them off in 10 years or less.')+' Tools → Loans compares the two.');
+  L.push('<strong>January:</strong> backdoor Roth — '+$L(LIM.ira)+(couple?' each':'')+', then every January after.'+(hsa>0?' Max the HSA at open enrollment.':''));
+  if(efMo)L.push('<strong>Month '+efMo+' (emergency fund full):</strong> point the same transfer at '+(buying?'the down payment fund — about '+fkPrecise(P.dpYr/12)+'/mo until it reaches '+fk(dpTotal)+'. Keep it in savings or Treasury bills, not stocks':'the brokerage')+'.');
+  L.push('<strong>'+(brkY[0]>600?'Now':'Year 2')+':</strong> start the automatic brokerage transfer — total-market index funds, US and international — with whatever is left, even if it\'s small'+(brkY[1]>0?' (about '+fkPrecise(Math.round(brkY[1]/12/50)*50)+'/mo in year 2)':'')+'. Raise it every January, with every raise, and the month any cost ends.');
+  if(buying)L.push('<strong>Before you buy:</strong> not in the first year, and only if you\'ll stay 5 years or more. Tools → Rent vs Buy shows the math.');
+  html+='<div class="ctitle" style="margin:4px 0 6px">The order to do it in</div><ol style="font-size:11.5px;line-height:1.6;color:#444;padding-left:18px;margin:0">'+L.map(function(x){return '<li style="margin-bottom:5px">'+x+'</li>';}).join('')+'</ol>';
+  $('pb-yr1-body').innerHTML=html;
+  $('pb-yr1-sum').innerHTML=deficit?'Bills plus the Roth run '+fk(-(c.cashLeft-roth-hsa))+'/yr short — tap to see where.':
+    fkPrecise(Math.round(c.cashLeft/12/50)*50)+'/mo left after the bills: Roth, emergency fund'+(buying?', down payment':'')+' first — then '+(function(){var b0=Math.round(brkY[0]/12/50)*50,b1=Math.round(brkY[1]/12/50)*50;return (b0>0?'about '+fkPrecise(b0)+'/mo':'nothing')+' for the brokerage in year 1, '+(b1>0?'about '+fkPrecise(b1)+'/mo':'nothing')+' in year 2.';})();
+}
 function calcPlay(){
   var c=getCosts();
   var hosp=c.planType==='403b',couple=c.hh==='couple';
@@ -2838,6 +2942,7 @@ function calcPlay(){
   $('pb-stepyr-v').textContent=opts.stepYr>0?'Year '+opts.stepYr:'No raise';$('pb-step-opts').style.display=opts.stepYr>0?'block':'none';
   $('pb-stepamt-v').textContent=fk(+$('pb-stepamt').value);$('pb-stepshare-v').textContent=Math.round(opts.stepShare*100)+'%';
   var plan=pbSim(c,opts);
+  pbYear1(c);
   var flat=pbSim(c,{brk:brk,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,mortRedir:false,kidRedir:false,taxAdv:taxAdv,stepShare:0});
   // Level brokerage needed from year 1 to hit goal
   function solve(fn){var lo=0,hi=40000;if(!fn(hi))return null;for(var k=0;k<30;k++){var mid=(lo+hi)/2;if(fn(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;}
