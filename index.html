@@ -932,6 +932,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <span class="sv" id="fi-sr-v">$0/mo</span></div><span id="ry-lbl" style="display:none"></span>
     <div class="hint" id="fi-sr-note" style="display:none"></div>
     <div id="fi-msg"></div>
+    <div id="fi-ladder"></div>
   </div>
   <div class="box box-a">
     <div class="box-title" style="color:var(--am)">The path nobody warns you about</div>
@@ -1808,13 +1809,16 @@ function RY(){return Math.max(1,Math.min(10,retAge()-startAge()-1));}   // year 
 function callTarget(age,fiNum,rr){return fiNum/Math.pow(1+rr,Math.max(0,retAge()-age));}
 // Project net worth; sav(i) = savings in year i. Returns milestone ages (age after n years = sa+n).
 function project(sa,nw0,sav,fiNum,rr,yrs){
-  var nw=nw0,m={coast:null,fi:null,zero:null,million:null,series:[nw0]};
+  var nw=nw0,m={coast:null,fi:null,zero:null,million:null,two:null,series:[nw0]};
+  if(nw0>=1e6)m.million=sa;
+  if(nw0>=2e6)m.two=sa;
   for(var i=0;i<(yrs||60);i++){
     nw=nw*(1+rr)+(typeof sav==='function'?sav(i):sav);
     var a=sa+i+1;
     m.series.push(nw);
     if(m.zero===null&&nw>=0)m.zero=a;
     if(m.million===null&&nw>=1e6)m.million=a;
+    if(m.two===null&&nw>=2e6)m.two=a;
     if(m.coast===null&&nw>=callTarget(a,fiNum,rr))m.coast=a;
     if(m.fi===null&&nw>=fiNum)m.fi=a;
   }
@@ -2155,6 +2159,7 @@ function calcPaths(){
     {l:'Today',dot:MODE==='att'?'y':''},
     (msSel.zero===sa?null:{l:msSel.zero?'Age '+msSel.zero:'Not reached',sub:'Zero NW',dot:msSel.zero?'r':''}),   // skip when you start at or above zero
     {l:msSel.million?'Age '+msSel.million:'Not reached',sub:'$1M milestone',dot:msSel.million?'r':''},
+    {l:msSel.two?'Age '+msSel.two:'Not reached',sub:'$2M milestone',dot:msSel.two?'r':''},
   ].filter(Boolean).map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
       (m.dot==='k'?'⭐':m.dot==='r'?'✓':m.dot==='y'?'📍':'◎')+'</div>'+
@@ -2219,6 +2224,32 @@ function calcFI(){
     (coastYr?'Work becomes optional at age '+coastYr+' — but full retirement is past the projection window. Reduce retirement spending or invest more each month to get there sooner.':
     'At this level, neither work optional nor full retirement arrives in the projection window. Each extra $1,000 a month into the brokerage makes a real difference — drag the slider.'))+
     '</div></div>'+fiGoalLine(c);
+  fiLadder(c,addMo);
+}
+// The brokerage ladder: what each extra amount a month buys, on this household's own numbers (same engine as the slider)
+function fiLadder(c,addMo){
+  var el=$('fi-ladder');if(!el)return;
+  var F0=pbFlat(c),amts=[0,2000,4000,6000,8000,10000,15000],ra=retAge();
+  var P=amts.map(function(a){return a?pbFlat(c,12*a):F0;});
+  var y10=RY()-1,room=c.actual?null:Math.max(0,Math.round((F0.cashAt(y10)-F0.wantAt(y10))/12/50)*50);
+  var now=F0.brkAt(0)||0,c0=Math.max(42,startAge()+5);   // sample ages for the work-optional amount
+  var age=function(v,none){return v===null||v===undefined?'<span style="color:var(--mg)">'+none+'</span>':v;};
+  var rows=amts.map(function(a,i){
+    var p=P[i],over=room!==null&&a>room;
+    return '<tr'+(a===addMo?' class="hl"':'')+(over?' style="opacity:.5"':'')+'><td>'+(a?'+'+fkPrecise(a):'What you do now')+(over?'*':'')+'</td>'+
+      '<td style="text-align:right">'+age(p.million,'—')+'</td><td style="text-align:right">'+age(p.two,'—')+'</td>'+
+      '<td style="text-align:right">'+age(p.coast,'after '+ra)+'</td><td style="text-align:right">'+age(p.fi,'80+')+'</td></tr>';
+  }).join('');
+  var per=function(i,j){var a=P[i].fi,b=P[j].fi;return a!==null&&b!==null?Math.round((a-b)/((amts[j]-amts[i])/1000)*2)/2:null;};
+  var first=per(0,3),later=per(3,6);
+  var rule=first!==null&&first>0?'<strong>On your numbers, each $1,000 a month buys about '+first+' year'+(first===1?'':'s')+' of earlier full retirement</strong> for the first $6,000'+(later!==null?', and about '+later+' year'+(later===1?'':'s')+' per $1,000 after that':'')+'. ':'';
+  el.innerHTML='<div class="subhd" style="margin-top:12px">What each amount buys — your numbers</div>'+
+    '<div style="font-size:12px;line-height:1.5;color:#333;margin-bottom:6px">Your 403(b)'+(c.def457>0?', 457(b)':'')+' and Roths are the floor — already counted. The brokerage is the lever. Extra is on top of what you do now'+(now?' ('+fkPrecise(now)+'/mo)':'')+', every month from today.</div>'+
+    '<div style="overflow-x:auto"><table class="tbl"><tr><th>Brokerage / mo</th><th style="text-align:right">$1M</th><th style="text-align:right">$2M</th><th style="text-align:right">Work optional</th><th style="text-align:right">Full retirement</th></tr>'+rows+'</table></div>'+
+    '<div class="hint" style="margin-top:6px">'+rule+
+      (F0.million===startAge()?'You\'re past <strong>$1M</strong>, the hardest milestone. ':'<strong>$1M</strong> is the first and hardest milestone. ')+'<strong>Work optional</strong> (Coast FI) is when you could stop saving and still reach '+fk(F0.fiNum)+' by '+ra+(ra-c0>3?' — for you, about '+fk(callTarget(c0,F0.fiNum,realReturn()))+' at '+c0+' or '+fk(callTarget(c0+3,F0.fiNum,realReturn()))+' at '+(c0+3):'')+'. <strong>Full retirement</strong> = '+fk(F0.fiNum)+' saved.'+
+      (room!==null?' *More than your budget leaves'+(room>0?' (about '+fkPrecise(room)+'/mo in year '+RY()+')':' in year '+RY())+'.':'')+
+      ' Easier than a big number on day one: automate the transfer the day after payday and raise it every January (My Plan).</div>';
 }
 
 // ── THE SIMPLE MATH (4% rule + savings rate vs salary) ─────────────
