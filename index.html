@@ -2971,7 +2971,7 @@ function pbYear1(c,plan){
   var perCheck=function(a){return $L(Math.ceil(a/26))+' a paycheck (every two weeks)';};
   var efMoAmt=Math.round(Math.max(0,c.cashLeft-roth-hsa)/12/50)*50;
   var L=[];
-  L.push('<strong>Before your first paycheck:</strong> sign up for the '+(hosp?'403(b)':'401(k)')+' as a dollar amount — '+perCheck(LIM.k401)+' reaches '+$L(LIM.k401)+'. '+(hosp?(c.def457>0?'Elect the 457(b) the same way. ':'Ask HR about the 457(b), a second pre-tax account. '):'')+'Own-occupation disability insurance should already be in place (buy it before residency ends, while you\'re healthy and resident discounts apply). Term life if anyone depends on your income. An umbrella policy.');
+  L.push('<strong>Before your first paycheck:</strong> sign up for the '+(hosp?'403(b)':'401(k)')+' as a dollar amount, pre-tax this time — at the 32–37% bracket the deduction is worth more than Roth, and the backdoor Roth keeps building your tax-free money — '+perCheck(LIM.k401)+' reaches '+$L(LIM.k401)+'. '+(hosp?(c.def457>0?'Elect the 457(b) the same way. ':'Ask HR about the 457(b), a second pre-tax account. '):'')+'Own-occupation disability insurance should already be in place (buy it before residency ends, while you\'re healthy and resident discounts apply). Term life if anyone depends on your income. An umbrella policy.');
   L.push('<strong>Month 1:</strong> keep living close to how you lived as a resident. Pay off any credit card balance. Open a high-yield savings account and automate '+fkPrecise(efMoAmt)+'/mo into it until it reaches '+fk(ef)+' (three months of spending).');
   if(c.loanPay>0)L.push('<strong>Months 1–2:</strong> settle the loans. '+(c.pslf?'Certify your employer for PSLF and enroll in the lowest income-driven plan — never refinance.':'If you won\'t work for a nonprofit, refinance (compare 3+ lenders) and pay them off in 10 years or less.')+' Tools → Loans compares the two.');
   L.push('<strong>January:</strong> backdoor Roth — '+$L(LIM.ira)+(couple?' each':'')+', then every January after.'+(hsa>0?' Max the HSA at open enrollment.':''));
@@ -3242,6 +3242,8 @@ function calcPlay(){
     ['Disability insurance — own-occupation','Final year of training'],
     ['Get on RAP or IBR, confirm PSLF eligibility of your future employer','Now'],
     ['Roth IRA — '+$L(LIM.ira)+' each year of residency','Every January'],
+    ['Residency 403(b): choose Roth, not pre-tax. You\'re usually in the 12% or 22% bracket now and will be in the 32–37% range as an attending, so paying the tax now is the bargain','Now'],
+    ['The year you finish: with only about six months of attending pay, your bracket stays low. Keep the 403(b) on Roth through graduation, and consider converting your pre-tax residency money to Roth that year — a direct rollover into a Roth IRA is a taxable conversion and doesn\'t break the backdoor Roth','Year you finish training'],
     ['Ask about the 403(b)/401(k), 457(b), employer contribution and HSA before signing','During contract negotiation'],
     ['Ask who pays malpractice tail coverage if you leave — claims-made tails can cost $50–150k','During contract negotiation'],
     ['Don\'t roll your residency 403(b) into an IRA — it breaks the backdoor Roth. Roll it into your new employer\'s plan or leave it','When you leave training'],
@@ -3579,6 +3581,7 @@ var AI_G={
       hot:function(c){return c.houseOn&&!c.houseOwned&&c.buyYr<=2?'Your plan buys a '+fk(c.hp)+' home '+(c.buyYr===0?'now':'in '+c.buyYr+' year'+(c.buyYr!==1?'s':''))+'.':'';}},
     {k:'pslf',t:'Test my student loan plan. If I\'m counting on PSLF, check it survives a move to private practice; if not, compare refinancing and paying off fast.',w:'PSLF only pays off with 10 years at a qualifying employer.',
       hot:function(c,x){if(!c.loansOn||!c.lb)return '';if(c.pslf&&c.planType==='401k')return 'PSLF is on, but your employer is set to a private group — private practice doesn\'t qualify.';return c.pslf&&x.pslf10!=='yes'?'PSLF is on, and staying 10 years isn\'t certain.':'';}},
+    {k:'rothpre',t:'Tell me whether my 403(b)/401(k) should be Roth or pre-tax at my current tax bracket, and what changes in the year I finish training.',w:'Roth usually wins in training, pre-tax as an attending, and the graduation year is a low-bracket window.'},
     {k:'creep',t:'Check whether the plan lets spending rise with the attending salary. Push me to live close to resident level for the first two or three years.',w:'Lifestyle creep is how high earners end up behind.'}
   ],
   mid:[
