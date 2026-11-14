@@ -879,7 +879,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">How much you need</div>
     <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 30× what you'll spend each year in retirement.</strong> The 4% rule (25×) lasted 30 years through every stretch of US market history. Stopping in your 50s means 40+ years, so plan on about 3.3%. <span id="mm-mynum"></span></div>
     <div class="subhd">Why savings rate beats salary</div>
-    <div style="font-size:13px;line-height:1.6;color:#333">A dollar you save counts twice: it's invested, and it's a dollar you've learned to live without, so you need less. A raise you spend does neither. <span class="hint">Example surgeon starting from $0:</span></div>
+    <div style="font-size:13px;line-height:1.6;color:#333">A dollar you save counts twice: it's invested, and it's a dollar you've learned to live without, so you need less. A raise you spend does neither. <span class="hint" id="mm-ex">Try it on an example surgeon:</span></div>
     <div class="g2" style="margin-top:10px">
       <div>
         <div class="sr"><label>Salary</label>
@@ -901,7 +901,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="subhd">The brokerage rule</div>
     <div style="font-size:13px;line-height:1.6;color:#333">Maxing the 403(b) and both Roths: <strong>stop working at about 65 minus the thousands a month you put in taxable.</strong> With a 457(b): <strong>about 63 minus.</strong> $6,000/mo → about 59. <span class="hint">$600k salary, starting at 32 with $350k of loans, $6M target, 5% after inflation. Holds from about $4,000 to $12,000 a month; your own rule is under "What each amount buys" below.</span></div>
 
-    <details class="how" style="margin-top:10px"><summary>The famous chart (savings rate of take-home pay)</summary>
+    <details class="how" style="margin-top:10px"><summary>The famous chart: age you can stop, by savings rate of take-home pay</summary>
       <div id="mm-chart"></div>
     </details>
   </details>
@@ -2308,21 +2308,23 @@ function calcMath(){
   var sal=+$('mm-sal').value,r=+$('mm-sr').value/100,k=+$('mm-k').value/100;
   $('mm-sal-v').textContent=fk(sal);$('mm-sr-v').textContent=Math.round(r*100)+'%';$('mm-k-v').textContent=Math.round(k*100)+'%';
   var o=mmYears(sal,r,k),sa=startAge();
-  var lo=mmYears(400000,r,k).y,hi=mmYears(1000000,r,k).y,r10=mmYears(sal,0.10,k).y,r30=mmYears(sal,0.30,k).y;
-  $('mm-out').innerHTML=[
-    {l:'Years until you can stop',v:o.y>=80?'80+':o.y,s:'age '+(o.y>=80?'—':sa+o.y),c:o.y<=20?'good':o.y<=28?'warn':'bad'},
-    {l:'This example needs',v:fk(o.target),s:fk(o.ret)+'/yr × 30',c:''},
-    {l:'Salary $400k → $1M',v:(lo-hi)+' yrs',s:'sooner',c:''},
-    {l:'Savings 10% → 30%',v:(r10-r30)+' yrs',s:'sooner',c:'good'}
-  ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
+  // One plain answer: the age this example stops, then what more pay vs more saving does to it
+  var A=function(y){return y>=80?'never':'age '+(sa+y);},pc=Math.round(r*100);
+  var sal2=sal<1000000?1000000:400000,r2=r<=0.5?r+0.1:r-0.1,y2=mmYears(sal2,r,k).y,y3=mmYears(sal,r2,k).y;
+  var d=function(a,b){return a>=80||b>=80?'':b<a?' ('+(a-b)+' years sooner)':b>a?' ('+(b-a)+' years later)':' (no change)';};
+  $('mm-ex').textContent='Example: starts at '+sa+' with $0 saved and lives on whatever isn\'t taxed or saved.';
+  $('mm-out').className='';
+  $('mm-out').innerHTML='<div class="box box-b" style="margin:0"><div class="box-body"><strong>Earning '+fk(sal)+' and saving '+pc+'%: stop working at '+A(o.y).replace('age ','')+'.</strong>'+
+    '<div style="margin-top:6px">Earn '+fk(sal2)+' instead, still saving '+pc+'%: '+A(y2)+d(o.y,y2)+'.</div>'+
+    '<div>Save '+Math.round(r2*100)+'% instead, still earning '+fk(sal)+': <strong>'+A(y3)+'</strong>'+d(o.y,y3)+'.</div></div></div>';
   var sals=[400000,600000,800000,1000000],rates=[10,20,30,40];
   var curS=sals.reduce(function(a,b){return Math.abs(b-sal)<Math.abs(a-sal)?b:a;}),curR=rates.reduce(function(a,b){return Math.abs(b-r*100)<Math.abs(a-r*100)?b:a;});
-  $('mm-grid').innerHTML='<tr><th>Years to retire</th>'+rates.map(function(x){return '<th>Save '+x+'%</th>';}).join('')+'</tr>'+
-    sals.map(function(S){return '<tr><td><strong>'+fk(S)+'</strong></td>'+rates.map(function(x){var y=mmYears(S,x/100,k).y;var me=S===curS&&x===curR;return '<td style="'+(me?'background:var(--lb);font-weight:700;color:var(--b)':'')+'">'+(y>=80?'80+':y)+'</td>';}).join('')+'</tr>';}).join('')+
+  $('mm-grid').innerHTML='<tr><th>Age you can stop</th>'+rates.map(function(x){return '<th>Save '+x+'%</th>';}).join('')+'</tr>'+
+    sals.map(function(S){return '<tr><td><strong>'+fk(S)+'</strong></td>'+rates.map(function(x){var y=mmYears(S,x/100,k).y;var me=S===curS&&x===curR;return '<td style="'+(me?'background:var(--lb);font-weight:700;color:var(--b)':'')+'">'+(y>=80?'—':sa+y)+'</td>';}).join('')+'</tr>';}).join('')+
     '';
   var bars=[5,10,15,20,25,30,40,50,60,70];
   $('mm-chart').innerHTML=bars.map(function(x){var y=mmPure(x/100),me=Math.abs(x-r*100)<3;
-    return '<div class="wfr"><div class="wfl" style="width:70px;min-width:60px'+(me?';font-weight:700;color:var(--dk)':'')+'">Save '+x+'%</div><div class="wfb"><div class="wfbar" style="width:'+Math.round(y/66*100)+'%;background:'+(me?'var(--b)':'var(--g)')+';opacity:.8"></div><span class="wfamt">'+y+' yrs</span></div></div>';}).join('');
+    return '<div class="wfr"><div class="wfl" style="width:70px;min-width:60px'+(me?';font-weight:700;color:var(--dk)':'')+'">Save '+x+'%</div><div class="wfb"><div class="wfbar" style="width:'+Math.round(y/66*100)+'%;background:'+(me?'var(--b)':'var(--g)')+';opacity:.8"></div><span class="wfamt">age '+(sa+y)+'</span></div></div>';}).join('');
 }
 
 // ── STUDENT LOANS ─────────────────────────────────────────────────
