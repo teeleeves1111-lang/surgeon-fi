@@ -897,6 +897,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
       <div><div class="g3" id="mm-out" style="margin-bottom:0"></div></div>
     </div>
     <div style="overflow-x:auto;margin-top:8px"><table class="tbl" id="mm-grid"></table></div>
+    <div class="hint" id="mm-note" style="margin-top:4px"></div>
     <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Earn $10M and spend $10M, and you never retire.</strong></div></div>
     <div class="subhd">The brokerage rule</div>
     <div style="font-size:13px;line-height:1.6;color:#333">Maxing the 403(b) and both Roths: <strong>stop working at about 65 minus the thousands a month you put in taxable.</strong> With a 457(b): <strong>about 63 minus.</strong> $6,000/mo → about 59. <span class="hint">$600k salary, starting at 32 with $350k of loans, $6M target, 5% after inflation. Holds from about $4,000 to $12,000 a month; your own rule is under "What each amount buys" below.</span></div>
@@ -2314,13 +2315,17 @@ function calcMath(){
   var d=function(a,b){return a>=80||b>=80?'':b<a?' ('+(a-b)+' years sooner)':b>a?' ('+(b-a)+' years later)':' (no change)';};
   $('mm-ex').textContent='Example: starts at '+sa+' with $0 saved and lives on whatever isn\'t taxed or saved.';
   $('mm-out').className='';
+  var mo=function(m){return fkPrecise(Math.round(m.spend/12/100)*100)+'/mo';};
   $('mm-out').innerHTML='<div class="box box-b" style="margin:0"><div class="box-body"><strong>Earning '+fk(sal)+' and saving '+pc+'%: stop working at '+A(o.y).replace('age ','')+'.</strong>'+
+    '<div style="font-size:12px;color:var(--mg)">Lives on '+mo(o)+' now and '+fk(o.ret)+'/yr in retirement.</div>'+
     '<div style="margin-top:6px">Earn '+fk(sal2)+' instead, still saving '+pc+'%: '+A(y2)+d(o.y,y2)+'.</div>'+
-    '<div>Save '+Math.round(r2*100)+'% instead, still earning '+fk(sal)+': <strong>'+A(y3)+'</strong>'+d(o.y,y3)+'.</div></div></div>';
+    '<div>Save '+Math.round(r2*100)+'% instead, still earning '+fk(sal)+': <strong>'+A(y3)+'</strong>'+d(o.y,y3)+', living on '+mo(mmYears(sal,r2,k))+'.</div></div></div>';
   var sals=[400000,600000,800000,1000000],rates=[10,20,30,40];
+  var normal=Math.max(0,c.takeHome-c.cashLeft);   // what the app estimates this household normally spends a year
+  $('mm-note').innerHTML='Each cell: the age you can stop, and what\'s left to live on. ↓ = less than the '+fkPrecise(Math.round(normal/12/100)*100)+'/mo the app estimates for your household. Saving more also means retiring on less: this example retires on 55% of what it spends now.';
   var curS=sals.reduce(function(a,b){return Math.abs(b-sal)<Math.abs(a-sal)?b:a;}),curR=rates.reduce(function(a,b){return Math.abs(b-r*100)<Math.abs(a-r*100)?b:a;});
   $('mm-grid').innerHTML='<tr><th>Age you can stop</th>'+rates.map(function(x){return '<th>Save '+x+'%</th>';}).join('')+'</tr>'+
-    sals.map(function(S){return '<tr><td><strong>'+fk(S)+'</strong></td>'+rates.map(function(x){var y=mmYears(S,x/100,k).y;var me=S===curS&&x===curR;return '<td style="'+(me?'background:var(--lb);font-weight:700;color:var(--b)':'')+'">'+(y>=80?'—':sa+y)+'</td>';}).join('')+'</tr>';}).join('')+
+    sals.map(function(S){return '<tr><td><strong>'+fk(S)+'</strong></td>'+rates.map(function(x){var y=mmYears(S,x/100,k).y;var me=S===curS&&x===curR;var mm=mmYears(S,x/100,k),lo=mm.spend<normal;return '<td style="'+(me?'background:var(--lb);font-weight:700;color:var(--b)':'')+(lo&&!me?';color:var(--mg)':'')+'">'+(y>=80?'—':sa+y)+'<div style="font-size:10px;font-weight:400;color:var(--mg)">'+fkPrecise(Math.round(mm.spend/12/500)*500)+'/mo'+(lo?' ↓':'')+'</div></td>';}).join('')+'</tr>';}).join('')+
     '';
   var bars=[5,10,15,20,25,30,40,50,60,70];
   $('mm-chart').innerHTML=bars.map(function(x){var y=mmPure(x/100),me=Math.abs(x-r*100)<3;
@@ -2937,7 +2942,8 @@ function pbSim(c,o){
   // "Could stop the brokerage": from this age on, only the retirement accounts keep going (they're maxed until retirement)
   var ra0=retAge(),base=Math.max(0,o.taxAdv||0);m.coast=null;
   for(var ci=0;ci<m.series.length;ci++){var ca2=sa+ci,cn=ra0-ca2;if(cn<=0)break;
-    var fv=m.series[ci]*Math.pow(1+rr,cn)+base*(Math.pow(1+rr,cn)-1)/rr;if(fv>=fiNum){m.coast=ca2;break;}}
+    var fv=m.series[ci];for(var cy=ci;cy<ci+cn;cy++)fv=fv*(1+rr)+Math.max(0,Math.min(base,sav(cy)));
+    if(fv>=fiNum){m.coast=ca2;break;}}
   if(m.fi!==null&&(m.coast===null||m.coast>m.fi))m.coast=m.fi;
   if(m.coast!==null&&m.coast>=ra0)m.coast=null;
   m.brkAt=brkAt;m.fiNum=fiNum;m.sa=sa;m.capYr=capYr;m.cashAt=cashAt;m.wantAt=wantAt;m.savAt=sav;
