@@ -538,6 +538,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <div id="dpgift-row" class="sr"><label>Family help toward the down payment</label>
           <input type="range" min="0" max="500000" step="10000" value="0" id="dp-gift" oninput="go()">
           <span class="sv" id="dp-gift-v">$0</span></div>
+        <div class="box box-b" id="dp-need" style="display:none;margin:4px 0 8px"><div class="box-body" id="dp-need-body"></div></div>
         <div class="hint" id="house-hint">Uses property tax and mortgage rate from Rent vs Buy (Tools) (NJ 2.23%, 6.75%).</div>
       </div>
       <div id="rent-opts" class="sub-opts" style="display:none">
@@ -1919,6 +1920,18 @@ function calcWaterfall(c){
   var nwNow=startNW();
   var dpAlert=c.houseOn&&!c.houseOwned&&c.buyYr===0&&downNeeded>0&&c.dpOwn>dpCash();
   var pct=function(a){return Math.round(a/c.gross*100);};
+  // Down payment: what's needed, what's already there, and what to save each year until buying (same rule as the Playbook's down payment step)
+  var dpBuying=c.houseOn&&!c.houseOwned&&downNeeded>0,dpHave=Math.max(0,dpCash());
+  var dpGap=dpBuying?Math.max(0,c.dpOwn-dpHave):0,dpYrSave=dpBuying&&c.buyYr>0?Math.round(dpGap/c.buyYr):0;
+  if($('dp-need')){
+    $('dp-need').style.display=dpBuying?'':'none';
+    if(dpBuying){
+      var dpWhat=fk(downNeeded)+' ('+Math.round(c.MT.down*100)+'% down + about 3% closing on a '+fk(hp)+' home)'+(c.gift>0?', minus '+fk(c.gift)+' from family = <strong>'+fk(c.dpOwn)+'</strong> from you':'');
+      $('dp-need-body').innerHTML='<strong>Down payment and closing:</strong> '+dpWhat+'. You have '+fk(dpHave)+' toward it. '+
+        (c.buyYr>0?(dpGap>0?'Save <strong>'+fkPrecise(dpYrSave/12)+'/mo ('+fk(dpYrSave)+'/yr)</strong> in high-yield savings for the next '+c.buyYr+' year'+(c.buyYr!==1?'s':'')+'. It shows in the waterfall as the down payment fund.':'That already covers it. Keep it in high-yield savings, not stocks, until you buy.')
+          :(dpGap>0?'<strong>'+fk(dpGap)+' short</strong> at closing. Buying in 1 year means saving '+fkPrecise(dpGap/12)+'/mo; in 2 years, '+fkPrecise(dpGap/24)+'/mo (set Years before buying). Or look at a smaller down payment (physician loan).':'That covers closing.'));
+    }
+  }
 
   var items;
   if(c.actual){
@@ -1940,6 +1953,7 @@ function calcWaterfall(c){
     } else {
       items.push({l:'Spending (implied)',a:Math.max(0,c.impliedSpend),col:'#E67E22',p:pct(Math.max(0,c.impliedSpend)),note:'everything not saved — '+fk(c.impliedSpend/12)+'/mo'});
     }
+    if(dpYrSave>0) items.push({l:'Down payment fund needed',a:dpYrSave,col:'#2E6DA4',p:pct(dpYrSave),note:fkPrecise(dpYrSave/12)+'/mo for '+c.buyYr+' yr'+(c.buyYr!==1?'s':'')+' to reach '+fk(c.dpOwn)+(c.osav>0||c.brk>0?' · should come out of the savings above, not on top':' · enter it as Other savings')});
     items.push({l:'Total saved',a:c.invest,col:c.investSR>=20?'#1D6B52':c.investSR>=12?'#E8A020':'#C0392B',res:true,p:c.investSR});
   } else {
     items=[{l:'Gross income',a:c.gross,col:'#1D6B52',inc:true}];
@@ -1966,7 +1980,13 @@ function calcWaterfall(c){
   if(c.emp>0) items.push({l:'+ Employer retirement contribution',a:c.emp,col:'#1D6B52',p:pct(c.emp),note:'on top of salary'});
   if(c.payRet>0&&!c.actual) items.push({l:'Payroll retirement savings',a:c.payRet,col:'#1D6B52',p:pct(c.payRet),note:(c.def457>0?'403(b) + 457(b)':(c.planType==='401k'?'401(k)':'403(b)'))+(c.catchNow>0?' + '+fk(c.catchNow)+' Roth catch-up':'')+(c.defP>0?' + partner\'s plan':'')});
   if(!c.actual){
-    if(c.cashLeft>=0) items.push({l:'Cash left over each year',a:c.cashLeft,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:pct(c.cashLeft),note:null});
+    if(dpYrSave>0) items.push({l:'Down payment fund — high-yield savings',a:dpYrSave,col:'#2E6DA4',p:pct(dpYrSave),note:fk(c.dpOwn)+' by year '+c.buyYr+' · '+fkPrecise(dpYrSave/12)+'/mo until you buy · cash for the house, not counted in the savings rate'});
+    var leftAfterDP=c.cashLeft-dpYrSave;
+    if(dpYrSave>0&&c.cashLeft>=0){
+      if(leftAfterDP>=0) items.push({l:'Cash left over each year',a:leftAfterDP,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:pct(leftAfterDP),note:'after the down payment fund · goes back up by '+fk(dpYrSave)+'/yr minus the higher cost of owning once you buy'});
+      else items.push({l:'Short each year',a:-leftAfterDP,col:'#C0392B',bad:true,p:pct(-leftAfterDP),note:'the down payment fund is more than what\'s left over — buy later, a cheaper home, or a smaller down payment'});
+    }
+    else if(c.cashLeft>=0) items.push({l:'Cash left over each year',a:c.cashLeft,col:c.srPct>=20?'#1D6B52':c.srPct>=12?'#E8A020':'#C0392B',res:true,p:pct(c.cashLeft),note:null});
     else items.push({l:'Short each year',a:-c.cashLeft,col:'#C0392B',bad:true,p:pct(-c.cashLeft),note:'spending is more than take-home — it comes from credit cards, savings or bonuses'});
   } else if(c.left<0) items.push({l:'Deficit',a:Math.abs(c.left),col:'#C0392B',bad:true});
 
