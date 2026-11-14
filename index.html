@@ -877,7 +877,12 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math</summary>
 
     <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">How much you need</div>
-    <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 30× what you'll spend each year in retirement.</strong> The 4% rule (25×) lasted 30 years through every stretch of US market history. Stopping in your 50s means 40+ years, so plan on about 3.3%. <span id="mm-mynum"></span></div>
+    <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 30× what you'll spend each year in retirement.</strong> <span id="mm-mynum"></span></div>
+    <div style="font-size:12px;line-height:1.5;color:#333;margin-top:6px"><strong>How the 4% rule works:</strong> take 4% the first year, then the same dollars plus inflation every year, whatever the market does. How often that lasted in US history:</div>
+    <table class="tbl" style="margin-top:4px;max-width:440px"><tr><th>First-year withdrawal</th><th>30 years</th><th>40 years</th></tr>
+      <tr><td>4% (25× spending)</td><td>100%</td><td style="color:var(--rd);font-weight:700">86%</td></tr>
+      <tr class="hl"><td>3.3% (30×, this app)</td><td>100%</td><td>100%</td></tr></table>
+    <div class="hint" style="margin-top:2px">Stop in your 50s and it has to last 40+ years. 50/50 stocks and bonds, 1926–2014 (Pfau, 2015); 3.5% or less lasted 50+ years in every period (Bengen, 1994). Social Security not counted.</div>
     <div class="subhd">Why savings rate beats salary</div>
     <div style="font-size:13px;line-height:1.6;color:#333">A dollar you save counts twice: it's invested, and it's a dollar you've learned to live without, so you need less. A raise you spend does neither. <span class="hint" id="mm-ex">Try it on an example surgeon:</span></div>
     <div class="g2" style="margin-top:10px">
@@ -2303,7 +2308,7 @@ function mmPure(r){var nw=0,y=0,target=25*(1-r);while(nw<target&&y<100){nw=nw*1.
 function calcMath(){
   var c=getCosts();
   var spend=retSpend(c);
-  $('mm-mynum').innerHTML='For you: <strong>'+fk(spend)+'/yr × 30 = '+fk(spend*FIX)+'</strong>.';
+  $('mm-mynum').innerHTML='For you: <strong>'+fk(spend*FIX)+'</strong>, which pays '+fk(spend)+' the first year and the same plus inflation after.';
   if(!$('mm-sal').dataset.touched)$('mm-sal').value=Math.min(1200000,Math.max(300000,Math.round(c.s.sal/50000)*50000));
   if(!$('mm-sr').dataset.touched)$('mm-sr').value=c.actual?Math.min(60,Math.max(5,effSR(c))):20;
   var sal=+$('mm-sal').value,r=+$('mm-sr').value/100,k=+$('mm-k').value/100;
