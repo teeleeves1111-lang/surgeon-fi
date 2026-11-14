@@ -2004,14 +2004,15 @@ function calcWaterfall(c){
       '<div class="wfp">'+(it.p&&!it.inc?it.p+'%':'')+'</div></div>';
   }).join('');
 
-  var showSR=c.actual?c.investSR:c.srPct;
+  var roomDP=!c.actual&&dpYrSave>0?Math.max(0,c.left-dpYrSave)+c.emp:null;   // while saving for the house, the down payment fund isn't room to save
+  var showSR=c.actual?c.investSR:roomDP!==null?Math.round(roomDP/c.gross*100):c.srPct;
   var cls=showSR>=20?'good':showSR>=12?'warn':'bad';
   var mets=c.actual?[
     {l:'Your savings rate',v:showSR+'%',s:fk(c.invest)+'/yr saved',c:cls},
     {l:c.spendEntered?'Spending / mo':'Implied spending / mo',v:fk((c.spendEntered?c.totalSpend-c.save529Amt:c.impliedSpend)/12),s:c.spendEntered?'what you entered':'take-home minus savings',c:''},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
   ]:[
-    {l:'Room to save',v:showSR+'% · '+fk(Math.max(0,c.left+c.emp))+'/yr',s:(c.cashLeft<0?'retirement plans minus the shortfall':'retirement plans + every leftover dollar, if all of it is saved')+(c.buyYr>0?' · renting now':''),c:dpAlert?'warn':cls},
+    {l:'Room to save',v:showSR+'% · '+fk(roomDP!==null?roomDP:Math.max(0,c.left+c.emp))+'/yr',s:(c.cashLeft<0?'retirement plans minus the shortfall':roomDP!==null?'retirement plans + what\'s left after the down payment fund ('+fk(dpYrSave)+'/yr)':'retirement plans + every leftover dollar, if all of it is saved')+(c.buyYr>0?' · renting now':''),c:dpAlert?'warn':cls},
     {l:'Take-home / mo',v:fk(c.takeHome/12),s:'after tax & payroll deferrals',c:''},
   ];
   $('wf-metrics').innerHTML=mets.map(function(m){
@@ -2103,7 +2104,7 @@ function calcWaterfall(c){
     } else if(pbOpts(c).buying){
       var HB=pbOpts(c),after=Math.max(0,Math.round(c.cashLeft-HB.houseExtra-rothNeed));
       var same=coastEst===floorAge||(coastEst&&floorAge&&Math.abs(coastEst-floorAge)<=1);
-      msg='box-a|Room to save today: '+c.srPct+'% — but the house plan needs it|'+(same?'<strong>The house, not automation, sets your timeline: work becomes optional at '+coastAge+'.</strong>':planLead)+
+      msg='box-a|Room to save today: '+Math.round((Math.max(0,c.left-HB.dpYr)+c.emp)/c.gross*100)+'% while the down payment fund takes '+fk(HB.dpYr)+' a year|'+(same?'<strong>The house, not automation, sets your timeline: work becomes optional at '+coastAge+'.</strong>':planLead)+
         ' Until you buy in '+c.buyYr+' year'+(c.buyYr!==1?'s':'')+', the down payment fund takes about '+fk(HB.dpYr)+' a year; after that about '+fk(after)+' a year is left for the brokerage.';
       more=leftLine+' Owning costs about '+fk(HB.houseExtra)+' a year more than your rent. '+(same?'Invested automatically or drifting into spending, the answer barely changes. The down payment card below shows a later or smaller option. ':planMore)+realNote;
       moreT='Why this age';
