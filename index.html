@@ -877,7 +877,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math</summary>
 
     <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">How much you need</div>
-    <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 25× what you'll spend each year in retirement.</strong> That's the 4% rule: through every stretch of US market history, spending 4% a year, raised for inflation, lasted 30+ years. <span id="mm-mynum"></span> Stopping before 55? Use 3.5%: <span id="mm-cautious"></span>.</div>
+    <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 30× what you'll spend each year in retirement.</strong> The 4% rule (25×) lasted 30 years through every stretch of US market history. Stopping in your 50s means 40+ years, so plan on about 3.3%. <span id="mm-mynum"></span></div>
     <div class="subhd">Why savings rate beats salary</div>
     <div style="font-size:13px;line-height:1.6;color:#333">A dollar you save counts twice: it's invested, and it's a dollar you've learned to live without, so you need less. A raise you spend does neither. <span class="hint">Example surgeon starting from $0:</span></div>
     <div class="g2" style="margin-top:10px">
@@ -898,6 +898,8 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     </div>
     <div style="overflow-x:auto;margin-top:8px"><table class="tbl" id="mm-grid"></table></div>
     <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Earn $10M and spend $10M, and you never retire.</strong></div></div>
+    <div class="subhd">The brokerage rule</div>
+    <div style="font-size:13px;line-height:1.6;color:#333">Maxing the 403(b) and both Roths: <strong>stop working at about 65 minus the thousands a month you put in taxable.</strong> With a 457(b): <strong>about 63 minus.</strong> $6,000/mo → about 59. <span class="hint">$600k salary, starting at 32 with $350k of loans, $6M target, 5% after inflation. Holds from about $4,000 to $12,000 a month; your own rule is under "What each amount buys" below.</span></div>
 
     <details class="how" style="margin-top:10px"><summary>The famous chart (savings rate of take-home pay)</summary>
       <div id="mm-chart"></div>
@@ -926,10 +928,10 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   <details class="card fold" id="paths-more">
     <summary class="ctitle">Assumptions — retirement spending, retirement age, return</summary>
       <div class="trow"><label>Estimate retirement spending from how I live now</label>
-        <label class="tog"><input type="checkbox" id="fi-spend-auto" checked onchange="go();calcFI()"><span class="tsl"></span></label></div>
+        <label class="tog"><input type="checkbox" id="fi-spend-auto" onchange="go();calcFI()"><span class="tsl"></span></label></div>
       <div class="sr"><label>Retirement spending / yr</label>
-        <input type="range" min="60000" max="400000" step="5000" value="130000" id="fi-spend" oninput="$('fi-spend-auto').checked=false;go();calcFI()">
-        <span class="sv" id="fi-spend-v">$130k</span></div>
+        <input type="range" min="60000" max="400000" step="5000" value="200000" id="fi-spend" oninput="$('fi-spend-auto').checked=false;go();calcFI()">
+        <span class="sv" id="fi-spend-v">$200k</span></div>
       <div class="hint" id="fi-spend-note"></div>
       <div class="sr"><label>Planned retirement age</label>
         <input type="range" min="55" max="70" value="65" id="fi-retage" oninput="go();calcFI()">
@@ -1759,6 +1761,9 @@ function go(){
 // Retirement spending estimated from current life minus costs that end
 // (childcare, school, student loans, mortgage principal & interest, kids' share of living),
 // plus ~15% for income tax on retirement withdrawals.
+// Target = 30× retirement spending (a 3.3% withdrawal): retirements that start in the 50s have to last 40+ years,
+// longer than the 30 years the 4% rule (25×) was tested on. Social Security is left out, which adds a cushion.
+var FIX=30;
 function retSpendEst(c){
   var hh=c.hh,mRate=+$('rvb-rate').value,pTax=+$('rvb-tax').value/100;
   var housingCont=c.houseOn?Math.round(c.hp*pTax)+Math.round(c.hp*0.004)+Math.round(c.hp*0.01):+$('rent').value*12;
@@ -2024,7 +2029,7 @@ function calcWaterfall(c){
 
   // Work optional estimate
   var rr=realReturn(),sa=startAge(),nwv=startNW();
-  var wfFI=retSpend(c)*25;
+  var wfFI=retSpend(c)*FIX;
   function coastAt(sav){var m=project(sa,nwv,sav,wfFI,rr,60);return m.fi;}   // generic comparisons only (the 12% / 25% paths)
   // Your own ages come from the shared engine: house plan, budget and all
   var noPlan={raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0};
@@ -2111,7 +2116,7 @@ function calcPaths(){
   var s=sp(),rr=realReturn();
   var yrs=Math.max(10,retAge()-startAge()); // chart runs to full-retirement age
   var sa=startAge(),nwStart=startNW();
-  var fi=retSpend(getCosts())*25;
+  var fi=retSpend(getCosts())*FIX;
   var c=getCosts();
   var myInv=effInvest(c);
   var mySR=effSR(c);
@@ -2138,7 +2143,7 @@ function calcPaths(){
     for(var i=0;i<=yrs;i++){
       if(pi===0) labels.push(sa+i);
       if(!reached&&nwChart>=fi) reached=true;
-      nwChart=Math.round(reached?nwChart*(1+rr)-fi/25:nwChart*(1+rr)+yrSav(i));
+      nwChart=Math.round(reached?nwChart*(1+rr)-fi/FIX:nwChart*(1+rr)+yrSav(i));
       data.push(Math.round(nwChart/1000));
     }
     msAll.push(ms);
@@ -2191,6 +2196,26 @@ function calcPaths(){
 function fiRoom(c){var F0=pbFlat(c),r=[];for(var y=0;y<60;y++)r.push(c.actual?1e9:Math.max(0,F0.cashAt(y)-F0.wantAt(y)));return r;}
 function fiMax(c){if(c.actual)return 20000;var r=fiRoom(c),m=0;for(var y=0;y<RY();y++)m=Math.max(m,r[y]);return Math.floor(m/12/250)*250;}
 function fiExtra(c,mo){if(!mo)return 0;var r=fiRoom(c);return function(y){return Math.min(12*mo,r[y]);};}   // each year: the extra, or whatever the budget leaves if less
+// The resident's own version of the talk rule "stop working at about 65 minus the thousands a month in taxable":
+// stop-working age against TOTAL brokerage per month, fitted from $4k to $10k (where the straight line holds).
+function brkRule(c){
+  var F0=pbFlat(c),now=F0.brkAt(0)||0,memo={};
+  var age=function(T){if(memo[T]!==undefined)return memo[T];var x=Math.max(0,T*1000-now);return memo[T]=(x?pbFlat(c,12*x):F0).fi;};
+  var Ts=[6,8,10,12],A=Ts.map(age);if(A.some(function(a){return a===null;}))return null;
+  // Prefer the plain "1 year per $1,000" form when it's within about a year everywhere from $6k to $12k a month
+  var best=null;[1,1.5,2,2.5,3,0.5].forEach(function(sl,k){
+    var v=Ts.map(function(T,n){return A[n]+sl*T;}).sort(function(a,b){return a-b;}),B=Math.round((v[1]+v[2])/2);
+    var err=Math.max.apply(null,Ts.map(function(T,n){return Math.abs(A[n]-(B-sl*T));}));
+    if(!best||(err<=1.5&&best.err>1.5)||(err<best.err&&!(best.err<=1.5)))best={B:B,s:sl,err:err};});
+  var first=now<1000&&age(0)!==null&&age(1)!==null?age(0)-age(1):null;
+  return {B:best.B,s:best.s,first:first,ex:age(6)};
+}
+function brkRuleTxt(c,short){
+  var R=brkRule(c);if(!R)return '';
+  var t='<strong>Your rule: stop working at about '+R.B+' minus '+(R.s===1?'the thousands a month':R.s+' years for every $1,000 a month')+' you put in the brokerage.</strong>';
+  if(short)return t;
+  return t+' $6,000/mo → about '+R.ex+'.'+(R.first!==null&&R.first>=R.s+1?' The first $1,000 is worth the most: about '+R.first+' years.':'');
+}
 function fiGoalLine(c){   // the dollar answer: how much more a month, starting now, to be work-optional by the goal age
   var goal=+$('pb-goal').value,F=pbFlat(c);if(F.fi&&F.fi<=goal)return '<div class="hint" style="margin-top:6px">On pace to stop working by '+goal+'.</div>';
   var lo=0,hi=fiMax(c),E=function(mo){return c.actual?12*mo:fiExtra(c,mo);};
@@ -2221,14 +2246,14 @@ function calcFI(){
   document.querySelectorAll('.ret-age-txt').forEach(function(e){e.textContent=retAge();});
   var est=retSpendEst(c);
   $('fi-spend-note').innerHTML=$('fi-spend-auto').checked?
-    'Costs that continue ('+fk(est.base)+'/yr) + 15% for taxes.':'Set by hand.';
+    'Costs that continue ('+fk(est.base)+'/yr) + 15% for taxes.':'Standard: $200k a year → '+fk(200000*FIX)+'. Change it to yours.';
   var rr=+$('fi-rr').value/100; $('fi-rr-v').textContent=(rr*100).toFixed(1)+'%';
   var sa=startAge(),nwStart=startNW();
   // Same engine as the Playbook: start from 'if nothing changes' and add (or remove) saving every year
   var F0=pbFlat(c),extra=12*addMo;
   var pj=extra?pbFlat(c,c.actual?extra:fiExtra(c,addMo)):F0,sr=pj.savAt(RY()-1)/c.gross,brkNow=brkMoY(c,F0,RY())||0;
   var savings=pj.savAt(RY()-1);
-  var fi=spend*25;
+  var fi=spend*FIX;
   var coastYr=pj.coast!==null&&pj.coast<retAge()?pj.coast:null,fiYr=pj.fi;
   var bxCls=MODE==='att'?'box-b':'box-g';
   var ttlCol=MODE==='att'?'var(--b)':'var(--g)';
@@ -2259,16 +2284,17 @@ function fiLadder(c,addMo){
   var per=function(i,j){var a=P[i].fi,b=P[j].fi;return a!==null&&b!==null?Math.round((a-b)/((amts[j]-amts[i])/1000)*2)/2:null;};
   var first=amts.length>1?per(0,amts.length-1):null;
   var rule=first!==null&&first>0?'Each $1,000/mo ≈ <strong>'+first+' year'+(first===1?'':'s')+'</strong> sooner. ':'';
-  el.innerHTML='<div class="subhd" style="margin-top:12px">What each amount buys</div>'+
+  var RT=brkRuleTxt(c);
+  el.innerHTML='<div class="subhd" style="margin-top:12px">What each amount buys</div>'+(RT?'<div class="box box-b" style="margin:6px 0 8px"><div class="box-body">'+RT+'</div></div>':'')+
 
     '<div style="overflow-x:auto"><table class="tbl"><tr><th>Brokerage / mo</th><th style="text-align:right">$1M</th><th style="text-align:right">$2M</th><th style="text-align:right">Stop brokerage</th><th style="text-align:right">Stop working</th></tr>'+rows+'</table></div>'+
-    '<div class="hint" style="margin-top:6px">'+rule+(c.actual?'':amts.length>1?'Only what your budget leaves, so your normal spending stays the same.':'Your budget leaves nothing extra to invest.')+'</div>';
+    '<div class="hint" style="margin-top:6px">'+(c.actual?'':amts.length>1?'Only what your budget leaves, so your normal spending stays the same.':'Your budget leaves nothing extra to invest.')+'</div>';
 }
 
 // ── THE SIMPLE MATH (4% rule + savings rate vs salary) ─────────────
 function mmYears(sal,r,k){
   var t=taxCalc({sal:sal,pinc:0,hh:'couple',deferFed:Math.min(LIM.k401,sal*r),deferNJ:0,nk:2}).total;
-  var save=sal*r,spend=Math.max(0,sal-t-save),ret=spend*k*1.15,target=25*ret,nw=0,y=0;
+  var save=sal*r,spend=Math.max(0,sal-t-save),ret=spend*k*1.15,target=FIX*ret,nw=0,y=0;
   while(nw<target&&y<80){nw=nw*1.05+save;y++;}
   return {y:y,spend:spend,ret:ret,target:target,save:save};
 }
@@ -2276,8 +2302,7 @@ function mmPure(r){var nw=0,y=0,target=25*(1-r);while(nw<target&&y<100){nw=nw*1.
 function calcMath(){
   var c=getCosts();
   var spend=retSpend(c);
-  $('mm-mynum').innerHTML='For you: <strong>'+fk(spend*25)+'</strong>.';
-  $('mm-cautious').textContent=fk(spend/0.035);
+  $('mm-mynum').innerHTML='For you: <strong>'+fk(spend)+'/yr × 30 = '+fk(spend*FIX)+'</strong>.';
   if(!$('mm-sal').dataset.touched)$('mm-sal').value=Math.min(1200000,Math.max(300000,Math.round(c.s.sal/50000)*50000));
   if(!$('mm-sr').dataset.touched)$('mm-sr').value=c.actual?Math.min(60,Math.max(5,effSR(c))):20;
   var sal=+$('mm-sal').value,r=+$('mm-sr').value/100,k=+$('mm-k').value/100;
@@ -2286,7 +2311,7 @@ function calcMath(){
   var lo=mmYears(400000,r,k).y,hi=mmYears(1000000,r,k).y,r10=mmYears(sal,0.10,k).y,r30=mmYears(sal,0.30,k).y;
   $('mm-out').innerHTML=[
     {l:'Years until you can stop',v:o.y>=80?'80+':o.y,s:'age '+(o.y>=80?'—':sa+o.y),c:o.y<=20?'good':o.y<=28?'warn':'bad'},
-    {l:'This example needs',v:fk(o.target),s:fk(o.ret)+'/yr × 25',c:''},
+    {l:'This example needs',v:fk(o.target),s:fk(o.ret)+'/yr × 30',c:''},
     {l:'Salary $400k → $1M',v:(lo-hi)+' yrs',s:'sooner',c:''},
     {l:'Savings 10% → 30%',v:(r10-r30)+' yrs',s:'sooner',c:'good'}
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
@@ -2500,7 +2525,7 @@ function calcTrue(){
   // Same engine as every other tab: 'without it' is the shared 'if nothing changes' path; 'with it' pays the cost each year it lasts
   var sa=startAge(),nw0=startNW(),rr=realReturn();
   var dur=perm?99:yrsV;
-  var fiAdd=ret?annual*retPct*25:0;
+  var fiAdd=ret?annual*retPct*FIX:0;
   var S0=pbFlat(c),S1=pbSim(c,{raise:0,dcRedir:false,loanRedir:false,mortRedir:false,kidRedir:false,stepShare:0,extra:function(i){return i<dur?-annual:0;},fiAdd:fiAdd});
   var fiBase=S0.fiNum,fiWith=S1.fiNum;
   var A0={coast:S0.coast,fi:S0.fi,nw20:S0.series[20]},A1={coast:S1.coast,fi:S1.fi,nw20:S1.series[20]};
@@ -2849,7 +2874,8 @@ function pbLadder(c,plan,opts){   // the one thing to do, in dollars: what goes 
   } else {
     var last=v[RY()-1];if(last>v[start-1]+250)tail=' About '+fkPrecise(last)+'/mo by year '+RY()+'.';
   }
-  return '<div class="pb-ladder">'+lead+tail+'</div>';
+  var RT=brkRuleTxt(c,true);
+  return '<div class="pb-ladder">'+lead+tail+(RT?'<div style="margin-top:4px;font-size:13px">'+RT+'</div>':'')+'</div>';
 }
 function brkMoY(c,m,y){var s=m.savAt(y-1);/* y = year label (1 = first year); savAt is 0-based */if(s<0)return null;return Math.max(0,Math.round((s-pbOpts(c).taxAdv)/12/50)*50);}
 function brkTxt(c,m,y){var b=brkMoY(c,m,y);return b===null?'a deficit':fkPrecise(b)+'/mo';}
@@ -2867,7 +2893,7 @@ function realReturn(){var e=document.getElementById('fi-rr');return e?(+e.value|
 function pbSim(c,o){
   // o: {brk, raise, dcEnd, dcRedir, dcShare, loanEnd, loanRedir, taxAdv, stepYr, stepMo, stepShare}; missing fields come from the playbook inputs
   o=Object.assign({},pbOpts(c).opts,o);
-  var sa=startAge(),nw0=startNW(),rr=realReturn(),fiNum=retSpend(c)*25+(o.fiAdd||0);
+  var sa=startAge(),nw0=startNW(),rr=realReturn(),fiNum=retSpend(c)*FIX+(o.fiAdd||0);
   var xtra=function(y){return typeof o.extra==='function'?o.extra(y):(o.extra||0);};
   var dcMo=c.kidsCost>0?Math.round(c.childcareEst/12):0;
   var loanMo=Math.round(c.loanPay/12);
@@ -3275,7 +3301,7 @@ function calcPlay(){
   ];
   if($('pb-auto'))$('pb-auto').innerHTML='<tr><th>When</th><th>What</th><th>Why</th></tr>'+autoRows.map(function(r){return '<tr><td style="white-space:nowrap">'+r[0]+'</td><td>'+r[1]+'</td><td style="font-size:10px;color:var(--mg)">'+r[2]+'</td></tr>';}).join('');
 
-  var fiNum=spend*25;
+  var fiNum=spend*FIX;
   var fnAges=(function(){var a0=sa<45?45:Math.ceil((sa+1)/5)*5,r=[];for(var a=a0;r.length<3&&a<retAge();a+=5)r.push(a);if(!r.length)r.push(retAge()-1);return r;})(); // ages still ahead of you
   if($('pb-finum'))$('pb-finum').innerHTML='<div style="font-size:11px;line-height:1.6;color:#444">Your full retirement number is <strong>25 × what you\'ll spend each year in retirement</strong> — at '+fk(spend)+'/yr that\'s <strong>'+fk(fiNum)+'</strong>. Withdrawing 4% a year from that portfolio, adjusted for inflation, has historically lasted 30+ years (the "4% rule"). Every $1,000 a year of permanent lifestyle adds $25,000 to the number.</div>'+
     '<table class="tbl" style="margin-top:8px"><tr><th>Retirement spending</th><th>Full FI number</th>'+fnAges.map(function(a,i){return '<th>'+(i===0?'Needed at '+a+' for work to be optional':'at '+a)+'</th>';}).join('')+'</tr>'+
@@ -3396,7 +3422,7 @@ function calcPlay(){
 
   var nwL=Math.max(0,startNW()),lifeLo=Math.max(0,c.s.sal*10-nwL),lifeHi=Math.max(0,c.s.sal*20-nwL);   // what savings don't already cover
   var kidsAhead=0;for(var ly=0;ly<25;ly++)kidsAhead+=(c.A.kids===null?c.schoolAt(ly)+c.colAt(ly):0);
-  var lifeNeed=Math.max(0,spend*25-nwL+kidsAhead);   // what the family would still be short of: the retirement number, plus school and college ahead
+  var lifeNeed=Math.max(0,spend*FIX-nwL+kidsAhead);   // what the family would still be short of: the retirement number, plus school and college ahead
   var lifeTxt=est?(lifeNeed===0?'Your savings already cover what term life would replace — you may not need more. Keep a policy you have until you\'re sure.':'About '+fk(Math.round(lifeNeed/250000)*250000)+': the '+fk(spend*25)+' retirement number your family would live on, less the '+fk(nwL)+' saved'+(kidsAhead>0?', plus '+fk(kidsAhead)+' of school and college still ahead':'')+'. The need shrinks as you save; once you can stop working you may not need it.'):'About '+fk(c.s.sal*10)+'–'+fk(c.s.sal*20)+' for you.';
   var diBig=c.gross*0.6/12>20000,diCapTxt=diBig?' More than one policy issues; combine individual and group.':'';
   var diTail=MODE==='res'?'Buy it before you leave training.':est?'Keep it until you can stop working.':'Raise it as income rises.';
@@ -3655,11 +3681,11 @@ function aiFacts(c){
   var b1=brkMoY(c,plan,1),bR=brkMoY(c,plan,RY());
   calc.push('Brokerage investing in my plan: '+(b1===null?'none — a deficit':fkPrecise(b1)+'/mo')+' in year 1'+(RY()>1?', '+(bR===null?'a deficit':fkPrecise(bR)+'/mo')+' by year '+RY():'')+', on top of retirement accounts.');
   if(c.colOn&&c.colIn.length){var cs=c.colIn.map(function(a){return a<0?'already in college with '+(4+a)+' yr'+(4+a!==1?'s':'')+' left':a===0?'starting now':'starting in '+a+' yr'+(a!==1?'s':'');});calc.push('College is already built into these projections: '+fkPrecise(c.colAmt)+'/yr per child, 4 years each: '+cs.join('; ')+'; paid from 529s first (balance '+fkPrecise(c.col529)+') and then from cash flow.');}
-  calc.push('"Can stop working" below means: savings cover my retirement spending for good (25×, the 4% rule). "Could stop the brokerage" means: from that age I could stop investing in the taxable brokerage, keep maxing my retirement accounts and keep working until '+ra+', and still get there.');
+  calc.push('"Can stop working" below means: savings reach 30× my retirement spending (a 3.3% withdrawal rate, for a retirement that may last 40 years; Social Security not counted). "Could stop the brokerage" means: from that age I could stop investing in the taxable brokerage, keep maxing my retirement accounts and keep working until '+ra+', and still get there.');
   if(c.houseOn&&!c.houseOwned)calc.push('The ages below already include the house: the down payment and the higher cost of owning come out of savings.');
   calc.push('If nothing changes: can stop working '+(flat.fi?'at '+flat.fi:'not reached')+'; could stop the brokerage '+(flat.coast?'at '+flat.coast:'not before '+ra)+'.');
   if(plan.coast!==flat.coast||plan.fi!==flat.fi)calc.push('Following my plan (raises and freed-up costs invested): can stop working '+(plan.fi?'at '+plan.fi:'not reached')+'; could stop the brokerage '+(plan.coast?'at '+plan.coast:'not before '+ra)+'.');
-  calc.push('Retirement spending assumed: '+fkPrecise(retSpend(c))+'/yr in today\'s dollars, so the target portfolio is about '+fkPrecise(plan.fiNum)+' (25×, the 4% rule). Returns assumed: '+Math.round(realReturn()*1000)/10+'% after inflation.');
+  calc.push('Retirement spending assumed: '+fkPrecise(retSpend(c))+'/yr in today\'s dollars, so the target portfolio is about '+fkPrecise(plan.fiNum)+' (30×, a 3.3% rule). Returns assumed: '+Math.round(realReturn()*1000)/10+'% after inflation.');
   // Rent vs buy and loans: the same analysis their tabs show
   if(c.houseOn&&!c.houseOwned){try{rvbSync();var v=$('rvb-verdict'),t=v&&v.querySelector('.box-title');if(t)calc.push('Rent vs buy ('+($('rvb-custom').checked?'numbers set on that tab':'my numbers')+', '+$('rvb-yrs').value+'-year stay): '+t.textContent.trim()+'. '+(v.querySelector('.box-body').textContent.match(/Owning costs about [^.]+\./)||[''])[0]);}catch(e){}}
   if(c.loansOn&&c.lb>0){try{$('sl-bal').value=$('lb').value;$('sl-pslf').checked=$('pslf').checked;$('sl-yrs-left').value=MODE==='res'?$('yrs-left').value:0;$('sl-qual-done').value=$('pslf').checked?Math.min(9,+$('pslf-yrs').value):0;calcLoans();
