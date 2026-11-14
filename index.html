@@ -485,6 +485,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <label class="tog"><input type="checkbox" id="def401" checked onchange="go()"><span class="tsl"></span></label></div>
       <div class="trow" id="def457-row"><label>Also max 457(b) — <span class="L" data-k="k457">$24,500</span> (most hospitals offer one)</label>
         <label class="tog"><input type="checkbox" id="def457" onchange="go()"><span class="tsl"></span></label></div>
+      <div class="hint" id="def457-hint">Not using the 457(b)? Non-governmental plans belong to the hospital until they pay out, and the payout rules can be strict, so skipping one is reasonable. Then put at least the same <span class="L" data-k="k457">$24,500</span> a year (<span id="k457mo">$2,042</span>/mo) into your taxable brokerage, automatically. Match the full amount, not its after-tax cost, or you end up saving less than the 457 would have.</div>
       <div class="trow" id="catch-row" style="display:none"><label>Catch-up from age 50 — <span class="L" data-k="catch50">$8,000</span> more a year (<span class="L" data-k="catch6063">$11,250</span> at ages 60–63)</label>
         <label class="tog"><input type="checkbox" id="catchup" checked onchange="go()"><span class="tsl"></span></label></div>
       <div class="hint" id="catch-hint" style="display:none">Earned over $150,000 last year? Your catch-up has to go in as Roth — after tax, so it doesn't lower your tax bill, and your plan must offer a Roth option. Governmental 457(b) plans have their own catch-up (not counted here).</div>
@@ -1250,6 +1251,8 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   <div class="q"><label for="su-lb">Student loans (total balance, 0 if none)</label><input type="number" id="su-lb" value="0" step="5000">
     <div class="chips" data-q="pslf" style="margin-top:6px"><button class="chip on" data-v="no">Private practice / not PSLF</button><button class="chip" data-v="yes">Nonprofit — going for PSLF</button></div></div>
   <div class="q"><span class="ql">Employer</span><div class="chips" data-q="emp"><button class="chip on" data-v="403b">Hospital / academic</button><button class="chip" data-v="401k">Private group</button></div>
+    <div class="chips" data-q="k457" id="su-457-row" style="margin-top:6px"><button class="chip on" data-v="yes">Max the 457(b) too</button><button class="chip" data-v="no">Skipping the 457(b)</button></div>
+    <div class="hint" id="su-457-hint" style="display:none">Then put at least the same amount, about <span class="su-k457mo">$2,042</span>/mo, into your brokerage automatically. Your plan will start there.</div>
     <div class="row">Employer retirement contribution, % of salary <input type="number" id="su-emp" placeholder="not sure = 3%" step="0.5" min="0" max="10" style="max-width:80px"></div></div>
   <div class="q"><span class="ql">What are you aiming for?</span><div class="chips" data-q="goal"><button class="chip on" data-v="fu">Work optional early</button><button class="chip" data-v="early">Retire early</button><button class="chip" data-v="career">A full career</button></div></div>
   <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="flex:1;padding:11px" onclick="applySetup()">Show my plan →</button><button class="btn ghost" onclick="closeSetup()">Skip</button></div>
@@ -1689,6 +1692,7 @@ function go(){
   $('famsup-v').textContent=fkPrecise(+$('famsup').value);
   $('pinc-v').textContent=+$('pinc').value>0?fk(+$('pinc').value):'None';
   $('def457-row').style.display=$('plan-type').value==='403b'?'flex':'none';
+  $('def457-hint').style.display=$('plan-type').value==='403b'&&!$('def457').checked?'':'none';$('k457mo').textContent=fkPrecise(LIM.k457/12);
   $('catch-row').style.display=$('catch-hint').style.display=startAge()>=40?'':'none';
   $('house-opts').style.display=$('house').checked?'block':'none';
   $('hp-v').textContent=fk(+$('hp').value);
@@ -2069,7 +2073,7 @@ function calcWaterfall(c){
   var levers=[];
   if(c.kidsCost>40000) levers.push('childcare/school ('+fk(c.kidsCost)+'/yr — redirect it to the brokerage the month it ends)');
   if(c.houseOn&&c.owningNow) levers.push('home price (each $200k less frees ~'+fk(200000*(+$('rvb-tax').value/100)+mtgPmt12(160000,+$('rvb-rate').value)+200000*0.014)+'/yr)');
-  if(c.def457===0&&c.planType==='403b') levers.push('the 457(b) (+$24.5k pre-tax)');
+  if(c.def457===0&&c.planType==='403b') levers.push('the 457(b) (+$24.5k pre-tax), or the same $24.5k into the brokerage');
   if(c.cars>14400) levers.push('cars ('+fk(c.cars)+'/yr)');
   levers.push('partner income','keeping spending flat as pay rises');
   // Each message: box class | title | the answer (one bold sentence + one line) | the rest, behind a tap
@@ -2082,7 +2086,7 @@ function calcWaterfall(c){
   else if(displaySR<20){msg='box-a|Below the 20% target ('+displaySR+'%)|<strong>Work becomes optional at '+coastAge+'.</strong> Biggest levers: '+levTxt+'.';
     more=extraVsIdeal?'That\'s '+extraVsIdeal+' years later than saving 25%.':'';}
   else if(c.actual){msg='box-g|On track at '+displaySR+'%|<strong>Work becomes optional at '+coastAge+'.</strong>'+(coast12&&coastEst?' That\'s '+(coast12-coastEst)+' years sooner than the typical surgeon saving 12%.':'');
-    more='Keep the order: max the 403(b)/401(k) ('+$L(LIM.k401)+'), the 457(b) if offered ('+$L(LIM.k457)+'), and the backdoor Roths ('+$L(2*LIM.ira)+' for a couple). Add the HSA ('+$L(LIM.hsaFam)+' family) only on a high-deductible plan — most hospital plans are PPOs.';}
+    more='Keep the order: max the 403(b)/401(k) ('+$L(LIM.k401)+'), the 457(b) if offered ('+$L(LIM.k457)+'; skipping it? put the same amount in the brokerage), and the backdoor Roths ('+$L(2*LIM.ira)+' for a couple). Add the HSA ('+$L(LIM.hsaFam)+' family) only on a high-deductible plan — most hospital plans are PPOs.';}
   if(!c.actual){
     var rothNeed=c.hh==='couple'?2*LIM.ira:LIM.ira;
     var floorAge=Sfloor.coast,floorTxt=floorAge?'age '+floorAge:retAge()+' or later';
@@ -2991,7 +2995,7 @@ function pbYear1(c,plan){
   var perCheck=function(a){return $L(Math.ceil(a/26))+' a paycheck (every two weeks)';};
   var efMoAmt=Math.round(Math.max(0,c.cashLeft-roth-hsa)/12/50)*50;
   var L=[];
-  L.push('<strong>Before your first paycheck:</strong> sign up for the '+(hosp?'403(b)':'401(k)')+' as a dollar amount, pre-tax this time — at the 32–37% bracket the deduction is worth more than Roth, and the backdoor Roth keeps building your tax-free money — '+perCheck(LIM.k401)+' reaches '+$L(LIM.k401)+'. '+(hosp?(c.def457>0?'Elect the 457(b) the same way. ':'Ask HR about the 457(b), a second pre-tax account. '):'')+'Own-occupation disability insurance should already be in place (buy it before residency ends, while you\'re healthy and resident discounts apply). Term life if anyone depends on your income. An umbrella policy.');
+  L.push('<strong>Before your first paycheck:</strong> sign up for the '+(hosp?'403(b)':'401(k)')+' as a dollar amount, pre-tax this time — at the 32–37% bracket the deduction is worth more than Roth, and the backdoor Roth keeps building your tax-free money — '+perCheck(LIM.k401)+' reaches '+$L(LIM.k401)+'. '+(hosp?(c.def457>0?'Elect the 457(b) the same way. ':'Ask HR about the 457(b), a second pre-tax account. If you skip it, send the same '+$L(LIM.k457)+' a year to the brokerage instead. '):'')+'Own-occupation disability insurance should already be in place (buy it before residency ends, while you\'re healthy and resident discounts apply). Term life if anyone depends on your income. An umbrella policy.');
   L.push('<strong>Month 1:</strong> keep living close to how you lived as a resident. Pay off any credit card balance. Open a high-yield savings account and automate '+fkPrecise(efMoAmt)+'/mo into it until it reaches '+fk(ef)+' (three months of spending).');
   if(c.loanPay>0)L.push('<strong>Months 1–2:</strong> settle the loans. '+(c.pslf?'Certify your employer for PSLF and enroll in the lowest income-driven plan — never refinance.':'If you won\'t work for a nonprofit, refinance (compare 3+ lenders) and pay them off in 10 years or less.')+' Tools → Loans compares the two.');
   L.push('<strong>January:</strong> backdoor Roth — '+$L(LIM.ira)+(couple?' each':'')+', then every January after.'+(hsa>0?' Max the HSA at open enrollment.':''));
@@ -3089,7 +3093,7 @@ function calcPlay(){
   else out+='<div class="pb-flag a" style="margin-top:8px"><div><b>To be work-optional by '+goal+':</b> '+
     (needRaise!==null?'raise your brokerage by <strong>'+fkPrecise(needRaise)+'/mo every year</strong> instead of '+fkPrecise(raise)+'. ':'no realistic yearly raise gets there from this start — ')+
     (needLevel!==null?'Or invest a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> starting now. ':'')+
-    'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b), ':'')+'or a smaller house.</div></div>';
+    'Other levers: lower retirement spending ('+fk(spend)+'/yr now), a later goal age, '+(c.def457===0&&hosp?'the 457(b) (or the same amount into the brokerage), ':'')+'or a smaller house.</div></div>';
   if(!c.actual&&plan.capYr!==null&&plan.sa+plan.capYr<(plan.coast||retAge())){var ex10=Math.max(0,plan.wantAt(RY()-1)-plan.cashAt(RY()-1));
     out+='<div class="hint" style="margin-top:8px;color:#444"><b>Why the plan stops short.</b> '+(plan.capYr===0?'Right now':'From year '+(plan.capYr+1))+' your budget has no cash left for the brokerage you set'+(raise>0?' and its yearly raises':'')+', so the ages above count only what it can fund. With pay held flat after inflation, keeping every raise going means spending less than the app\'s estimate'+(ex10>0?' — about <strong>'+fk(ex10)+' a year less by year '+RY()+'</strong>':'')+'. Real pay raises can cover part of it.</div>';}
   else if(c.actual&&raise>0) out+='<div class="hint" style="margin-top:8px;color:#444"><b>What this plan asks of your spending.</b> Each yearly raise of '+fkPrecise(raise)+'/mo comes out of spending, because the app holds your pay flat after inflation: by year '+RY()+' you\'d be spending about <strong>'+fk(12*raise*RY())+' a year less than today</strong>'+(opts.dcRedir||opts.loanRedir?', on top of sending the childcare'+(opts.loanRedir?' and loan':'')+' money to the brokerage when it ends':'')+'. Real pay raises can cover part of it.</div>';
@@ -3107,14 +3111,15 @@ function calcPlay(){
   if(c.empLost>0) steps.push({on:true,t:'Turn on your '+(hosp?'403(b)':'401(k)')+' — you\'re missing the match',d:'Your employer\'s '+$('emp').value+'% match only comes if you contribute too. With your 403(b)/401(k) turned off, you\'re leaving about '+$L(c.empLost)+' a year on the table.',a:c.empLost,fix:'Turn on in My Numbers'});
   if(c.emp>0) steps.push({on:true,t:'Employer contribution',d:'Your employer adds this on top of salary — make sure you meet any vesting schedule before changing jobs.',a:c.emp});
   if(c.defP>0) steps.push({on:true,t:'Partner\'s 401(k)/403(b)',d:'Your partner maxes their own plan — pre-tax, through their payroll.',a:c.defP});
-  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another '+$L(LIM.k401)+' pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,kidRedir:opts.kidRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' sooner to work optional':'a lot';})()+' on this plan.',a:LIM.k457,fix:c.def457>0?null:'Turn on in My Numbers'});
+  var brk457=hosp&&c.def457===0&&brk>=LIM.k457/12-1;   // skipping the 457 but the brokerage already covers the same amount
+  if(hosp) steps.push({on:c.def457>0,t:'457(b) — the second pre-tax bucket most surgeons skip',d:c.def457>0?'Another '+$L(LIM.k401)+' pre-tax. Read your plan\'s distribution rules (non-governmental plans are an employer asset until paid out).':brk457?'You\'re skipping it, and your brokerage transfer ('+fkPrecise(brk)+'/mo) already covers the same '+$L(LIM.k457)+' a year. That keeps most of the benefit; you give up the tax deduction and pay some tax on the brokerage\'s dividends and gains.':'You aren\'t using it. Turning it on is worth '+(function(){var x=pbSim(c,{brk:brk,raise:raise,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,kidRedir:opts.kidRedir,taxAdv:taxAdv+LIM.k457});return plan.coast&&x.coast?(plan.coast-x.coast)+' year'+(plan.coast-x.coast!==1?'s':'')+' sooner to work optional':'a lot';})()+' on this plan. Skipping it because it\'s non-governmental or the payout rules are poor? Then put at least the same '+$L(LIM.k457)+' a year ('+fkPrecise(LIM.k457/12)+'/mo) into the brokerage, automatically. Match the full amount, not its after-tax cost.',a:LIM.k457,fix:c.def457>0||brk457?null:'Turn on in My Numbers, or raise the brokerage to '+fkPrecise(LIM.k457/12)+'/mo'});
   steps.push({on:true,t:'Backdoor Roth IRA'+(couple?' — both spouses':''),d:'Every January: contribute '+$L(LIM.ira)+' to a traditional IRA, convert to Roth right away. Keep no other pre-tax IRA balances (pro-rata rule).',a:couple?15000:7500});
   steps.push({on:hsa>0,t:'HSA',d:hsa>0?'Triple tax advantage federally (New Jersey still taxes HSA contributions). Invest it and pay current medical bills from cash if you can.':'Only if your health plan is a high-deductible plan. Most hospital plans are PPOs — check at open enrollment.',a:hsa||LIM.hsaFam});
   if(c.childcareEst>0) steps.push({on:true,t:'Dependent care FSA',d:'Pay childcare with pre-tax money — saves roughly $3,000–3,500 a year at a surgeon\'s tax rate. Elect it at open enrollment.',a:LIM.dcfsa,tag:'pre-tax'});
   steps.push({on:true,t:'Emergency fund — high-yield savings',d:'About 3 months of spending ('+fk(efTarget)+'). '+(ESTAB()?'Already have it in savings? Skip this; top it back up only after you use it. ':'Build it in year 1, then stop. ')+($('pb-bonus').checked?'With bonus pay, also keep enough to cover the gap between base pay and bills until the next bonus.':''),a:efTarget,once:true});
   if(c.loansOn&&c.lb>0) steps.push({on:true,t:c.pslf?'Student loans — PSLF':'Student loans — refinance and pay off in 10 years',d:c.pslf?'Lowest income-driven payment (IBR or RAP), certify your employer every year, forgiven tax-free after 120 payments'+(c.pslfYrsLeft?' — '+c.pslfYrsLeft+' years left':'')+'. Do NOT refinance.':'Refinance to the lowest rate you can get (compare 3+ lenders). Paid off in year '+RY()+' — then that payment moves to the brokerage.',a:c.loanPay});
   if(c.houseOn&&!c.houseOwned&&c.buyYr>0){var dpNeed=c.dpOwn,dpMo=Math.max(0,dpNeed-Math.max(0,dpCash()))/c.buyYr;steps.push({on:true,t:'Down payment fund — high-yield savings',d:fk(dpNeed)+' ('+Math.round(c.MT.down*100)+'% down + closing'+(c.gift>0?', after '+fk(c.gift)+' from family':'')+') for a '+fk(c.hp)+' home in '+c.buyYr+' year'+(c.buyYr!==1?'s':'')+'.',a:dpMo});}
-  steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.',a:brk*12,brk:true});
+  steps.push({on:true,t:'Taxable brokerage — automatic monthly transfer',d:'Total-market index funds. Starts at '+fkPrecise(brk)+'/mo and rises '+fkPrecise(raise)+'/mo every year'+(opts.dcRedir?', plus '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo when childcare ends':'')+(opts.loanRedir?', plus '+fkPrecise(c.loanPay/12)+'/mo when loans are paid off':'')+'. See Step 2.'+(hosp&&c.def457===0?(brk>=LIM.k457/12-1?' This covers the '+$L(LIM.k457)+' a year you\'re not putting in the 457(b).':' Not using the 457(b)? Make this at least '+fkPrecise(LIM.k457/12)+'/mo, the same '+$L(LIM.k457)+' a year.'):''),a:brk*12,brk:true});
   // ── "How to do it" for each step ──
   var perCheck=function(a){return $L(Math.ceil(a/26))+' per paycheck if paid every two weeks ('+$L(Math.ceil(a/24))+' if twice a month)';};
   var HOW=function(t){
@@ -3127,7 +3132,7 @@ function calcPlay(){
       'Same benefits portal — the 457(b) is a separate election from the 403(b).',
       'Ask HR two questions: is it a governmental or non-governmental plan, and what are the payout options when you leave? (Non-governmental money belongs to the employer until paid out and usually can\'t be rolled into an IRA.)',
       'Elect '+perCheck(LIM.k457)+' and pick a low-cost index fund.',
-      'If the payout options are poor and you may leave soon, ask a flat-fee planner before contributing heavily.'];
+      'If it\'s non-governmental and the payout options are poor, or you may leave soon, skipping it is reasonable. Then set up an automatic brokerage transfer of at least '+fkPrecise(LIM.k457/12)+'/mo, the full '+$L(LIM.k457)+' a year. Matching only its after-tax cost leaves you saving less than the 457 would have.'];
     if(/^Employer contribution/.test(t))return [
       'Find the vesting schedule in the plan\'s Summary Plan Description (ask HR for it). Unvested money is lost if you leave early.',
       'Some plans only contribute if you contribute; make sure your own election qualifies for the full amount.'];
@@ -3244,7 +3249,7 @@ function calcPlay(){
     F.push({k:mustCover>baseTH?'r':'g',t:mustCover>baseTH?'Your base pay doesn\'t cover your bills':'Base pay covers your bills',b:'Guaranteed base of '+fk(base)+' takes home about '+fkPrecise(baseTH)+'/mo; your monthly costs are about '+fkPrecise(mustCover)+'. '+(mustCover>baseTH?'You\'re relying on bonuses for ordinary bills. When a bonus lands, move the shortfall ('+fkPrecise((mustCover-baseTH)*6)+' per six months) into a separate account and pay yourself from it monthly. Don\'t add fixed costs until base pay covers them.':'Good — send bonuses straight to savings the day they arrive.')});
   }
   if(c.childcareEst>0) F.push({k:'b',dup:'childcare',t:'The day childcare ends',b:'That frees '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo. Set up the brokerage increase now so it starts the same month — otherwise it disappears into spending. '+(opts.dcRedir?'Your plan already counts on it.':'<strong>Your plan currently doesn\'t redirect it</strong> — turning that on moves work optional from '+(plan.coast||'never')+' to '+(pbSim(c,Object.assign({},opts,{dcRedir:true})).coast||'never')+'.')});
-  if(c.def457===0&&hosp) F.push({k:'a',dup:'457(b)',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another '+$L(LIM.k401)+' a year pre-tax into a 457(b). Check your plan and turn it on in My Numbers.'});
+  if(c.def457===0&&hosp&&opts.brk<LIM.k457/12-1) F.push({k:'a',dup:'457(b)',t:'Unused 457(b)',b:'Hospital-employed surgeons can usually put another '+$L(LIM.k457)+' a year pre-tax into a 457(b). Check your plan and turn it on in My Numbers. Skipping it on purpose? Then put at least the same amount ('+fkPrecise(LIM.k457/12)+'/mo) into the brokerage.'});
   if(c.colOn){var colTot=0,colAll=0;for(var cy2=0;cy2<60;cy2++){colTot+=c.colAt(cy2);colAll+=c.colRaw(cy2);}
     F.push({k:'a',t:'College',b:fk(c.colAmt)+'/yr per child for '+c.colIn.length+' child'+(c.colIn.length!==1?'ren':'')+', '+colWhen(c)+' — about '+fk(colAll)+' in all'+(colAll>colTot?', of which 529s cover about '+fk(colAll-colTot)+'. The other '+fk(colTot):'. It')+' comes from take-home (about '+fk(colTot/(1-0.46))+' of salary). The plan counts it in the years it\'s paid. See "Paying for college" below.'});}
   if(c.nPriv>0) F.push({k:'a',t:'Private school',b:fk(c.schoolEst)+'/yr for '+c.nPriv+' child'+(c.nPriv!==1?'ren':'')+', '+privWhen(c)+(opts.kidRedir?' — the plan sends it to the brokerage when it ends':' — when it ends, send it to the brokerage before it disappears into spending')+'. Paid from take-home, so it takes about '+fk(c.schoolEst/(1-0.46))+' of salary a year.'});
@@ -3287,7 +3292,7 @@ function calcPlay(){
   // ── Handout content, personalized ──
   $('pb-reviewed').textContent=DATA.reviewed;
   var autoRows=[
-    [MODE==='res'?'Day 1 as attending':'Now, then at every raise','Call HR: max the '+(hosp?'403(b)'+(c.def457>0||true?' and 457(b)':''):'401(k)')+' — taken from pay before you see it','Pre-tax; can\'t reclaim missed pay periods'],
+    [MODE==='res'?'Day 1 as attending':'Now, then at every raise','Call HR: max the '+(hosp?'403(b)'+(c.def457>0||true?' and 457(b)':''):'401(k)')+' — taken from pay before you see it'+(hosp?'. Skipping the 457(b)? Automate the same '+fkPrecise(LIM.k457/12)+'/mo to the brokerage instead':''),'Pre-tax; can\'t reclaim missed pay periods'],
     ['January, every year','Backdoor Roth: '+$L(LIM.ira)+' into a traditional IRA, convert to Roth'+(couple?' — each spouse':''),'Done for the year in one sitting'],
     ['Open enrollment','Elect dependent care FSA'+(c.childcareEst>0?' ('+$L(LIM.dcfsa)+')':'')+' and HSA if on a high-deductible plan','Pre-tax'],
     ['Payday','Automatic transfer to high-yield savings until the emergency fund ('+fk(efTarget)+') is full','Then redirect that transfer to the brokerage'],
@@ -3464,7 +3469,7 @@ function calcPlay(){
     {t:'Be careful who you take advice from',d:(est?'Bigger balances bring bigger pitches: 1%-of-assets advisors (on $2M that\'s $20,000 a year), whole life and annuities, private deals from colleagues.':'A new attending salary makes you a target.')+' Avoid commission-based "advisors" and say no to whole life, universal life, IUL or annuities sold as investments.',
      how:['If you want help, hire a fee-only fiduciary who charges a flat fee, not a percentage of your assets.','Ask anyone giving advice: "How are you paid?" If the answer involves commissions, walk away.']},
     couple?{t:'Agree on a savings target with your partner',d:'Write down a savings rate and the brokerage amount together. It\'s much easier to stick to a number you both chose.',how:null}:null,
-    est?{t:'Every retirement plan maxed — check the pay stub',d:'The '+(hosp?'403(b)':'401(k)')+(hosp?', the 457(b)':'')+(startAge()>=50?', the age-50 catch-up':'')+' and both backdoor Roths each January. Confirm on a pay stub, not the election form. Then everything in Step 1 below.',how:null}:
+    est?{t:'Every retirement plan maxed — check the pay stub',d:'The '+(hosp?'403(b)':'401(k)')+(hosp?', the 457(b) (or the same amount into the brokerage)':'')+(startAge()>=50?', the age-50 catch-up':'')+' and both backdoor Roths each January. Confirm on a pay stub, not the election form. Then everything in Step 1 below.',how:null}:
     null
   ];
   basics=basics.filter(Boolean);
@@ -3488,7 +3493,7 @@ function calcPlay(){
   if($('pb-bonus').checked){var base0=+$('pb-base').value,bTH=base0*(c.takeHome/c.gross)/12,need=fixedMo+(c.otherCost/12);
     if(need>bTH)moves.push({p:100,t:'Stop relying on bonuses for monthly bills',d:'Base pay covers about '+fkPrecise(bTH)+'/mo of '+fkPrecise(need)+' in costs. When a bonus lands, put the shortfall in a separate account and pay yourself from it monthly. Add no new fixed costs until base pay covers them.'});}
   if(MODE==='res'&&!FTF[ftfKey('Disability insurance — own-occupation, owned by you')])moves.push({p:95,t:'Buy own-occupation disability insurance before you graduate',d:'Your future income is your biggest asset. Coverage is easiest to get, and cheapest, while you\'re still in training and healthy.'});
-  if(hosp&&c.def457===0){var g=yrsGain({taxAdv:taxAdv+LIM.k457});moves.push({p:80+g,t:'Start the 457(b) — '+$L(LIM.k457)+'/yr pre-tax',d:'Your hospital almost certainly offers one. On your plan it makes you work-optional '+(g>0?g+' year'+(g!==1?'s':'')+' sooner':'sooner')+'. Check its distribution rules, then sign up at open enrollment.'});}
+  if(hosp&&c.def457===0&&opts.brk<LIM.k457/12-1){var g=yrsGain({taxAdv:taxAdv+LIM.k457});moves.push({p:80+g,t:'Start the 457(b) — '+$L(LIM.k457)+'/yr pre-tax',d:'Your hospital almost certainly offers one. On your plan it makes you work-optional '+(g>0?g+' year'+(g!==1?'s':'')+' sooner':'sooner')+'. Check its distribution rules, then sign up at open enrollment. Non-governmental and you\'d rather not? Put the same '+$L(LIM.k457)+' a year ('+fkPrecise(LIM.k457/12)+'/mo) into the brokerage instead.'});}
   if(hasDC&&!opts.dcRedir){var g2=yrsGain({dcRedir:true});moves.push({p:85+g2,t:'Send the childcare money to the brokerage when it ends',d:fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo frees up in about '+dcEnd+' years. Redirecting it makes you work-optional '+(g2>0?g2+' years sooner':'sooner')+'. Schedule the transfer increase before the last daycare bill.'});}
   else if(hasDC)moves.push({p:60,t:'Lock in the childcare redirect now',d:'In about '+dcEnd+' years, '+fkPrecise(c.childcareEst/12*opts.dcShare)+'/mo frees up. Your plan depends on that money going to the brokerage the same month — set a reminder or schedule it now.'});
   var GM=pbOpts(c),roomYr=GM.room||0;
@@ -3602,6 +3607,8 @@ var AI_G={
     {k:'pslf',t:'Test my student loan plan. If I\'m counting on PSLF, check it survives a move to private practice; if not, compare refinancing and paying off fast.',w:'PSLF only pays off with 10 years at a qualifying employer.',
       hot:function(c,x){if(!c.loansOn||!c.lb)return '';if(c.pslf&&c.planType==='401k')return 'PSLF is on, but your employer is set to a private group — private practice doesn\'t qualify.';return c.pslf&&x.pslf10!=='yes'?'PSLF is on, and staying 10 years isn\'t certain.':'';}},
     {k:'rothpre',t:'Tell me whether my 403(b)/401(k) should be Roth or pre-tax at my current tax bracket, and what changes in the year I finish training.',w:'Roth usually wins in training, pre-tax as an attending, and the graduation year is a low-bracket window.'},
+    {k:'k457',t:'If I\'m skipping the 457(b), check that at least the same amount goes into my taxable brokerage every year, automatically.',w:'Skipping a non-governmental 457 is reasonable. Not saving that money costs years.',
+      hot:function(c){return c.planType==='403b'&&!c.def457?'Your plan skips the 457(b).':'';}},
     {k:'creep',t:'Check whether the plan lets spending rise with the attending salary. Push me to live close to resident level for the first two or three years.',w:'Lifestyle creep is how high earners end up behind.'}
   ],
   mid:[
@@ -3794,6 +3801,8 @@ function chipVal(q){var on=document.querySelector('#setup [data-q="'+q+'"] .chip
 function setupSync(){
   $('su-yrs-row').style.display=chipVal('stage')==='res'?'flex':'none';
   $('su-pinc-row').style.display=chipVal('hh')==='couple'?'flex':'none';
+  var hosp457=chipVal('emp')==='403b';$('su-457-row').style.display=hosp457?'':'none';$('su-457-hint').style.display=hosp457&&chipVal('k457')==='no'?'':'none';
+  document.querySelectorAll('.su-k457mo').forEach(function(x){x.textContent=fkPrecise(LIM.k457/12);});
   var h=chipVal('home');$('su-hp-row').style.display=h==='rent'?'none':'flex';$('su-rent-row').style.display=h==='rent'||h==='buylater'?'flex':'none';$('su-mort-row').style.display=h==='own'?'flex':'none';
 }
 function openSetup(){
@@ -3822,7 +3831,8 @@ function applySetup(){
   if(h!=='rent')$('hp').value=+$('su-hp').value||1000000;if(h==='rent'||h==='buylater')$('rent').value=+$('su-rent').value||4500;
   if(h==='own'&&$('su-mort').value!==''){$('mort-set').checked=true;$('mort-bal').value=+$('su-mort').value;$('mort-rate').value=+$('su-mrate').value||+$('rvb-rate').value;$('mort-yrs').value=$('su-myrs').value!==''?+$('su-myrs').value:25;}
   var lb=+$('su-lb').value||0;$('loans').checked=lb>0;$('lb').value=lb;$('pslf').checked=chipVal('pslf')==='yes';
-  $('plan-type').value=chipVal('emp');$('def457').checked=chipVal('emp')==='403b';$('emp').value=$('su-emp').value===''?3:Math.min(10,Math.max(0,+$('su-emp').value||0));
+  $('plan-type').value=chipVal('emp');$('def457').checked=chipVal('emp')==='403b'&&chipVal('k457')!=='no';
+  if(chipVal('emp')==='403b'&&chipVal('k457')==='no'){var b457=Math.ceil(LIM.k457/12/250)*250;if(+$('pb-brk').value<b457){$('pb-brk').value=b457;$('pb-brk-v').textContent=fkPrecise(b457);}}   // skipping the 457: the same money goes to the brokerage$('emp').value=$('su-emp').value===''?3:Math.min(10,Math.max(0,+$('su-emp').value||0));
   if(+$('nw').value<=-100000)$('nw').value=0;   // older entries subtracted student loans; their payments are counted in the budget instead
   $('ai-goal').value=chipVal('goal')||'fu';$('ai-stage').value='auto';
   closeSetup();go();tab('play');window.scrollTo(0,0);
