@@ -11,7 +11,7 @@ Everything is in the block marked `ANNUAL UPDATE` near the top of the script.
 | Federal brackets and standard deduction (joint, single, and married filing separately — `mfs`, used by the Loans tab) | `var FED=` | IRS Revenue Procedure for the coming tax year |
 | SALT cap and phase-down, child tax credit | `taxCalc()` | IRS / current tax law |
 | New Jersey brackets | `var NJBR=` | NJ Division of Taxation (change only when the law changes) |
-| Specialty salaries | `var SPECS=` | Doximity Physician Compensation Report (published each summer) |
+| Specialty salaries | `var SPECS=` | Doximity Physician Compensation Report (published each summer), less about 7% for a conservative first offer (check against Marit new-grad and MGMA data) |
 | Federal student loan rates, RAP / IBR / PSLF rules | Student Loans tab text, `calcLoans()` | studentaid.gov (rates set each July) |
 | NJ seller "mansion tax" tiers | `mansionRate()` | NJ Division of Taxation |
 | NJ treatment of HSA contributions (taxed as of 2026; a bill to conform is pending) | HSA step text in `calcPlay()` | NJ Division of Taxation |
