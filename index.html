@@ -2186,10 +2186,16 @@ function calcPaths(){
 }
 
 // ── FI CALCULATOR ─────────────────────────────────────────────────
+// What the budget really leaves each year for the brokerage: take-home minus the app's estimated spending, the Roths/HSA,
+// the down payment fund and, after buying, the higher cost of owning. The Paths slider can't add more than this.
+function fiRoom(c){var F0=pbFlat(c),r=[];for(var y=0;y<60;y++)r.push(c.actual?1e9:Math.max(0,F0.cashAt(y)-F0.wantAt(y)));return r;}
+function fiMax(c){if(c.actual)return 20000;var r=fiRoom(c),m=0;for(var y=0;y<RY();y++)m=Math.max(m,r[y]);return Math.floor(m/12/250)*250;}
+function fiExtra(c,mo){if(!mo)return 0;var r=fiRoom(c);return function(y){return Math.min(12*mo,r[y]);};}   // each year: the extra, or whatever the budget leaves if less
 function fiGoalLine(c){   // the dollar answer: how much more a month, starting now, to be work-optional by the goal age
   var goal=+$('pb-goal').value,F=pbFlat(c);if(F.coast&&F.coast<=goal)return '<div class="hint" style="margin-top:6px">On pace for work optional by '+goal+'.</div>';
-  var lo=0,hi=40000;if(!(pbFlat(c,12*hi).coast<=goal))return '<div class="hint" style="margin-top:6px">No realistic amount gets you there by '+goal+'.</div>';
-  for(var k=0;k<25;k++){var mid=(lo+hi)/2,m=pbFlat(c,12*mid);if(m.coast&&m.coast<=goal)hi=mid;else lo=mid;}
+  var lo=0,hi=fiMax(c),E=function(mo){return c.actual?12*mo:fiExtra(c,mo);};
+  var hm=hi>0?pbFlat(c,E(hi)):null;if(!(hm&&hm.coast!==null&&hm.coast<=goal))return '<div class="hint" style="margin-top:6px">Not reachable by '+goal+' on this budget, even investing everything it leaves. The levers: spend less, the house, or a later age.</div>';
+  for(var k=0;k<25;k++){var mid=(lo+hi)/2,m=pbFlat(c,E(mid));if(m.coast&&m.coast<=goal)hi=mid;else lo=mid;}
   var need=Math.ceil(hi/250)*250;
   return '<div class="box box-a" style="margin-top:6px"><div class="box-body"><strong>Work optional by '+goal+':</strong> about <strong>'+fkPrecise(need)+'/mo more</strong>, starting now.</div></div>';
 }
@@ -2197,13 +2203,19 @@ function syncFISR(){
   var c=getCosts();
   var note=$('fi-sr-note');
   $('fi-sr').value=0;
-  note.style.display='none';
+  note.style.display='none';return;
   var b0=brkMoY(c,pbFlat(c),RY());
   note.textContent='Starts at what you do now'+(b0?' ('+fkPrecise(b0)+'/mo into the brokerage)':' (nothing into a brokerage yet)')+'. Retirement accounts are already counted.';
 }
 function calcFI(){
   var c=getCosts();
-  var addMo=+$('fi-sr').value; $('fi-sr-v').textContent=fkPrecise(addMo)+'/mo';
+  var mx=fiMax(c);$('fi-sr').max=Math.max(mx,0);$('fi-sr').disabled=mx===0;
+  var addMo=Math.min(+$('fi-sr').value,mx); $('fi-sr').value=addMo; $('fi-sr-v').textContent=fkPrecise(addMo)+'/mo';
+  var R=fiRoom(c),r0=Math.round(R[0]/12/50)*50,r10=Math.round(R[RY()-1]/12/50)*50,spendMo=Math.round((c.takeHome-c.cashLeft)/12/100)*100,note=$('fi-sr-note');
+  note.style.display='block';
+  note.innerHTML=c.actual?(addMo?'That means spending '+fkPrecise(addMo)+'/mo less than you do now.':'Every dollar here comes out of what you spend now.'):
+    (mx===0?'<strong>Your budget has nothing left over</strong> after normal spending'+(c.houseOn&&!c.houseOwned?' and the house':'')+'. The levers are spending and the house, not this slider.':
+    'Stops at what your budget leaves: about <strong>'+fkPrecise(r0)+'/mo now</strong>'+(Math.abs(r10-r0)>=250?', '+fkPrecise(r10)+'/mo in year '+RY():'')+'. You keep spending about '+fkPrecise(spendMo)+'/mo, the app\'s estimate for your household.');
   var spend=retSpend(c); $('fi-spend-v').textContent=fk(spend);
   $('fi-retage-v').textContent=retAge();
   document.querySelectorAll('.ret-age-txt').forEach(function(e){e.textContent=retAge();});
@@ -2214,7 +2226,7 @@ function calcFI(){
   var sa=startAge(),nwStart=startNW();
   // Same engine as the Playbook: start from 'if nothing changes' and add (or remove) saving every year
   var F0=pbFlat(c),extra=12*addMo;
-  var pj=extra?pbFlat(c,extra):F0,sr=pj.savAt(RY()-1)/c.gross,brkNow=brkMoY(c,F0,RY())||0;
+  var pj=extra?pbFlat(c,c.actual?extra:fiExtra(c,addMo)):F0,sr=pj.savAt(RY()-1)/c.gross,brkNow=brkMoY(c,F0,RY())||0;
   var savings=pj.savAt(RY()-1);
   var fi=spend*25;
   var coastYr=pj.coast!==null&&pj.coast<retAge()?pj.coast:null,fiYr=pj.fi;
@@ -2223,32 +2235,34 @@ function calcFI(){
   $('fi-msg').innerHTML='<div class="box '+bxCls+'"><div class="box-title" style="color:'+ttlCol+'">'+
     (fiYr?(coastYr?'Work optional at '+coastYr:'Not work-optional before '+retAge())+' · full retirement at '+fiYr:'Extend your timeline')+
     '</div><div class="box-body">'+
-    (fiYr?(addMo?'With '+fkPrecise(addMo)+'/mo more.':'With what you invest now.')+' Spending '+fk(spend)+'/yr in retirement.':
-    (coastYr?'Work optional at '+coastYr+'; full retirement is past the chart.':'Neither arrives in the chart. Drag the slider.'))+
+    (fiYr?(addMo?'With '+fkPrecise(addMo)+'/mo more'+(!c.actual&&Math.min(r0,r10)<addMo?' when the budget allows':'')+'.':'With what you invest now.')+' Spending '+fk(spend)+'/yr in retirement.':
+    (coastYr?'Work optional at '+coastYr+'; full retirement is past the chart.':'Neither arrives on this budget.'))+
     '</div></div>'+fiGoalLine(c);
   fiLadder(c,addMo);
 }
 // The brokerage ladder: what each extra amount a month buys, on this household's own numbers (same engine as the slider)
 function fiLadder(c,addMo){
   var el=$('fi-ladder');if(!el)return;
-  var F0=pbFlat(c),amts=[0,2000,4000,6000,8000,10000,15000],ra=retAge();
-  var P=amts.map(function(a){return a?pbFlat(c,12*a):F0;});
+  var F0=pbFlat(c),ra=retAge(),mx=fiMax(c),amts=[0];
+  if(c.actual)amts=[0,2000,4000,6000,8000,10000];
+  else [0.25,0.5,0.75,1].forEach(function(f){var a=f===1?mx:Math.round(mx*f/250)*250;if(a>0&&amts.indexOf(a)<0)amts.push(a);});
+  var P=amts.map(function(a){return a?pbFlat(c,c.actual?12*a:fiExtra(c,a)):F0;});
   var y10=RY()-1,room=c.actual?null:Math.max(0,Math.round((F0.cashAt(y10)-F0.wantAt(y10))/12/50)*50);
   var now=F0.brkAt(0)||0,c0=Math.max(42,startAge()+5);   // sample ages for the work-optional amount
   var age=function(v,none){return v===null||v===undefined?'<span style="color:var(--mg)">'+none+'</span>':v;};
   var rows=amts.map(function(a,i){
-    var p=P[i],over=room!==null&&a>room;
-    return '<tr'+(a===addMo?' class="hl"':'')+(over?' style="opacity:.5"':'')+'><td>'+(a?'+'+fkPrecise(a):'What you do now')+(over?'*':'')+'</td>'+
+    var p=P[i],all=!c.actual&&a>0&&i===amts.length-1;
+    return '<tr'+(a===addMo?' class="hl"':'')+'><td>'+(a?'+'+fkPrecise(a)+(all?' (everything it leaves)':''):'What you do now')+'</td>'+
       '<td style="text-align:right">'+age(p.million,'—')+'</td><td style="text-align:right">'+age(p.two,'—')+'</td>'+
       '<td style="text-align:right">'+age(p.coast,'after '+ra)+'</td><td style="text-align:right">'+age(p.fi,'80+')+'</td></tr>';
   }).join('');
   var per=function(i,j){var a=P[i].fi,b=P[j].fi;return a!==null&&b!==null?Math.round((a-b)/((amts[j]-amts[i])/1000)*2)/2:null;};
-  var first=per(0,3),later=per(3,6);
+  var first=amts.length>1?per(0,amts.length-1):null;
   var rule=first!==null&&first>0?'Each $1,000/mo ≈ <strong>'+first+' year'+(first===1?'':'s')+'</strong> sooner. ':'';
   el.innerHTML='<div class="subhd" style="margin-top:12px">What each amount buys</div>'+
 
     '<div style="overflow-x:auto"><table class="tbl"><tr><th>Brokerage / mo</th><th style="text-align:right">$1M</th><th style="text-align:right">$2M</th><th style="text-align:right">Work optional</th><th style="text-align:right">Full retirement</th></tr>'+rows+'</table></div>'+
-    '<div class="hint" style="margin-top:6px">'+rule+(room!==null?'*More than your budget leaves in year '+RY()+'.':'')+'</div>';
+    '<div class="hint" style="margin-top:6px">'+rule+(c.actual?'':amts.length>1?'Only what your budget leaves, so your normal spending stays the same.':'Your budget leaves nothing extra to invest.')+'</div>';
 }
 
 // ── THE SIMPLE MATH (4% rule + savings rate vs salary) ─────────────
@@ -3033,6 +3047,8 @@ function calcPlay(){
   // Level brokerage needed from year 1 to hit goal
   function solve(fn){var lo=0,hi=40000;if(!fn(hi))return null;for(var k=0;k<30;k++){var mid=(lo+hi)/2;if(fn(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;}
   var needLevel=solve(function(m){var r=pbSim(c,{uncapped:true,brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,mortRedir:false,kidRedir:false,taxAdv:taxAdv,stepShare:0});return r.coast!==null&&r.coast<=goal;});
+  var roomMx=fiMax(c),overB=needLevel!==null&&!c.actual&&needLevel>roomMx+250;   // the goal needs more than the budget leaves
+  var overTxt=overB?' That\'s more than your budget leaves ('+(roomMx>0?'up to '+fkPrecise(roomMx)+'/mo':'nothing')+'), so it means spending less.':'';
   var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{uncapped:true,brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,kidRedir:opts.kidRedir,taxAdv:taxAdv});return x.coast!==null&&x.coast<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
   // ── Picking the goal age: the usual targets on this household's engine, its own dates, and deciding together ──
   (function(){
@@ -3040,7 +3056,7 @@ function calcPlay(){
     var at=function(r){var m=r<=b10?F0:pbFlat(c,Math.round((r-b10)*c.gross));return (m.coast?'work optional at '+m.coast:'work optional not before '+retAge())+(m.fi?', full retirement at '+m.fi:'');};
     var needPct=needLevel!==null?Math.round((taxAdv+12*needLevel)/c.gross*100):null;
     $('pb-goal-help').innerHTML=gapG>0?'First close the '+fk(gapG)+'/yr gap.':
-      (needPct!==null?'Age '+goal+' takes about <strong>'+needPct+'% of pay</strong> from now. ':'Age '+goal+' isn\'t reachable from this start — try a later age. ')+'';
+      (needPct!==null?'Age '+goal+' takes about <strong>'+needPct+'% of pay</strong> from now.'+overTxt+' ':'Age '+goal+' isn\'t reachable from this start — try a later age. ')+'';
     var cur=+$('age').value,dates=[];
     if(c.colOn&&c.colIn.length)dates.push('your last child finishes college around <strong>'+(cur+c.colEnd)+'</strong>');
     else if(c.nPriv>0)dates.push('private school ends around <strong>'+(cur+c.privEnd)+'</strong>');
@@ -3082,7 +3098,7 @@ function calcPlay(){
   else if(goalMet) out+='<div class="pb-flag g" style="margin-top:8px"><div><b>✓ Reaches your goal:</b> work optional at '+plan.coast+'.</div></div>';
   else out+='<div class="pb-flag a" style="margin-top:8px"><div><b>To be work-optional by '+goal+':</b> '+
     (needRaise!==null?'raise it <strong>'+fkPrecise(needRaise)+'/mo a year</strong>. ':'not reachable from this start. ')+
-    (needLevel!==null?'Or a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> now. ':'')+
+    (needLevel!==null?'Or a steady <strong>'+fkPrecise(needLevel)+'/mo</strong> now.'+overTxt+' ':'')+
     '</div></div>';
   if(!c.actual&&plan.capYr!==null&&plan.sa+plan.capYr<(plan.coast||retAge())){var ex10=Math.max(0,plan.wantAt(RY()-1)-plan.cashAt(RY()-1));
     out+='<div class="hint" style="margin-top:8px;color:#444">From year '+(plan.capYr+1)+' the budget can\'t fund the raises'+(ex10>0?' without spending '+fk(ex10)+' a year less by year '+RY():'')+'.</div>';}
@@ -3133,7 +3149,7 @@ function calcPlay(){
     if(/^Down payment/.test(t))return ['High-yield savings or T-bills, not stocks. Separate account, automatic transfer.'];
     if(/^Taxable brokerage/.test(t)){
       return [
-      needLevel!==null?'<strong>Your number:</strong> '+fkPrecise(needLevel)+'/mo for work optional by '+goal+(needRaise!==null&&needRaise>0?', or start at '+fkPrecise(brk)+'/mo and raise it '+fkPrecise(needRaise)+'/mo a year':'')+'.':
+      needLevel!==null?'<strong>Your number:</strong> '+fkPrecise(needLevel)+'/mo for work optional by '+goal+(needRaise!==null&&needRaise>0?', or start at '+fkPrecise(brk)+'/mo and raise it '+fkPrecise(needRaise)+'/mo a year':'')+'.'+overTxt:
         '<strong>Your number:</strong> no realistic amount gets you there by '+goal+'. Try a later age or a smaller house.',
       'Vanguard, Fidelity or Schwab: total-market index funds, automatic every payday.',
       'Raise it every January and with every raise. Never sell in a downturn.'];
