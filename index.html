@@ -876,8 +876,10 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   <details class="card fold" id="simple-math" style="border:2px solid var(--accent)">
     <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math</summary>
 
-    <div style="font-size:13px;line-height:1.6;color:#333"><strong>You need about 25× your yearly retirement spending</strong> (the 4% rule). <span id="mm-mynum"></span> Retiring before 55: <span id="mm-cautious"></span>.</div>
-    <div class="subhd">Savings rate beats salary</div>
+    <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">How much you need</div>
+    <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 25× what you'll spend each year in retirement.</strong> That's the 4% rule: through every stretch of US market history, spending 4% a year, raised for inflation, lasted 30+ years. <span id="mm-mynum"></span> Stopping before 55? Use 3.5%: <span id="mm-cautious"></span>.</div>
+    <div class="subhd">Why savings rate beats salary</div>
+    <div style="font-size:13px;line-height:1.6;color:#333">A dollar you save counts twice: it's invested, and it's a dollar you've learned to live without, so you need less. A raise you spend does neither. <span class="hint">Example surgeon starting from $0:</span></div>
     <div class="g2" style="margin-top:10px">
       <div>
         <div class="sr"><label>Salary</label>
@@ -2270,7 +2272,7 @@ function calcMath(){
   var lo=mmYears(400000,r,k).y,hi=mmYears(1000000,r,k).y,r10=mmYears(sal,0.10,k).y,r30=mmYears(sal,0.30,k).y;
   $('mm-out').innerHTML=[
     {l:'Years to full retirement',v:o.y>=80?'80+':o.y,s:'age '+(o.y>=80?'—':sa+o.y),c:o.y<=20?'good':o.y<=28?'warn':'bad'},
-    {l:'You\'ll need',v:fk(o.target),s:fk(o.ret)+'/yr × 25',c:''},
+    {l:'This example needs',v:fk(o.target),s:fk(o.ret)+'/yr × 25',c:''},
     {l:'Salary $400k → $1M',v:(lo-hi)+' yrs',s:'sooner',c:''},
     {l:'Savings 10% → 30%',v:(r10-r30)+' yrs',s:'sooner',c:'good'}
   ].map(function(m){return '<div class="met"><div class="ml">'+m.l+'</div><div class="mv '+m.c+'">'+m.v+'</div><div class="ms">'+m.s+'</div></div>';}).join('');
