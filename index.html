@@ -470,7 +470,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         </select></div>
 
       <div class="sr" id="pinc-row"><label>Partner income</label>
-        <input type="range" min="0" max="400000" step="10000" value="0" id="pinc" oninput="go()">
+        <input type="range" min="0" max="400000" step="10000" value="100000" id="pinc" oninput="go()">
         <span class="sv" id="pinc-v">None</span></div>
       <div class="trow" id="pdef-row" style="display:none"><label>Partner maxes their own 401(k)/403(b)</label>
         <label class="tog"><input type="checkbox" id="pdef" checked onchange="go()"><span class="tsl"></span></label></div>
@@ -506,7 +506,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <label class="tog"><input type="checkbox" id="house" checked onchange="go()"><span class="tsl"></span></label></div>
       <div id="house-opts" class="sub-opts" style="display:block">
         <div class="sr"><label>Home price</label>
-          <input type="range" min="400000" max="3000000" step="50000" value="1000000" id="hp" oninput="go()">
+          <input type="range" min="400000" max="3000000" step="50000" value="1500000" id="hp" oninput="go()">
           <span class="sv" id="hp-v">$1.0M</span></div>
         <div class="trow" style="margin-bottom:2px"><label>Already own it (down payment already paid)</label>
           <label class="tog"><input type="checkbox" id="house-owned" onchange="go()"><span class="tsl"></span></label></div>
@@ -552,7 +552,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
             </details>
 <details class="nsec" id="sec-kids"><summary class="subhd nsec-s"><span class="nsec-t">Children</span><span class="nsec-sum" id="sum-kids"></span></summary>
       <div class="trow"><label>Children</label>
-        <label class="tog"><input type="checkbox" id="kids" onchange="go()"><span class="tsl"></span></label></div>
+        <label class="tog"><input type="checkbox" id="kids" checked onchange="go()"><span class="tsl"></span></label></div>
       <div id="kids-opts" class="sub-opts" style="display:none">
         <div class="sr"><label>Number of children</label>
           <input type="range" min="1" max="5" value="2" id="nk" oninput="go()">
@@ -577,7 +577,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <input type="range" min="1" max="14" value="13" id="priv-end" style="display:none"><span id="priv-end-v" style="display:none"></span>
         <input type="text" id="priv-kids" value="" style="display:none"><input type="checkbox" id="priv-kids-set" style="display:none">
         <div class="trow" style="margin-bottom:2px"><label>Paying for college</label>
-          <label class="tog"><input type="checkbox" id="col-on" onchange="go()"><span class="tsl"></span></label></div>
+          <label class="tog"><input type="checkbox" id="col-on" checked onchange="go()"><span class="tsl"></span></label></div>
         <div id="col-opts" class="sub-opts" style="display:none">
           <div class="sr"><label>Per child per year</label>
             <input type="range" min="10000" max="120000" step="5000" value="90000" id="col-amt" oninput="go()">
@@ -585,7 +585,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
           <div class="hint" style="margin:0 0 4px">All-in: tuition, fees, housing and food. Selective private colleges run about $90–105k a year; the average private is about $61k, in-state public about $26k.</div>
           <div class="hint" style="margin:2px 0 2px">Where each child is with college. Already there? Slide left of "Starts now" to set years left. All the way left leaves a child out.</div>
           <div id="col-kids-ui"></div>
-          <input type="range" min="0" max="18" value="10" id="col-start" style="display:none"><span id="col-start-v" style="display:none"></span>
+          <input type="range" min="0" max="18" value="16" id="col-start" style="display:none"><span id="col-start-v" style="display:none"></span>
           <input type="text" id="col-kids" value="" style="display:none"><input type="checkbox" id="col-kids-set" style="display:none">
           <div class="sr"><label>Already saved in 529s</label>
             <input type="range" min="0" max="1000000" step="10000" value="0" id="col529" oninput="go()">
@@ -1227,12 +1227,13 @@ details.nsec:not([open])>summary::after{margin-left:0;}
   <div class="q"><label for="su-spec">Specialty</label><select id="su-spec"></select>
     <div class="row">Or your actual / offered salary $<input type="number" id="su-sal" placeholder="optional" step="5000"></div></div>
   <div class="q"><span class="ql">Household</span><div class="chips" data-q="hh"><button class="chip on" data-v="couple">Married / partnered</button><button class="chip" data-v="single">Single</button></div>
-    <div class="row" id="su-pinc-row">Partner's income $<input type="number" id="su-pinc" value="0" step="5000"></div></div>
-  <div class="q"><span class="ql">Children</span><div class="row" style="margin-top:0">Number <select id="su-nk" style="max-width:70px"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
-    &nbsp;In daycare / preschool <select id="su-nday" style="max-width:70px"><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
-    <div class="row">Childcare per child / month $<input type="number" id="su-daymo" value="2500" step="100"></div></div>
+    <div class="row" id="su-pinc-row">Partner's income $<input type="number" id="su-pinc" value="100000" step="5000"></div></div>
+  <div class="q"><span class="ql">Children</span><div class="row" style="margin-top:0">Number <select id="su-nk" style="max-width:70px"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select>
+    &nbsp;In daycare / preschool <select id="su-nday" style="max-width:70px"><option>0</option><option>1</option><option selected>2</option><option>3</option></select></div>
+    <div class="row">Childcare per child / month $<input type="number" id="su-daymo" value="2500" step="100"></div>
+    <div class="row">College <select id="su-col"><option value="priv" selected>Private, about $90k a year</option><option value="pub">In-state public, about $26k</option><option value="none">Not paying for it</option></select></div></div>
   <div class="q"><span class="ql">Home</span><div class="chips" data-q="home"><button class="chip on" data-v="buylater">Renting, buying later</button><button class="chip" data-v="rent">Renting, no plans</button><button class="chip" data-v="own">I own</button><button class="chip" data-v="buynow">Buying now</button></div>
-    <div class="row" id="su-hp-row">Home price $<input type="number" id="su-hp" value="1000000" step="25000"></div>
+    <div class="row" id="su-hp-row">Home price $<input type="number" id="su-hp" value="1500000" step="25000"></div>
     <div class="row" id="su-mort-row" style="display:none">Mortgage still owed $<input type="number" id="su-mort" placeholder="from your statement" step="10000"> at <input type="number" id="su-mrate" placeholder="rate" step="0.125" style="max-width:70px">% with <input type="number" id="su-myrs" placeholder="years" style="max-width:60px"> years left</div>
     <div class="row" id="su-rent-row" style="display:none">Rent / month $<input type="number" id="su-rent" value="4500" step="100"></div></div>
   <div class="q"><label for="su-lb">Student loans (total balance, 0 if none)</label><input type="number" id="su-lb" value="0" step="5000">
@@ -3848,8 +3849,9 @@ function applySetup(){
   $('sal-override-on').checked=sal>0;$('sal-override').style.display=sal>0?'inline-block':'none';$('sal-override').value=sal>0?sal:SPECS[$('spec').value].sal;
   $('hh-type').value=chipVal('hh');$('pinc').value=chipVal('hh')==='couple'?(+$('su-pinc').value||0):0;
   var nk=+$('su-nk').value;$('kids').checked=nk>0;if(nk>0){$('nk').value=nk;$('nday').value=Math.min(nk,+$('su-nday').value);$('daymo').value=+$('su-daymo').value||2500;}
+  var cv=$('su-col').value;$('col-on').checked=nk>0&&cv!=='none';if(nk>0&&cv!=='none'){$('col-amt').value=cv==='pub'?26000:90000;if(!$('col-kids-set').checked)$('col-start').value=+$('su-nday').value>0?16:10;}
   var h=chipVal('home');$('house').checked=h!=='rent';$('house-owned').checked=h==='own';$('buy-yr').value=h==='buylater'?2:0;
-  if(h!=='rent')$('hp').value=+$('su-hp').value||1000000;if(h==='rent'||h==='buylater')$('rent').value=+$('su-rent').value||4500;
+  if(h!=='rent')$('hp').value=+$('su-hp').value||1500000;if(h==='rent'||h==='buylater')$('rent').value=+$('su-rent').value||4500;
   if(h==='own'&&$('su-mort').value!==''){$('mort-set').checked=true;$('mort-bal').value=+$('su-mort').value;$('mort-rate').value=+$('su-mrate').value||+$('rvb-rate').value;$('mort-yrs').value=$('su-myrs').value!==''?+$('su-myrs').value:25;}
   var lb=+$('su-lb').value||0;$('loans').checked=lb>0;$('lb').value=lb;$('pslf').checked=chipVal('pslf')==='yes';
   $('plan-type').value=chipVal('emp');$('k457c').value=chipVal('emp')==='403b'?(chipVal('k457')==='no'?'brk':chipVal('k457')==='skip'?'none':'max'):'none';$('def457').checked=$('k457c').value==='max';$('emp').value=$('su-emp').value===''?3:Math.min(10,Math.max(0,+$('su-emp').value||0));
