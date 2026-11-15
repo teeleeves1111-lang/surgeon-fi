@@ -142,7 +142,7 @@ details.fold[open]>summary{margin-bottom:8px;}
 .ms-dot.y{border-color:var(--am);background:var(--lam);border-width:3px;}
 .ms-age{font-size:11px;font-weight:700;}
 .ms-lbl{font-size:9px;color:var(--mg);line-height:1.3;}
-@media(max-width:500px){.ms-item{min-width:0;}.ms-age{font-size:10px;line-height:1.2;}}
+@media(max-width:500px){.ms-item{min-width:62px;}.ms-age{font-size:10px;line-height:1.2;}}
 .ms-sub{font-size:9px;color:var(--g);font-weight:600;}
 
 /* Waterfall */
@@ -1825,6 +1825,23 @@ function project(sa,nw0,sav,fiNum,rr,yrs){
   if(nw0>=fiNum)m.fi=sa;
   return m;
 }
+// Early milestones from a projected series (series[i] = net worth at age sa+i): first $100K, a year of today's spending, and the crossover
+// (the year's growth at least matches that year's saving). null = already there at sa, undefined = not reached.
+function moreMs(m,sav,rr,sa,spend1){
+  var S=m.series,first=function(f){for(var i=0;i<S.length;i++)if(f(i))return sa+i;return undefined;};
+  m.k100=first(function(i){return S[i]>=1e5;});
+  m.yr1=spend1>0?first(function(i){return S[i]>=spend1;}):undefined;
+  m.cross=first(function(i){if(i<1)return false;var g=S[i-1]*rr,a=sav(i-1);return a>0&&S[i-1]>0&&g>=a;});
+  return m;
+}
+// Milestones in age order, for the strip and the check-in: [{k,l,a}] (a = age, undefined if not reached)
+function msList(m,sa){
+  return [{k:'zero',l:'Zero net worth',a:m.zero},{k:'k100',l:'$100K net worth',a:m.k100},{k:'yr1',l:'A year of spending saved',a:m.yr1},
+    {k:'million',l:'$1M',a:m.million},{k:'cross',l:'Growth beats saving',a:m.cross},{k:'two',l:'$2M',a:m.two}]
+    .map(function(x){if(x.a===null)x.a=undefined;return x;})
+    .sort(function(x,y){return (x.a===undefined?999:x.a)-(y.a===undefined?999:y.a);});
+}
+function nextMs(m,sa){var L=msList(m,sa);for(var i=0;i<L.length;i++)if(L[i].a!==undefined&&L[i].a>sa)return L[i];return null;}
 
 // Monthly P&I on what's still owed (rounded like mtgPmt12 so a 30-year default matches it exactly)
 function mortPmtMo(bal,rate,yrs){
@@ -2129,6 +2146,7 @@ function calcPaths(){
   var mySR=effSR(c);
   var F=pbFlat(c),myNW0=nwStart-(pbOpts(c).opts.dpNow||0);   // same path as the Playbook's 'if nothing changes'
   var my10=Math.round(F.savAt(RY()-1)/c.gross*100);
+  var spend1=Math.max(0,c.takeHome-c.cashLeft);   // a year of today's spending
 
   var paths=[
     {n:'Ideal — 25%',sr:.25,col:'#1D6B52',bg:'rgba(29,158,117,0.08)'},
@@ -2153,6 +2171,7 @@ function calcPaths(){
       nwChart=Math.round(reached?nwChart*(1+rr)-fi/FIX:nwChart*(1+rr)+yrSav(i));
       data.push(Math.round(nwChart/1000));
     }
+    moreMs(ms,path.isMe?F.savAt:yrSav,rr,sa,spend1);
     msAll.push(ms);
     var isActive=pi===curPath;
     datasets.push({label:path.n,data:data,borderColor:path.col,backgroundColor:path.bg,
@@ -2171,12 +2190,11 @@ function calcPaths(){
       '<div class="fu-lbl" style="font-size:9px;margin-top:3px">Could stop the brokerage<br>still maxing retirement accounts and working to '+retAge()+'</div></div>';
 
   var msSel=msAll[Math.min(curPath,3)];
-  $('ms-strip').innerHTML=[
-    {l:'Today',dot:MODE==='att'?'y':''},
-    (msSel.zero===sa?null:{l:msSel.zero?'Age '+msSel.zero:'Not reached',sub:'Zero NW',dot:msSel.zero?'r':''}),   // skip when you start at or above zero
-    {l:msSel.million?'Age '+msSel.million:'Not reached',sub:'$1M milestone',dot:msSel.million?'r':''},
-    {l:msSel.two?'Age '+msSel.two:'Not reached',sub:'$2M milestone',dot:msSel.two?'r':''},
-  ].filter(Boolean).map(function(m){
+  var SUB={zero:'Zero net worth',k100:'$100K',yr1:'1 yr of spending',million:'$1M',cross:'Growth beats saving',two:'$2M'};
+  $('ms-strip').innerHTML=[{l:'Today',dot:MODE==='att'?'y':''}].concat(
+    msList(msSel,sa).filter(function(x){return x.a!==sa;})   // skip what you've already passed
+      .map(function(x){return {l:x.a?'Age '+x.a:'Not reached',sub:SUB[x.k],dot:x.a?'r':''};})
+  ).filter(Boolean).map(function(m){
     return '<div class="ms-item"><div class="ms-dot '+m.dot+'">'+
       (m.dot==='k'?'⭐':m.dot==='r'?'✓':m.dot==='y'?'📍':'◎')+'</div>'+
       '<div class="ms-age">'+m.l+'</div><div class="ms-lbl">'+(m.sub||'')+'</div>'+
@@ -2193,7 +2211,7 @@ function calcPaths(){
         plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:14,padding:8}},
           tooltip:{callbacks:{title:function(it){return 'Age '+it[0].label;},label:function(it){return ' '+it.dataset.label+': '+fmtK(it.parsed.y);}}}}}});
   }
-  $('paths-chart-note').textContent='Today\'s dollars. Your number = '+fk(fi)+'.';
+  $('paths-chart-note').textContent='Today\'s dollars. Your number = '+fk(fi)+'. "Growth beats saving" = the year your investments earn at least what you put in.';
   $('path-lbl').textContent=paths[curPath].n;
 }
 
@@ -3857,6 +3875,11 @@ function ckNow(c){
   return {d:ckToday(),m:MODE,age:startAge(),coast:plan.coast||null,fi:plan.fi||null,sr:Math.round(plan.savAt(RY()-1)/c.gross*100),bk:brkMoY(c,plan,RY()),ry:RY(),
     nw:Math.round(startNW()),brk:+$('pb-brk').value+brk457mo(c),raise:+$('pb-raise').value,gross:Math.round(c.gross),act:!!c.actual};
 }
+function ckNext(c){   // the next milestone on the Playbook plan
+  var P=pbOpts(c),plan=pbSim(c,P.opts),sa=startAge();
+  moreMs(plan,plan.savAt,realReturn(),sa,Math.max(0,c.takeHome-c.cashLeft));
+  return nextMs(plan,sa);
+}
 function ckSave(quiet){
   var c=getCosts(),n=ckNow(c),a=ckLoad().filter(function(x){return !(x.d===n.d&&x.m===n.m);});   // one per day per mode: the latest wins
   a.push(n);ckStore(a);renderCheckin(c);
@@ -3869,8 +3892,9 @@ function renderCheckin(c){
   var box=last?$('pb-ck-top'):$('pb-ck-bottom'),other=last?$('pb-ck-bottom'):$('pb-ck-top');if(!box)return;other.innerHTML='';box.style.marginBottom=last?'10px':'';
   var btn='<button class="btn ghost no-print" id="ck-btn" style="margin-top:8px" onclick="ckSave()">'+(savedToday?'✓ Check-in saved today — update it':'Save today\'s check-in')+'</button>';
   var ageTxt=function(a){return a?String(a):'not by '+retAge();};
+  var nx=ckNext(c),nxTxt=nx?'<div class="hint" style="margin-top:6px;color:var(--dk)">🏁 <b>Next milestone: '+nx.l+' at '+nx.a+'</b> — '+(nx.a-startAge())+' year'+(nx.a-startAge()!==1?'s':'')+' away.</div>':'';
   if(!last){
-    box.innerHTML='<div class="hint" style="margin-top:2px">'+(savedToday?'Today\'s plan is saved. Come back each year — this shows what moved.':'Save a check-in each year to see what changed.')+'</div>'+btn;
+    box.innerHTML=nxTxt+'<div class="hint" style="margin-top:2px">'+(savedToday?'Today\'s plan is saved. Come back each year — this shows what moved.':'Save a check-in each year to see what changed.')+'</div>'+btn;
     renderBackup();return;
   }
   var n=ckNow(c);
@@ -3889,7 +3913,7 @@ function renderCheckin(c){
     mine.slice().reverse().map(function(x){return '<tr><td>'+ckDate(x.d)+'</td><td>'+(x.fi||'—')+'</td><td>'+(x.bk!=null?fkPrecise(x.bk)+'/mo':x.sr+'%')+'</td><td>'+fk(x.nw)+'</td></tr>';}).join('')+'</table></details>':'';
   box.innerHTML='<div class="ck"><b>Since your check-in on '+ckDate(last.d)+'</b>'+(yrsAgo>=0.1?' <span style="color:var(--mg)">('+(yrsAgo>=1?yrsAgo+' year'+(yrsAgo!==1?'s':''):Math.round(yrsAgo*12)+' month'+(Math.round(yrsAgo*12)!==1?'s':''))+' ago)</span>':'')+
     '<table><tr><th></th><th>Then</th><th>Now</th></tr>'+row('Can stop working',last.fi||'—',n.fi||'—')+row('Could stop the brokerage',ageTxt(last.coast),ageTxt(n.coast))+row('Brokerage by year '+n.ry,last.bk!=null?fkPrecise(last.bk)+'/mo':'—',n.bk!=null?fkPrecise(n.bk)+'/mo':'—')+row('Net worth',fk(last.nw),fk(n.nw))+row('Brokerage transfer now',fkPrecise(last.brk)+'/mo',fkPrecise(n.brk)+'/mo')+'</table>'+
-    '<div class="hint" style="margin-top:6px;color:var(--dk)">'+verdict+(why.length?' What changed: '+why.join('; ')+'.':'')+'</div>'+btn+hist+'</div>';
+    '<div class="hint" style="margin-top:6px;color:var(--dk)">'+verdict+(why.length?' What changed: '+why.join('; ')+'.':'')+'</div>'+nxTxt+btn+hist+'</div>';
   renderBackup();
 }
 function renderBackup(){
