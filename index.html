@@ -877,11 +877,11 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <summary class="ctitle" style="color:var(--accent);font-size:11px">The simple math</summary>
 
     <div class="subhd" style="margin-top:4px;border-top:none;padding-top:0">How much you need</div>
-    <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 30× what you'll spend each year in retirement.</strong> <span id="mm-mynum"></span></div>
+    <div style="font-size:13px;line-height:1.6;color:#333"><strong>About 25× what you'll spend each year in retirement: the 4% rule. Stopping in your 50s? Plan on 30×</strong> (Assumptions, below). <span id="mm-mynum"></span></div>
     <div style="font-size:12px;line-height:1.5;color:#333;margin-top:6px"><strong>How the 4% rule works:</strong> take 4% the first year, then the same dollars plus inflation every year, whatever the market does. How often that lasted in US history:</div>
     <table class="tbl" style="margin-top:4px;max-width:440px"><tr><th>First-year withdrawal</th><th>30 years</th><th>40 years</th></tr>
       <tr><td>4% (25× spending)</td><td>100%</td><td style="color:var(--rd);font-weight:700">86%</td></tr>
-      <tr class="hl"><td>3.3% (30×, this app)</td><td>100%</td><td>100%</td></tr></table>
+      <tr class="hl"><td>3.3% (30×)</td><td>100%</td><td>100%</td></tr></table>
     <div class="hint" style="margin-top:2px">Stop in your 50s and it has to last 40+ years. 50/50 stocks and bonds, 1926–2014 (Pfau, 2015); 3.5% or less lasted 50+ years in every period (Bengen, 1994). Social Security not counted.</div>
     <div class="subhd">Why savings rate beats salary</div>
     <div style="font-size:13px;line-height:1.6;color:#333">A dollar you save counts twice: it's invested, and it's a dollar you've learned to live without, so you need less. A raise you spend does neither. <span class="hint" id="mm-ex">Try it on an example surgeon:</span></div>
@@ -905,7 +905,7 @@ details.nsec:not([open])>summary::after{margin-left:0;}
     <div class="hint" id="mm-note" style="margin-top:4px"></div>
     <div class="box box-a" style="margin-bottom:0"><div class="box-body"><strong>Earn $10M and spend $10M, and you never retire.</strong></div></div>
     <div class="subhd">The brokerage rule</div>
-    <div style="font-size:13px;line-height:1.6;color:#333">Maxing the 403(b) and both Roths: <strong>stop working at about 65 minus the thousands a month you put in taxable.</strong> With a 457(b): <strong>about 63 minus.</strong> $6,000/mo → about 59. <span class="hint">$600k salary, starting at 32 with $350k of loans, $6M target, 5% after inflation. Holds from about $4,000 to $12,000 a month; your own rule is under "What each amount buys" below.</span></div>
+    <div style="font-size:13px;line-height:1.6;color:#333">Maxing the 403(b) and both Roths: <strong>stop working at about 62 minus the thousands a month you put in taxable.</strong> With a 457(b): <strong>about 60 minus.</strong> $6,000/mo → about 56. <span class="hint">$600k salary, starting at 32 with $350k of loans, $5M target (25× of $200k), 5% after inflation. At 30× ($6M), add about 3 years. Holds from about $4,000 to $12,000 a month; your own rule is under "What each amount buys" below.</span></div>
 
     <details class="how" style="margin-top:10px"><summary>The famous chart: age you can stop, by savings rate of take-home pay</summary>
       <div id="mm-chart"></div>
@@ -939,6 +939,8 @@ details.nsec:not([open])>summary::after{margin-left:0;}
         <input type="range" min="60000" max="400000" step="5000" value="200000" id="fi-spend" oninput="$('fi-spend-auto').checked=false;go();calcFI()">
         <span class="sv" id="fi-spend-v">$200k</span></div>
       <div class="hint" id="fi-spend-note"></div>
+      <div class="sr"><label>Target</label>
+        <select id="fi-mult" onchange="go();calcFI()"><option value="25" selected>25× spending (4% rule)</option><option value="30">30× (stopping in your 50s)</option></select></div>
       <div class="sr"><label>Planned retirement age</label>
         <input type="range" min="55" max="70" value="65" id="fi-retage" oninput="go();calcFI()">
         <span class="sv" id="fi-retage-v">65</span></div>
@@ -1662,6 +1664,7 @@ function go(){
   $('opt-roth1').value=LIM.ira;$('opt-roth1').textContent='One — '+$L(LIM.ira);$('opt-roth2').value=2*LIM.ira;$('opt-roth2').textContent='Both spouses — '+$L(2*LIM.ira);
   $('stale').style.display=new Date().getFullYear()>DATA.year?'block':'none';
   document.querySelectorAll('.data-yr').forEach(function(e){e.textContent=DATA.year;});
+  FIX=$('fi-mult')&&$('fi-mult').value==='30'?30:25;
   var s=sp();
   $('sal').textContent=fk(s.sal);
   $('sal-r').innerHTML=s.overridden?'Custom salary entered':'Typical first offer';
@@ -1768,9 +1771,10 @@ function go(){
 // Retirement spending estimated from current life minus costs that end
 // (childcare, school, student loans, mortgage principal & interest, kids' share of living),
 // plus ~15% for income tax on retirement withdrawals.
-// Target = 30× retirement spending (a 3.3% withdrawal): retirements that start in the 50s have to last 40+ years,
-// longer than the 30 years the 4% rule (25×) was tested on. Social Security is left out, which adds a cushion.
-var FIX=30;
+// Target = 25× retirement spending (the 4% rule) by default. Paths → Assumptions offers 30× (a 3.3% withdrawal)
+// for anyone stopping in their 50s: those retirements have to last 40+ years, longer than the 30 years the
+// 4% rule was tested on. Social Security is left out, which adds a cushion. go() reads the setting into FIX.
+var FIX=25;
 function retSpendEst(c){
   var hh=c.hh,mRate=+$('rvb-rate').value,pTax=+$('rvb-tax').value/100;
   var housingCont=c.houseOn?Math.round(c.hp*pTax)+Math.round(c.hp*0.004)+Math.round(c.hp*0.01):+$('rent').value*12;
@@ -3715,11 +3719,11 @@ function aiFacts(c){
   var b1=brkMoY(c,plan,1),bR=brkMoY(c,plan,RY());
   calc.push('Brokerage investing in my plan: '+(b1===null?'none — a deficit':fkPrecise(b1)+'/mo')+' in year 1'+(RY()>1?', '+(bR===null?'a deficit':fkPrecise(bR)+'/mo')+' by year '+RY():'')+', on top of retirement accounts.');
   if(c.colOn&&c.colIn.length){var cs=c.colIn.map(function(a){return a<0?'already in college with '+(4+a)+' yr'+(4+a!==1?'s':'')+' left':a===0?'starting now':'starting in '+a+' yr'+(a!==1?'s':'');});calc.push('College is already built into these projections: '+fkPrecise(c.colAmt)+'/yr per child, 4 years each: '+cs.join('; ')+'; paid from 529s first (balance '+fkPrecise(c.col529)+') and then from cash flow.');}
-  calc.push('"Can stop working" below means: savings reach 30× my retirement spending (a 3.3% withdrawal rate, for a retirement that may last 40 years; Social Security not counted). "Could stop the brokerage" means: from that age I could stop investing in the taxable brokerage, keep maxing my retirement accounts and keep working until '+ra+', and still get there.');
+  calc.push('"Can stop working" below means: savings reach '+FIX+'× my retirement spending ('+(FIX===30?'a 3.3% withdrawal rate, for a retirement that may last 40 years':'the 4% rule; a retirement starting in the 50s may need 30×')+'; Social Security not counted). "Could stop the brokerage" means: from that age I could stop investing in the taxable brokerage, keep maxing my retirement accounts and keep working until '+ra+', and still get there.');
   if(c.houseOn&&!c.houseOwned)calc.push('The ages below already include the house: the down payment and the higher cost of owning come out of savings.');
   calc.push('If nothing changes: can stop working '+(flat.fi?'at '+flat.fi:'not reached')+'; could stop the brokerage '+(flat.coast?'at '+flat.coast:'not before '+ra)+'.');
   if(plan.coast!==flat.coast||plan.fi!==flat.fi)calc.push('Following my plan (raises and freed-up costs invested): can stop working '+(plan.fi?'at '+plan.fi:'not reached')+'; could stop the brokerage '+(plan.coast?'at '+plan.coast:'not before '+ra)+'.');
-  calc.push('Retirement spending assumed: '+fkPrecise(retSpend(c))+'/yr in today\'s dollars, so the target portfolio is about '+fkPrecise(plan.fiNum)+' (30×, a 3.3% rule). Returns assumed: '+Math.round(realReturn()*1000)/10+'% after inflation.');
+  calc.push('Retirement spending assumed: '+fkPrecise(retSpend(c))+'/yr in today\'s dollars, so the target portfolio is about '+fkPrecise(plan.fiNum)+' ('+FIX+'×, a '+(FIX===30?'3.3%':'4%')+' rule). Returns assumed: '+Math.round(realReturn()*1000)/10+'% after inflation.');
   // Rent vs buy and loans: the same analysis their tabs show
   if(c.houseOn&&!c.houseOwned){try{rvbSync();var v=$('rvb-verdict'),t=v&&v.querySelector('.box-title');if(t)calc.push('Rent vs buy ('+($('rvb-custom').checked?'numbers set on that tab':'my numbers')+', '+$('rvb-yrs').value+'-year stay): '+t.textContent.trim()+'. '+(v.querySelector('.box-body').textContent.match(/Owning costs about [^.]+\./)||[''])[0]);}catch(e){}}
   if(c.loansOn&&c.lb>0){try{$('sl-bal').value=$('lb').value;$('sl-pslf').checked=$('pslf').checked;$('sl-yrs-left').value=MODE==='res'?$('yrs-left').value:0;$('sl-qual-done').value=$('pslf').checked?Math.min(9,+$('pslf-yrs').value):0;calcLoans();
