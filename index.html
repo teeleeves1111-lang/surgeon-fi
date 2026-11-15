@@ -2905,7 +2905,7 @@ function pbLadder(c,plan,opts){   // the one thing to do, in dollars: what goes 
   } else {
     var last=v[RY()-1];if(last>v[start-1]+250)tail=' About '+fkPrecise(last)+'/mo by year '+RY()+'.';
   }
-  var RT=brkRuleTxt(c,true);
+  var RT=dipA===null?brkRuleTxt(c,true):'';   // a 'per $1,000 a month' rule promises ages the budget can't pay for while it's running short
   return '<div class="pb-ladder">'+lead+tail+(RT?'<div style="margin-top:4px;font-size:13px">'+RT+'</div>':'')+'</div>';
 }
 function brkMoY(c,m,y){var s=m.savAt(y-1);/* y = year label (1 = first year); savAt is 0-based */if(s<0)return null;return Math.max(0,Math.round((s-pbOpts(c).taxAdv)/12/50)*50);}
@@ -3112,7 +3112,8 @@ function calcPlay(){
   var needLevel=solve(function(m){var r=pbSim(c,{uncapped:true,brk:m,raise:0,dcEnd:99,dcRedir:false,loanEnd:null,loanRedir:false,mortRedir:false,kidRedir:false,taxAdv:taxAdv,stepShare:0});return r.fi!==null&&r.fi<=goal;});
   var roomMx=fiMax(c),overB=needLevel!==null&&!c.actual&&needLevel>roomMx+250;   // the goal needs more than the budget leaves
   var overTxt=overB?' That\'s more than your budget leaves ('+(roomMx>0?'up to '+fkPrecise(roomMx)+'/mo':'nothing')+'), so it means spending less.':'';
-  var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{uncapped:true,brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,kidRedir:opts.kidRedir,taxAdv:taxAdv});return x.fi!==null&&x.fi<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
+  var needRaise=(function(){var lo=0,hi=5000,ok=function(r){var x=pbSim(c,{brk:brk,raise:r,dcEnd:dcEnd,dcRedir:opts.dcRedir,loanEnd:loanEnd,loanRedir:opts.loanRedir,mortRedir:opts.mortRedir,kidRedir:opts.kidRedir,taxAdv:taxAdv});return x.fi!==null&&x.fi<=goal;};if(ok(0))return 0;if(!ok(hi))return null;for(var k=0;k<25;k++){var mid=(lo+hi)/2;if(ok(mid))hi=mid;else lo=mid;}return Math.ceil(hi/50)*50;})();
+  // needRaise is capped like the plan itself: a raise the budget can't pay doesn't count, so it can't promise an age the plan won't show
   // ── Picking the goal age: the usual targets on this household's engine, its own dates, and deciding together ──
   (function(){
     var F0=pbFlat(c),b10=F0.savAt(RY()-1)/c.gross,gapG=c.actual?0:pbOpts(c).short;
@@ -3532,6 +3533,7 @@ function calcPlay(){
   else if(!c.actual&&pbOpts(c).short>0){}   // short budget: 'Close the gap' comes first; no brokerage move until there's room
   else if(brk===0)moves.push({p:90,t:'Start an automatic brokerage transfer — even '+fkPrecise(Math.max(250,needRaise||500))+'/mo',d:'The only account with no limit. Start small; raise it every year.'});
   else if(!goalMet&&needRaise!==null)moves.push({p:88,t:'Raise your brokerage '+fkPrecise(needRaise)+'/mo every year',d:'Lets you stop working by '+goal+'. Do it every January.'});
+  else if(!goalMet&&plan.capYr!==null&&!c.actual)moves.push({p:88,t:'To stop working by '+goal+', free up room in the budget',d:'Raising the transfer won\'t get there: '+(plan.capYr===0?'the budget':'from year '+(plan.capYr+1)+', the budget')+' has little or nothing left to invest. The levers: spending ('+fk(spend)+'/yr), the house, or a later goal.'});
   else if(!goalMet)moves.push({p:88,t:'Your goal of '+goal+' needs a bigger change',d:'No yearly raise gets there. Look at spending ('+fk(spend)+'/yr), a later goal, or the house.'});
   else moves.push({p:40,t:'Keep the plan on autopilot',d:'On track to stop working at '+plan.fi+'. Raise it '+fkPrecise(raise)+'/mo every year.'});
   if(!hosp&&MODE==='att'&&(ESTAB()||startAge()>=40))moves.push({p:58,t:'Ask your group about a cash balance plan',d:'Shelters more pre-tax the older you are. Ask the practice administrator or CPA.'});
